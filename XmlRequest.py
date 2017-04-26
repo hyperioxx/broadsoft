@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
 
+
 class XmlRequest:
     def __init__(self):
         self.command_data = None
