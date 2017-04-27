@@ -3,6 +3,7 @@ import unittest.mock
 import xml.etree.ElementTree as ET
 from broadsoft.XmlRequest import XmlRequest
 
+
 class TestBroadsoftXML(unittest.TestCase):
     def test_to_xml(self):
         x = XmlRequest()
