@@ -14,10 +14,10 @@ class TestBroadsoftGroupAddRequest(unittest.TestCase):
         self.assertEqual(gar.calling_line_id_name, gar.derive_calling_line_id_name())
 
         gar.calling_line_id_name = None
-        self.assertEqual(gar.group_id + ' Line', gar.derive_calling_line_id_name())
-
-        gar.group_id = None
         self.assertEqual(gar.group_name + ' Line', gar.derive_calling_line_id_name())
+
+        gar.group_name = None
+        self.assertEqual(gar.group_id + ' Line', gar.derive_calling_line_id_name())
 
     def test_derive_build_contact(self):
         gar = GroupAddRequest()

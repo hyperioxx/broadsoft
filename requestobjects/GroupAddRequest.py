@@ -28,11 +28,11 @@ class GroupAddRequest(XmlRequest):
         if self.calling_line_id_name is not None:
             return self.calling_line_id_name
 
-        elif self.group_id is not None:
-            return str(self.group_id) + ' Line'
-
         elif self.group_name is not None:
             return str(self.group_name) + ' Line'
+
+        elif self.group_id is not None:
+            return str(self.group_id) + ' Line'
 
     def to_xml(self):
         self.validate()
