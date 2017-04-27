@@ -88,24 +88,3 @@ class GroupAddRequest(XmlRequest):
     def validate(self):
         if self.group_id is None and self.group_name is None:
             raise ValueError("can't run broadsoft.GroupAddRequest.to_xml() without a value for group_id or group_name")
-
-"""
-    <?xml version="1.0" encoding="ISO-8859-1"?>
-    <BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-        <sessionId xmlns="">BB1A413DF12D404128F8956459FBD4D9</sessionId>
-        <command xsi:type="GroupAddRequest" xmlns="">
-            <serviceProviderId>sp1</serviceProviderId>
-            <groupId>group2</groupId>
-            <defaultDomain>broadworks</defaultDomain>
-            <userLimit>25</userLimit>
-            <groupName>Group 2</groupName>
-            <callingLineIdName>Group 2 Line ID</callingLineIdName>
-            <timeZone>America/New_York</timeZone>
-            <contact>
-                <contactName>Joe Smith</contactName>
-                <contactNumber>301-555-1212</contactNumber>
-                <contactEmail>joe.smith@broadworks.net</contactEmail>
-            </contact>
-        </command>
-    </BroadsoftDocument>
-    """
