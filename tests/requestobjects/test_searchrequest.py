@@ -5,22 +5,22 @@ from broadsoft.requestobjects.SearchRequest import SearchRequest
 
 class TestBroadsoftSearchRequest(unittest.TestCase):
     def test_build_search_criteria__validate(self):
-        s = SearchRequest(mode='Starts With')
+        s = SearchRequest.SearchCriteria(mode='Starts With')
 
         # should run without incident
-        s.build_search_criteria__validate()
+        s.add__validate()
 
-        s = SearchRequest(mode='blaj')
+        s = SearchRequest.SearchCriteria(mode='blaj')
         with self.assertRaises(ValueError):
-            s.build_search_criteria__validate()
+            s.add__validate()
 
     def test_init_accepts_args(self):
-        s = SearchRequest(mode='modemode', value='valval', case_sensitive=False)
+        s = SearchRequest.SearchCriteria(mode='modemode', value='valval', case_sensitive=False)
         self.assertEqual('modemode', s.mode)
         self.assertEqual('valval', s.value)
         self.assertFalse(s.case_sensitive)
 
-        s = SearchRequest(mode='ala', value='high', case_sensitive=True)
+        s = SearchRequest.SearchCriteria(mode='ala', value='high', case_sensitive=True)
         self.assertEqual('ala', s.mode)
         self.assertEqual('high', s.value)
         self.assertTrue(s.case_sensitive)
@@ -30,8 +30,8 @@ class TestBroadsoftSearchRequest(unittest.TestCase):
         # XmlRequest document. Here we'll just pass some dummy XML to test what SearchRequest builds
         x = ET.Element('searchCriteriaDummy')
 
-        s = SearchRequest(value='honesty', case_sensitive=False)
-        s.build_search_criteria(search_criteria_element=x)
+        s = SearchRequest.SearchCriteria(value='honesty', case_sensitive=False)
+        s.add(search_criteria_element=x)
         self.assertEqual(
             '<searchCriteriaDummy>' +
             '<mode>' + s.mode + '</mode>' +
@@ -42,8 +42,8 @@ class TestBroadsoftSearchRequest(unittest.TestCase):
         )
 
         x = ET.Element('searchCriteriaDummy')
-        s = SearchRequest(value='care', case_sensitive=True)
-        s.build_search_criteria(search_criteria_element=x)
+        s = SearchRequest.SearchCriteria(value='care', case_sensitive=True)
+        s.add(search_criteria_element=x)
         self.assertEqual(
             '<searchCriteriaDummy>' +
             '<mode>' + s.mode + '</mode>' +
@@ -53,12 +53,12 @@ class TestBroadsoftSearchRequest(unittest.TestCase):
             ET.tostring(element=x).decode("utf-8")
         )
 
-    @unittest.mock.patch.object(SearchRequest, 'build_search_criteria__validate')
+    @unittest.mock.patch.object(SearchRequest.SearchCriteria, 'add__validate')
     def test_build_search_criteria_calls_validate(
             self,
             validate_patch
     ):
-        s = SearchRequest()
+        s = SearchRequest.SearchCriteria()
         x = ET.Element('searchCriteriaDummy')
-        s.build_search_criteria(search_criteria_element=x)
+        s.add(search_criteria_element=x)
         self.assertTrue(validate_patch.called)
