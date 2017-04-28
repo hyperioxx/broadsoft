@@ -1,5 +1,9 @@
 import xml.etree.ElementTree as ET
 
+"""
+abstract class that should actually be instantiated as in GroupAddRequest
+"""
+
 
 class XmlRequest:
     def __init__(self):
