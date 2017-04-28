@@ -15,23 +15,23 @@ class TestBroadsoftSearchRequest(unittest.TestCase):
             s.add__validate()
 
     def test_init_accepts_args(self):
-        s = SearchRequest.SearchCriteria(mode='modemode', value='valval', case_sensitive=False)
+        s = SearchRequest.SearchCriteria(mode='modemode', value='valval', case_insensitive=False)
         self.assertEqual('modemode', s.mode)
         self.assertEqual('valval', s.value)
-        self.assertFalse(s.case_sensitive)
+        self.assertFalse(s.case_insensitive)
 
-        s = SearchRequest.SearchCriteria(mode='ala', value='high', case_sensitive=True)
+        s = SearchRequest.SearchCriteria(mode='ala', value='high', case_insensitive=True)
         self.assertEqual('ala', s.mode)
         self.assertEqual('high', s.value)
-        self.assertTrue(s.case_sensitive)
+        self.assertTrue(s.case_insensitive)
 
     def test_build_search_criteria_call(self):
         # Never actually call SearchRequest directly; rather will have a specific instantiation which will build an
         # XmlRequest document. Here we'll just pass some dummy XML to test what SearchRequest builds
         x = ET.Element('searchCriteriaDummy')
 
-        s = SearchRequest.SearchCriteria(value='honesty', case_sensitive=False)
-        s.add(search_criteria_element=x)
+        s = SearchRequest.SearchCriteria(value='honesty', case_insensitive=False)
+        s.add(parent=x)
         self.assertEqual(
             '<searchCriteriaDummy>' +
             '<mode>' + s.mode + '</mode>' +
@@ -42,8 +42,8 @@ class TestBroadsoftSearchRequest(unittest.TestCase):
         )
 
         x = ET.Element('searchCriteriaDummy')
-        s = SearchRequest.SearchCriteria(value='care', case_sensitive=True)
-        s.add(search_criteria_element=x)
+        s = SearchRequest.SearchCriteria(value='care', case_insensitive=True)
+        s.add(parent=x)
         self.assertEqual(
             '<searchCriteriaDummy>' +
             '<mode>' + s.mode + '</mode>' +
@@ -60,5 +60,5 @@ class TestBroadsoftSearchRequest(unittest.TestCase):
     ):
         s = SearchRequest.SearchCriteria()
         x = ET.Element('searchCriteriaDummy')
-        s.add(search_criteria_element=x)
+        s.add(parent=x)
         self.assertTrue(validate_patch.called)

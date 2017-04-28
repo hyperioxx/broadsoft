@@ -18,22 +18,22 @@ class SearchRequest(XmlRequest):
             'Equal To'
         ]
 
-        def __init__(self, mode='Starts With', value=None, case_sensitive=False):
-            self.case_sensitive = case_sensitive
+        def __init__(self, mode='Starts With', value=None, case_insensitive=False):
+            self.case_insensitive = case_insensitive
             self.mode = mode
             self.value = value
 
-        def add(self, search_criteria_element):
+        def add(self, parent):
             self.add__validate()
 
-            m = ET.SubElement(search_criteria_element, 'mode')
+            m = ET.SubElement(parent, 'mode')
             m.text = self.mode
 
-            v = ET.SubElement(search_criteria_element, 'value')
+            v = ET.SubElement(parent, 'value')
             v.text = str(self.value)
 
-            c = ET.SubElement(search_criteria_element, 'isCaseInsensitive')
-            if self.case_sensitive:
+            c = ET.SubElement(parent, 'isCaseInsensitive')
+            if self.case_insensitive:
                 c.text = 'true'
             else:
                 c.text = 'false'
