@@ -13,10 +13,11 @@ class SearchRequest(XmlRequest):
         'Equal To'
     ]
 
-    def __init__(self, mode='Starts With', value=None, case_sensitive=False):
+    def __init__(self, mode='Starts With', value=None, case_sensitive=False, response_lize_limit=None):
         self.case_sensitive = case_sensitive
         self.mode = mode
         self.value = value
+        self.response_lize_limit = response_lize_limit
         XmlRequest.__init__(self)
 
     def build_search_criteria(self, search_criteria_element):
