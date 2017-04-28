@@ -2,7 +2,7 @@ import xml.etree.ElementTree as ET
 from broadsoft.requestobjects.XmlRequest import XmlRequest
 
 """
-abstract class that should actually be instantiated as in GroupGetListInServiceProviderRequest
+abstract class that should actually be instantiated as in GroupGetListInSystemRequest
 """
 
 
