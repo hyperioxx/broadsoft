@@ -23,7 +23,7 @@ class SearchRequest(XmlRequest):
             self.mode = mode
             self.value = value
 
-        def add(self, parent):
+        def embed(self, parent):
             self.add__validate()
 
             m = ET.SubElement(parent, 'mode')

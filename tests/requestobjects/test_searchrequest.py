@@ -31,7 +31,7 @@ class TestBroadsoftSearchRequest(unittest.TestCase):
         x = ET.Element('searchCriteriaDummy')
 
         s = SearchRequest.SearchCriteria(value='honesty', case_insensitive=False)
-        s.add(parent=x)
+        s.embed(parent=x)
         self.assertEqual(
             '<searchCriteriaDummy>' +
             '<mode>' + s.mode + '</mode>' +
@@ -43,7 +43,7 @@ class TestBroadsoftSearchRequest(unittest.TestCase):
 
         x = ET.Element('searchCriteriaDummy')
         s = SearchRequest.SearchCriteria(value='care', case_insensitive=True)
-        s.add(parent=x)
+        s.embed(parent=x)
         self.assertEqual(
             '<searchCriteriaDummy>' +
             '<mode>' + s.mode + '</mode>' +
@@ -60,5 +60,5 @@ class TestBroadsoftSearchRequest(unittest.TestCase):
     ):
         s = SearchRequest.SearchCriteria()
         x = ET.Element('searchCriteriaDummy')
-        s.add(parent=x)
+        s.embed(parent=x)
         self.assertTrue(validate_patch.called)

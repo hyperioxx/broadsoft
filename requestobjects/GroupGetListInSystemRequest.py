@@ -42,7 +42,7 @@ class GroupGetListInSystemRequest(SearchRequest):
                 value=self.group_id,
                 case_insensitive=self.group_id_case_insensitive
             )
-            s.add(parent=sc)
+            s.embed(parent=sc)
             
         if self.group_name:
             sc = ET.SubElement(cmd, 'searchCriteriaGroupName')
@@ -51,7 +51,7 @@ class GroupGetListInSystemRequest(SearchRequest):
                 value=self.group_name,
                 case_insensitive=self.group_name_case_insensitive
             )
-            s.add(parent=sc)
+            s.embed(parent=sc)
 
         if self.service_provider:
             sc = ET.SubElement(cmd, 'searchCriteriaExactServiceProvider')
@@ -60,6 +60,6 @@ class GroupGetListInSystemRequest(SearchRequest):
                 value=self.service_provider,
                 case_insensitive=self.service_provider_case_insensitive
             )
-            s.add(parent=sc)
+            s.embed(parent=sc)
 
         return master
