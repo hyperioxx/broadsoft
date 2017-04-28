@@ -7,15 +7,21 @@ class GroupGetListInSystemRequest(SearchRequest):
     command_name = 'GroupGetListInSystemRequest'
 
     def __init__(self, group_id=None, group_name=None, service_provider=None):
+        # parameters for searchCriteriaGroupId element
         self.group_id = group_id
         self.group_id_mode = 'Equal To'
-        self.group_id_case_insensitive = False
+        self.group_id_case_insensitive = True
+
+        # parameters for searchCriteriaGroupName element
         self.group_name = group_name
         self.group_name_mode = 'Equal To'
-        self.group_name_case_insensitive = False
+        self.group_name_case_insensitive = True
+
+        # parameters for searchCriteriaExactServiceProvider element
         self.service_provider = service_provider
         self.service_provider_mode = 'Equal To'
-        self.service_provider_case_insensitive = False
+        self.service_provider_case_insensitive = True
+
         SearchRequest.__init__(self)
 
     def to_xml(self):
