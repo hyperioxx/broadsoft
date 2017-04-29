@@ -36,6 +36,8 @@ class GroupAddRequest(XmlRequest):
     def to_xml(self):
         self.validate()
 
+        # master is the entire XML document, cmd is the command element inserted within, which this object will be
+        # manipulating
         (master, cmd) = XmlRequest.master_to_xml(self)
 
         if self.service_provider:
