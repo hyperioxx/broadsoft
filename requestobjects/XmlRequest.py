@@ -30,10 +30,10 @@ class XmlRequest:
         # if self.command_name is set (should be a class var in the descendant object), build a <command> subelement
         cmd = None
         try:
-            if self.command_name:
-                cmd = ET.SubElement(master, 'command')
-                cmd.set('xsi:type', self.command_name)
-                cmd.set('xmlns', '')
+            command_name = self.command_name
+            cmd = ET.SubElement(master, 'command')
+            cmd.set('xsi:type', command_name)
+            cmd.set('xmlns', '')
         except AttributeError:
             pass
 
