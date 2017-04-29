@@ -7,7 +7,6 @@ from broadsoft.requestobjects.XmlRequest import XmlRequest
 class TestBroadsoftXML(unittest.TestCase):
     def test_to_xml_call(self):
         x = XmlRequest()
-        x.command_name = 'GroupAddRequest'
         x.default_domain = 'dd'
         x.encoding = 'piglatin'
         x.protocol = 'gopher'
@@ -16,7 +15,7 @@ class TestBroadsoftXML(unittest.TestCase):
         x.xmlns = 'PG13'
         x.xmlns_xsi = "http://youtube.com"
 
-        xml = x.master_to_xml()
+        (xml, cmd) = x.master_to_xml()
         self.assertEqual(
             '<BroadsoftDocument protocol="' + x.protocol + '" xmlns="' + x.xmlns + '" xmlns:xsi="' + x.xmlns_xsi + '"><sessionId xmlns="">' + x.session_id + '</sessionId></BroadsoftDocument>',
             ET.tostring(element=xml).decode("utf-8")

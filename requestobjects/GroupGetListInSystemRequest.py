@@ -25,11 +25,7 @@ class GroupGetListInSystemRequest(SearchRequest):
         SearchRequest.__init__(self)
 
     def to_xml(self):
-        master = XmlRequest.master_to_xml(self)
-
-        cmd = ET.SubElement(master, 'command')
-        cmd.set('xsi:type', self.command_name)
-        cmd.set('xmlns', '')
+        (master, cmd) = XmlRequest.master_to_xml(self)
 
         rsl = ET.SubElement(cmd, 'responseSizeLimit')
         rsl.text = str(self.response_lize_limit)

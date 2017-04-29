@@ -36,11 +36,7 @@ class GroupAddRequest(XmlRequest):
     def to_xml(self):
         self.validate()
 
-        master = XmlRequest.master_to_xml(self)
-
-        cmd = ET.SubElement(master, 'command')
-        cmd.set('xsi:type', self.command_name)
-        cmd.set('xmlns', '')
+        (master, cmd) = XmlRequest.master_to_xml(self)
 
         if self.service_provider:
             sp = ET.SubElement(cmd, 'serviceProviderId')

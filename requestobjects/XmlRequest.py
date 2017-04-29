@@ -18,16 +18,27 @@ class XmlRequest:
         self.xmlns_xsi = 'http://www.w3.org/2001/XMLSchema-instance'
 
     def master_to_xml(self):
-        bd = ET.Element('BroadsoftDocument')
-        bd.set('protocol', self.protocol)
-        bd.set('xmlns', self.xmlns)
-        bd.set('xmlns:xsi', self.xmlns_xsi)
+        master = ET.Element('BroadsoftDocument')
+        master.set('protocol', self.protocol)
+        master.set('xmlns', self.xmlns)
+        master.set('xmlns:xsi', self.xmlns_xsi)
 
-        sid = ET.SubElement(bd, 'sessionId')
+        sid = ET.SubElement(master, 'sessionId')
         sid.set('xmlns', '')
         sid.text = str(self.session_id)
 
-        return bd
+        # if self.command_name is set (should be a class var in the descendant object), build a <command> subelement
+        cmd = None
+        try:
+            if self.command_name:
+                cmd = ET.SubElement(master, 'command')
+                cmd.set('xsi:type', self.command_name)
+                cmd.set('xmlns', '')
+        except AttributeError:
+            pass
+
+        # returns both master and inserted command, which is where more stuff gets inserted
+        return (master, cmd)
 
     @staticmethod
     def convert_phone_number(number):
