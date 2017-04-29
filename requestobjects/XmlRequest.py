@@ -37,8 +37,9 @@ class XmlRequest:
         except AttributeError:
             pass
 
-        # returns both master and inserted command, which is where more stuff gets inserted
-        return (master, cmd)
+        # returns both master XML and (for convenience) inserted command, which is where more stuff gets inserted by
+        # descendant object
+        return master, cmd
 
     @staticmethod
     def convert_phone_number(number):
