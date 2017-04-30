@@ -7,12 +7,12 @@ abstract class that should actually be instantiated as in GroupAddRequest
 
 class XmlRequest:
     def __init__(self):
-        self.default_domain = 'broadworks'
+        self.default_domain = 'voiplogic.net'
         self.encoding = "ISO-8859-1"
         self.protocol = 'OCI'
-        self.service_provider = None
+        self.service_provider = 'ENT136'
         self.session_id = None
-        self.timezone = 'America/Boston'
+        self.timezone = 'America/New_York'
         self.xml_version = 1.0
         self.xmlns = 'C'
         self.xmlns_xsi = 'http://www.w3.org/2001/XMLSchema-instance'
