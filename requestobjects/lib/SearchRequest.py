@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
-from broadsoft.requestobjects.BroadsoftRequest import BroadsoftRequest
+
+from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 
 """
 abstract class that should actually be instantiated as in GroupGetListInSystemRequest

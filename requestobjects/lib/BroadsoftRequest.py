@@ -1,7 +1,9 @@
 import xml.etree.ElementTree as ET
+
 import requests
-from broadsoft.requestobjects.XmlDocument import XmlDocument
-from broadsoft.requestobjects.SoapEnvelope import SoapEnvelope
+from broadsoft.requestobjects.lib.SoapEnvelope import SoapEnvelope
+
+from broadsoft.requestobjects.lib.XmlDocument import XmlDocument
 
 """
 abstract class inherited by objects like AuthenticationRequest
@@ -40,7 +42,7 @@ class BroadsoftRequest(XmlDocument):
         # descendant object
         return master, cmd
 
-    def post(self):
+    def post(self, extract_payload=True):
         # this function is only for descendant objects, like AuthenticationRequest
 
         # first, convert self into string representation
@@ -55,7 +57,13 @@ class BroadsoftRequest(XmlDocument):
         headers = {'content-type': 'text/xml', 'SOAPAction': ''}
         response = requests.post(self.api_url, data=envelope, headers=headers)
 
-        return response
+        # dig actual message out of SOAP envelope it came in
+        if extract_payload:
+            return BroadsoftRequest.extract_payload(response.text)
+
+        # otherwise, return entire message as XML object
+        xml = ET.fromstring(text=response.content)
+        return xml
 
     @staticmethod
     def convert_phone_number(number):
@@ -64,3 +72,9 @@ class BroadsoftRequest(XmlDocument):
         number = re.sub('\D', '', number)
         number = number[:3] + '-' + number[3:6] + '-' + number[6:]
         return number
+
+    @staticmethod
+    def extract_payload(response):
+        response = ET.fromstring(text=response)
+        payload = response.findall('.//processOCIMessageResponse/{urn:com:broadsoft:webservice}processOCIMessageReturn')[0].text
+        return ET.fromstring(text=payload)

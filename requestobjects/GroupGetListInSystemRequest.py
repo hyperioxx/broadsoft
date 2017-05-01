@@ -1,6 +1,8 @@
 import xml.etree.ElementTree as ET
+
 from broadsoft.requestobjects.SearchRequest import SearchRequest
-from broadsoft.requestobjects.BroadsoftRequest import BroadsoftRequest
+
+from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 
 
 class GroupGetListInSystemRequest(SearchRequest):

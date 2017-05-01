@@ -1,6 +1,6 @@
 import xml.etree.ElementTree as ET
-import re
-from broadsoft.requestobjects.XmlDocument import XmlDocument
+
+from broadsoft.requestobjects.lib.XmlDocument import XmlDocument
 
 
 class SoapEnvelope(XmlDocument):

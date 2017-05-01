@@ -18,3 +18,14 @@ class TestBroadsoftAuthenticationRequest(unittest.TestCase):
             '</BroadsoftDocument>',
             ET.tostring(element=xml).decode("utf-8")
         )
+
+    def test_extract_auth_token(self):
+        payload = '<ns0:BroadsoftDocument xmlns:ns0="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" protocol="OCI"><sessionId>sesh</sessionId><command echo="" xsi:type="AuthenticationResponse"><userId>admMITapi</userId><nonce>1493647455426</nonce><passwordAlgorithm>MD5</passwordAlgorithm></command></ns0:BroadsoftDocument>'
+        payload = ET.fromstring(text=payload)
+        self.assertEqual(
+            '1493647455426',
+            AuthenticationRequest.extract_auth_token(payload=payload)
+        )
+
+    def test_authenticate_call(self):
+        self.assertFalse("write this")

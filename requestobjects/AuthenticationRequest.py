@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
-from broadsoft.requestobjects.BroadsoftRequest import BroadsoftRequest
+
+from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 
 
 class AuthenticationRequest(BroadsoftRequest):
@@ -18,3 +19,15 @@ class AuthenticationRequest(BroadsoftRequest):
         uid.text = self.user_id
 
         return master
+
+    @staticmethod
+    def authenticate(session_id=None):
+        a = AuthenticationRequest()
+        a.session_id = session_id
+        payload = a.post()
+        return AuthenticationRequest.extract_auth_token(payload=payload)
+
+    @staticmethod
+    def extract_auth_token(payload):
+        token = payload.findall('./command/nonce')[0]
+        return token.text
