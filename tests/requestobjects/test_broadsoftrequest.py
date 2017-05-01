@@ -98,12 +98,16 @@ class TestBroadsoftRequest(unittest.TestCase):
         # with extract_payload True
         self.maxDiff = None
         a = AuthenticationRequest()
+        # last_response should start out unpopulated
+        self.assertIsNone(a.last_response)
         a.session_id = 'sesh'
         p = a.post(extract_payload=True)
         self.assertEqual(
             '<ns0:BroadsoftDocument xmlns:ns0="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" protocol="OCI"><sessionId>None</sessionId><command echo="" xsi:type="AuthenticationResponse"><userId>admMITapi</userId><nonce>1493661742798</nonce><passwordAlgorithm>MD5</passwordAlgorithm></command></ns0:BroadsoftDocument>',
             ET.tostring(p).decode('utf-8')
         )
+        # should also have populated last_response
+        self.assertIsNotNone(a.last_response)
 
         # with extract_payload False
         a = AuthenticationRequest()

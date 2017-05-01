@@ -24,6 +24,7 @@ class BroadsoftRequest(XmlDocument):
     def __init__(self, use_test=False, session_id=None, require_logging=True):
         self.api_url = self.derive_api_url(use_test=use_test)
         self.default_domain = 'voiplogic.net'
+        self.last_response = None
         self.service_provider = 'ENT136'
         self.session_id = session_id
         self.timezone = 'America/New_York'
@@ -107,6 +108,7 @@ class BroadsoftRequest(XmlDocument):
         # post to server
         headers = {'content-type': 'text/xml', 'SOAPAction': ''}
         response = requests.post(url=self.api_url, data=envelope, headers=headers)
+        self.last_response = response
 
         # massage the response and check for errors
         content = response.content
