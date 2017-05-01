@@ -117,3 +117,13 @@ class TestBroadsoftGroupGetListInSystemRequest(unittest.TestCase):
             '</BroadsoftDocument>',
             ET.tostring(x).decode('utf-8')
         )
+
+    def test_use_test_gets_passed_to_broadsoftdocument(self):
+        g = GroupGetListInSystemRequest()
+        self.assertEqual(g.prod_url, g.api_url)
+
+        g = GroupGetListInSystemRequest(use_test=False)
+        self.assertEqual(g.prod_url, g.api_url)
+
+        g = GroupGetListInSystemRequest(use_test=True)
+        self.assertEqual(g.test_url, g.api_url)

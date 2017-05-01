@@ -36,14 +36,14 @@ class TestBroadsoftRequest(unittest.TestCase):
         # without urlencoding
         s = a.to_string(html_encode=False)
         self.assertEqual(
-            '<?xml version="1.0" encoding="UTF-8"?><BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><sessionId xmlns="">sesh</sessionId><command xmlns="" xsi:type="AuthenticationRequest"><userId>admMITapi</userId></command></BroadsoftDocument>',
+            '<?xml version="1.0" encoding="UTF-8"?><BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><sessionId xmlns="">sesh</sessionId><command xmlns="" xsi:type="AuthenticationRequest"><userId>' + a.prod_user_id + '</userId></command></BroadsoftDocument>',
             s
         )
 
         # with urlencoding
         s = a.to_string(html_encode=True)
         self.assertEqual(
-            '&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&lt;BroadsoftDocument protocol=&quot;OCI&quot; xmlns=&quot;C&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;&gt;&lt;sessionId xmlns=&quot;&quot;&gt;sesh&lt;/sessionId&gt;&lt;command xmlns=&quot;&quot; xsi:type=&quot;AuthenticationRequest&quot;&gt;&lt;userId&gt;admMITapi&lt;/userId&gt;&lt;/command&gt;&lt;/BroadsoftDocument&gt;',
+            '&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&lt;BroadsoftDocument protocol=&quot;OCI&quot; xmlns=&quot;C&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;&gt;&lt;sessionId xmlns=&quot;&quot;&gt;sesh&lt;/sessionId&gt;&lt;command xmlns=&quot;&quot; xsi:type=&quot;AuthenticationRequest&quot;&gt;&lt;userId&gt;' + a.prod_user_id + '&lt;/userId&gt;&lt;/command&gt;&lt;/BroadsoftDocument&gt;',
             s
         )
 
@@ -83,4 +83,14 @@ class TestBroadsoftRequest(unittest.TestCase):
         self.assertFalse("write this")
 
     def test_derive_url_for_test_and_prod_envs(self):
-        self.assertFalse("write this")
+        # default value for use_test
+        b = BroadsoftRequest()
+        self.assertEqual(b.api_url, b.prod_url)
+
+        # use_test is False
+        b = BroadsoftRequest(use_test=False)
+        self.assertEqual(b.api_url, b.prod_url)
+
+        # use_test is True
+        b = BroadsoftRequest(use_test=True)
+        self.assertEqual(b.api_url, b.test_url)

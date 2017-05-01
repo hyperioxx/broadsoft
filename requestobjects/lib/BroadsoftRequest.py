@@ -13,12 +13,21 @@ defines what a request to the Broadsoft OCI server looks like, how to post to it
 
 
 class BroadsoftRequest(XmlDocument):
-    def __init__(self):
-        self.api_url = 'https://web1.voiplogic.net/webservice/services/ProvisioningService'
+    prod_url = '[unknown]'
+    test_url = 'https://web1.voiplogic.net/webservice/services/ProvisioningService'
+
+    def __init__(self, use_test=False):
+        self.api_url = self.derive_api_url(use_test=use_test)
         self.default_domain = 'voiplogic.net'
         self.service_provider = 'ENT136'
         self.session_id = None
         self.timezone = 'America/New_York'
+
+    def derive_api_url(self, use_test):
+        if use_test:
+            return self.test_url
+
+        return self.prod_url
 
     def master_to_xml(self):
         master = ET.Element('BroadsoftDocument')
@@ -58,7 +67,7 @@ class BroadsoftRequest(XmlDocument):
 
         # post to server
         headers = {'content-type': 'text/xml', 'SOAPAction': ''}
-        response = requests.post(self.api_url, data=envelope, headers=headers)
+        response = requests.post(url=self.api_url, data=envelope, headers=headers)
 
         # dig actual message out of SOAP envelope it came in (and return as XML object)
         if extract_payload:

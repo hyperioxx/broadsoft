@@ -6,7 +6,7 @@ from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 class GroupAddRequest(BroadsoftRequest):
     command_name = 'GroupAddRequest'
 
-    def __init__(self, group_id=None, group_name=None):
+    def __init__(self, group_id=None, group_name=None, **kwargs):
         self.calling_line_id_name = None
         self.contact_email = None
         self.contact_name = None
@@ -14,7 +14,7 @@ class GroupAddRequest(BroadsoftRequest):
         self.group_id = group_id
         self.group_name = group_name
         self.user_limit = None
-        BroadsoftRequest.__init__(self)
+        BroadsoftRequest.__init__(self, **kwargs)
 
     def derive_build_contact(self):
         attrs = [self.contact_email, self.contact_name, self.contact_number]

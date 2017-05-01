@@ -63,3 +63,13 @@ class TestBroadsoftSearchRequest(unittest.TestCase):
         x = ET.Element('searchCriteriaDummy')
         s.embed(parent=x)
         self.assertTrue(validate_patch.called)
+
+    def test_use_test_gets_passed_to_broadsoftdocument(self):
+        g = SearchRequest()
+        self.assertEqual(g.prod_url, g.api_url)
+
+        g = SearchRequest(use_test=False)
+        self.assertEqual(g.prod_url, g.api_url)
+
+        g = SearchRequest(use_test=True)
+        self.assertEqual(g.test_url, g.api_url)

@@ -8,7 +8,7 @@ from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 class GroupGetListInSystemRequest(SearchRequest):
     command_name = 'GroupGetListInSystemRequest'
 
-    def __init__(self, group_id=None, group_name=None, service_provider=None):
+    def __init__(self, group_id=None, group_name=None, service_provider=None, **kwargs):
         # parameters for searchCriteriaGroupId element
         self.group_id = group_id
         self.group_id_mode = 'Equal To'
@@ -24,7 +24,7 @@ class GroupGetListInSystemRequest(SearchRequest):
         self.service_provider_mode = 'Equal To'
         self.service_provider_case_insensitive = True
 
-        SearchRequest.__init__(self)
+        SearchRequest.__init__(self, **kwargs)
 
     def to_xml(self):
         # master is the entire XML document, cmd is the command element inserted within, which this object will be
