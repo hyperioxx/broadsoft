@@ -144,9 +144,6 @@ class TestBroadsoftRequest(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             a.post()
 
-    def test_logging_when_noisy(self):
-        self.assertFalse("write this")
-
     def test_derive_url_for_test_and_prod_envs(self):
         # default value for use_test
         b = BroadsoftRequest()

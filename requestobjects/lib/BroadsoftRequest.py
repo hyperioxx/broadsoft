@@ -3,6 +3,7 @@ import requests
 import datetime
 import socket
 import random
+import logging
 from broadsoft.requestobjects.lib.SoapEnvelope import SoapEnvelope
 
 from broadsoft.requestobjects.lib.XmlDocument import XmlDocument
@@ -17,14 +18,39 @@ defines what a request to the Broadsoft OCI server looks like, how to post to it
 class BroadsoftRequest(XmlDocument):
     prod_url = '[unknown]'
     test_url = 'https://web1.voiplogic.net/webservice/services/ProvisioningService'
+    logging_dir = '/var/log/broadsoft'
+    logging_fname = 'api.log'
 
-    def __init__(self, use_test=False, session_id=None):
+    def __init__(self, use_test=False, session_id=None, require_logging=True):
         self.api_url = self.derive_api_url(use_test=use_test)
         self.default_domain = 'voiplogic.net'
         self.service_provider = 'ENT136'
         self.session_id = session_id
         self.timezone = 'America/New_York'
         self.derive_session_id()
+
+        self.default_logging(require_logging)
+
+    def default_logging(self, require_logging):
+        import os
+        from logging.handlers import TimedRotatingFileHandler
+
+        # does the log location exist
+        if not os.path.exists(self.logging_dir):
+            os.makedirs(name=self.logging_dir, exist_ok=True)
+
+        if not os.path.exists(self.logging_dir) and require_logging:
+            raise IOError('no permission to create ' + self.logging_dir)
+
+        logging.basicConfig(filename=self.logging_dir + '/' + self.logging_fname, level=logging.INFO,
+                            format='%(asctime)s (%(session_id)s) %(message)s')
+        logger = logging.getLogger(name='broadsoftapilog')
+        logger.setLevel(level=logging.INFO)
+        handler = TimedRotatingFileHandler(filename=self.logging_dir + '/' + self.logging_fname,
+                                           when='W0',
+                                           interval=1,
+                                           backupCount=12)
+        logger.addHandler(handler)
 
     def derive_api_url(self, use_test):
         if use_test:
@@ -75,6 +101,9 @@ class BroadsoftRequest(XmlDocument):
         e = SoapEnvelope(body=payload)
         envelope = e.to_string()
 
+        logging.info("url: " + self.api_url, extra={'session_id': self.session_id})
+        logging.info("payload: " + envelope, extra={'session_id': self.session_id})
+
         # post to server
         headers = {'content-type': 'text/xml', 'SOAPAction': ''}
         response = requests.post(url=self.api_url, data=envelope, headers=headers)
@@ -85,6 +114,7 @@ class BroadsoftRequest(XmlDocument):
             content = content.decode('utf-8')
         except AttributeError:
             pass
+        logging.info("response: " + content, extra={'session_id': self.session_id})
         BroadsoftRequest.check_error(response=content)
 
         # dig actual message out of SOAP envelope it came in (and return as XML object)
@@ -106,6 +136,7 @@ class BroadsoftRequest(XmlDocument):
             fault = faults[0]
             message = fault.findall('./faultstring')[0].text
             detail = fault.findall('./detail/string')[0].text
+            logging.error("SOAP error: " + message + ': ' + detail)
             raise RuntimeError("the SOAP server threw an error: " + message + ': ' + detail)
 
     @staticmethod

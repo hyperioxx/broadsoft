@@ -29,9 +29,8 @@ class AuthenticationRequest(BroadsoftRequest):
         return master
 
     @staticmethod
-    def authenticate(session_id=None, **kwargs):
+    def authenticate(**kwargs):
         a = AuthenticationRequest(**kwargs)
-        a.session_id = session_id
         payload = a.post()
         return AuthenticationRequest.extract_auth_token(payload=payload)
 
