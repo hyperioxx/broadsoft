@@ -26,3 +26,6 @@ class TestBroadsoftXML(unittest.TestCase):
         self.assertEqual('617-555-1212', XmlRequest.convert_phone_number(number='617 555 1212'))
         self.assertEqual('617-555-1212', XmlRequest.convert_phone_number(number='(617) 555-1212'))
         self.assertEqual('617-555-1212', XmlRequest.convert_phone_number(number='(617)-555-1212'))
+
+    def test_generate_session_id(self):
+        self.assertFalse("write this")
