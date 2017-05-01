@@ -53,3 +53,6 @@ class TestBroadsoftRequest(unittest.TestCase):
 
     def test_post_call(self):
         self.assertFalse("write this")
+
+    def test_extract_payload_from_response(self):
+        self.assertFalse("write this")

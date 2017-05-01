@@ -4,7 +4,7 @@ from broadsoft.requestobjects.XmlDocument import XmlDocument
 from broadsoft.requestobjects.SoapEnvelope import SoapEnvelope
 
 """
-abstract class that should actually be instantiated as in GroupAddRequest
+abstract class inherited by objects like AuthenticationRequest
 """
 
 
@@ -12,20 +12,15 @@ class BroadsoftRequest(XmlDocument):
     def __init__(self):
         self.api_url = 'https://web1.voiplogic.net/webservice/services/ProvisioningService'
         self.default_domain = 'voiplogic.net'
-        self.encoding = "ISO-8859-1"
-        self.protocol = 'OCI'
         self.service_provider = 'ENT136'
         self.session_id = None
         self.timezone = 'America/New_York'
-        self.xml_version = 1.0
-        self.xmlns = 'C'
-        self.xmlns_xsi = 'http://www.w3.org/2001/XMLSchema-instance'
 
     def master_to_xml(self):
         master = ET.Element('BroadsoftDocument')
-        master.set('protocol', self.protocol)
-        master.set('xmlns', self.xmlns)
-        master.set('xmlns:xsi', self.xmlns_xsi)
+        master.set('protocol', 'OCI')
+        master.set('xmlns', 'C')
+        master.set('xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance')
 
         sid = ET.SubElement(master, 'sessionId')
         sid.set('xmlns', '')
@@ -46,8 +41,10 @@ class BroadsoftRequest(XmlDocument):
         return master, cmd
 
     def post(self):
-        # this function is only for descendant objects, like AuthenticationReuqest
+        # this function is only for descendant objects, like AuthenticationRequest
+
         # first, convert self into string representation
+        # (to_string() comes from broadsoft.requestobjects.XmlDocument)
         payload = self.to_string()
 
         # wrap that payload in a SOAP envelope, and convert whole enchilada to a string in order to post to broadsoft
