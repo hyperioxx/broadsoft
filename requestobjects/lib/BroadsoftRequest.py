@@ -7,6 +7,8 @@ from broadsoft.requestobjects.lib.XmlDocument import XmlDocument
 
 """
 abstract class inherited by objects like AuthenticationRequest
+
+defines what a request to the Broadsoft OCI server looks like, how to post to it, and how to decode the responses
 """
 
 
@@ -35,6 +37,7 @@ class BroadsoftRequest(XmlDocument):
             cmd = ET.SubElement(master, 'command')
             cmd.set('xsi:type', command_name)
             cmd.set('xmlns', '')
+
         except AttributeError:
             pass
 

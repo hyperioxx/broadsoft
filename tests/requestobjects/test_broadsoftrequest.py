@@ -83,3 +83,9 @@ class TestBroadsoftRequest(unittest.TestCase):
 
     def test_run_call(self):
         self.assertFalse("write this")
+
+    def test_logging_when_noisy(self):
+        self.assertFalse("write this")
+
+    def test_derive_url_for_test_and_prod_envs(self):
+        self.assertFalse("write this")

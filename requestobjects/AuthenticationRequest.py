@@ -29,5 +29,6 @@ class AuthenticationRequest(BroadsoftRequest):
 
     @staticmethod
     def extract_auth_token(payload):
+        # when successfully authenticate, auth token is encased inside a <nonce> element in the response payload
         token = payload.findall('./command/nonce')[0]
         return token.text

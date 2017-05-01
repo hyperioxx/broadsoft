@@ -3,6 +3,9 @@ import html
 
 """
 abstract class inherited by objects like SoapEnvelope and BroadsoftRequest
+
+defines methods and properties to be shared by all XML documents, whether Broadsoft request documents, or the 
+SOAP envelope that encases them
 """
 
 
