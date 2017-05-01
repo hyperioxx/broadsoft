@@ -108,3 +108,7 @@ class TestBroadsoftGroupAddRequest(unittest.TestCase):
 
         g = GroupAddRequest(use_test=True)
         self.assertEqual(g.test_url, g.api_url)
+
+    def test_can_pass_session_id(self):
+        g = GroupAddRequest(session_id='sesh')
+        self.assertEqual('sesh', g.session_id)

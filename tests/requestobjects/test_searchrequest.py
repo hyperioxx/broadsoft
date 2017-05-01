@@ -73,3 +73,7 @@ class TestBroadsoftSearchRequest(unittest.TestCase):
 
         g = SearchRequest(use_test=True)
         self.assertEqual(g.test_url, g.api_url)
+
+    def test_can_pass_session_id(self):
+        g = SearchRequest(session_id='sesh')
+        self.assertEqual('sesh', g.session_id)

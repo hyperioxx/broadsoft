@@ -15,7 +15,7 @@ class TestBroadsoftGroupGetListInSystemRequest(unittest.TestCase):
         self.maxDiff = None
         self.assertEqual(
             '<BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
-                '<sessionId xmlns="">None</sessionId>' +
+                '<sessionId xmlns="">' + g.session_id + '</sessionId>' +
                 '<command xmlns="" xsi:type="GroupGetListInSystemRequest">' +
                     '<responseSizeLimit>None</responseSizeLimit>' +
                     '<searchCriteriaGroupId>' +
@@ -42,7 +42,7 @@ class TestBroadsoftGroupGetListInSystemRequest(unittest.TestCase):
         x = g.to_xml()
         self.assertEqual(
             '<BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
-                '<sessionId xmlns="">None</sessionId>' +
+                '<sessionId xmlns="">' + g.session_id + '</sessionId>' +
                 '<command xmlns="" xsi:type="GroupGetListInSystemRequest">' +
                     '<responseSizeLimit>None</responseSizeLimit>' +
                     '<searchCriteriaGroupName>' +
@@ -70,7 +70,7 @@ class TestBroadsoftGroupGetListInSystemRequest(unittest.TestCase):
         x = g.to_xml()
         self.assertEqual(
             '<BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
-            '<sessionId xmlns="">None</sessionId>' +
+            '<sessionId xmlns="">' + g.session_id + '</sessionId>' +
             '<command xmlns="" xsi:type="GroupGetListInSystemRequest">' +
             '<responseSizeLimit>None</responseSizeLimit>' +
             '<searchCriteriaExactServiceProvider>' +
@@ -95,7 +95,7 @@ class TestBroadsoftGroupGetListInSystemRequest(unittest.TestCase):
         x = g.to_xml()
         self.assertEqual(
             '<BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
-            '<sessionId xmlns="">None</sessionId>' +
+            '<sessionId xmlns="">' + g.session_id + '</sessionId>' +
             '<command xmlns="" xsi:type="GroupGetListInSystemRequest">' +
             '<responseSizeLimit>None</responseSizeLimit>' +
             '<searchCriteriaGroupId>' +
@@ -127,3 +127,7 @@ class TestBroadsoftGroupGetListInSystemRequest(unittest.TestCase):
 
         g = GroupGetListInSystemRequest(use_test=True)
         self.assertEqual(g.test_url, g.api_url)
+
+    def test_can_pass_session_id(self):
+        g = GroupGetListInSystemRequest(session_id='sesh')
+        self.assertEqual('sesh', g.session_id)

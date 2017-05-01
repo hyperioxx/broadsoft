@@ -4,6 +4,23 @@ import xml.etree.ElementTree as ET
 from broadsoft.requestobjects.AuthenticationRequest import AuthenticationRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 
+def return_xml(*args, **kwargs):
+    class Response:
+        def __init__(self):
+            self.content = '<ns0:Envelope xmlns:ns0="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="urn:com:broadsoft:webservice"><ns0:Body><processOCIMessageResponse><ns1:processOCIMessageReturn>&lt;?xml version="1.0" encoding="UTF-8"?&gt;\n&lt;BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;&lt;sessionId xmlns=""&gt;None&lt;/sessionId&gt;&lt;command echo="" xsi:type="AuthenticationResponse" xmlns=""&gt;&lt;userId&gt;admMITapi&lt;/userId&gt;&lt;nonce&gt;1493661742798&lt;/nonce&gt;&lt;passwordAlgorithm&gt;MD5&lt;/passwordAlgorithm&gt;&lt;/command&gt;&lt;/BroadsoftDocument&gt;</ns1:processOCIMessageReturn></processOCIMessageResponse></ns0:Body></ns0:Envelope>'
+
+    r = Response()
+    return r
+
+
+def return_xml_error(*args, **kwargs):
+    class Response:
+        def __init__(self):
+            self.content = '<ns0:Envelope xmlns:ns0="http://schemas.xmlsoap.org/soap/envelope/"><ns0:Body><ns0:Fault><faultcode>soapenv:Server.generalException</faultcode><faultstring>INVALID_REQUEST</faultstring><faultactor>ProvisioningService</faultactor><detail><string>Cannot process any request before user is logged in.</string></detail></ns0:Fault></ns0:Body></ns0:Envelope>'
+
+    r = Response()
+    return r
+
 
 class TestBroadsoftRequest(unittest.TestCase):
     def test_to_xml_call(self):
@@ -24,7 +41,12 @@ class TestBroadsoftRequest(unittest.TestCase):
         self.assertEqual('617-555-1212', BroadsoftRequest.convert_phone_number(number='(617)-555-1212'))
 
     def test_generate_session_id(self):
-        self.assertFalse("write this")
+        b = BroadsoftRequest()
+        self.assertRegex(b.session_id, r'^.+?,\d{4}\-\d{2}\-\d{2} \d{2}:\d{2}:\d{2}\.\d+,\d{10}$')
+
+    def test_pass_session_id(self):
+        b = BroadsoftRequest(session_id='sesh')
+        self.assertEqual('sesh', b.session_id)
 
     def test_to_string(self):
         # to_string() lives in XmlRequest, but can never be called by it since there's no to_xml() for this parent
@@ -65,19 +87,62 @@ class TestBroadsoftRequest(unittest.TestCase):
             ET.tostring(element=payload).decode('utf-8')
         )
 
-    def test_post_call(self):
-        # with extract_payload true
-        # with extract_payload false
-        self.assertFalse("write this")
+    @unittest.mock.patch('requests.post', side_effect=return_xml)
+    def test_post_return_values(
+            self,
+            post_patch
+    ):
+        # to_string() lives in XmlRequest, but can never be called by it since there's no to_xml() for this parent
+        # object. so we test with AuthenticationRequest
 
-    def test_find_error_in_post_call(self):
-        self.assertFalse("write this")
+        # with extract_payload True
+        self.maxDiff = None
+        a = AuthenticationRequest()
+        a.session_id = 'sesh'
+        p = a.post(extract_payload=True)
+        self.assertEqual(
+            '<ns0:BroadsoftDocument xmlns:ns0="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" protocol="OCI"><sessionId>None</sessionId><command echo="" xsi:type="AuthenticationResponse"><userId>admMITapi</userId><nonce>1493661742798</nonce><passwordAlgorithm>MD5</passwordAlgorithm></command></ns0:BroadsoftDocument>',
+            ET.tostring(p).decode('utf-8')
+        )
 
-    def test_extract_payload_from_response(self):
-        self.assertFalse("write this")
+        # with extract_payload False
+        a = AuthenticationRequest()
+        a.session_id = 'sesh'
+        p = a.post(extract_payload=False)
+        self.assertEqual(
+            '<ns0:Envelope xmlns:ns0="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="urn:com:broadsoft:webservice"><ns0:Body><processOCIMessageResponse><ns1:processOCIMessageReturn>&lt;?xml version="1.0" encoding="UTF-8"?&gt;\n&lt;BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;&lt;sessionId xmlns=""&gt;None&lt;/sessionId&gt;&lt;command echo="" xsi:type="AuthenticationResponse" xmlns=""&gt;&lt;userId&gt;admMITapi&lt;/userId&gt;&lt;nonce&gt;1493661742798&lt;/nonce&gt;&lt;passwordAlgorithm&gt;MD5&lt;/passwordAlgorithm&gt;&lt;/command&gt;&lt;/BroadsoftDocument&gt;</ns1:processOCIMessageReturn></processOCIMessageResponse></ns0:Body></ns0:Envelope>',
+            ET.tostring(p).decode('utf-8')
+        )
 
-    def test_run_call(self):
-        self.assertFalse("write this")
+    def test_check_error(self):
+        error_return = '<ns0:Envelope xmlns:ns0="http://schemas.xmlsoap.org/soap/envelope/"><ns0:Body><ns0:Fault><faultcode>soapenv:Server.generalException</faultcode><faultstring>INVALID_REQUEST</faultstring><faultactor>ProvisioningService</faultactor><detail><string>Cannot process any request before user is logged in.</string></detail></ns0:Fault></ns0:Body></ns0:Envelope>'
+        valid_return = '<ns0:Envelope xmlns:ns0="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="urn:com:broadsoft:webservice"><ns0:Body><processOCIMessageResponse><ns1:processOCIMessageReturn>&lt;?xml version="1.0" encoding="UTF-8"?&gt;\n&lt;BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;&lt;sessionId xmlns=""&gt;None&lt;/sessionId&gt;&lt;command echo="" xsi:type="AuthenticationResponse" xmlns=""&gt;&lt;userId&gt;admMITapi&lt;/userId&gt;&lt;nonce&gt;1493661742798&lt;/nonce&gt;&lt;passwordAlgorithm&gt;MD5&lt;/passwordAlgorithm&gt;&lt;/command&gt;&lt;/BroadsoftDocument&gt;</ns1:processOCIMessageReturn></processOCIMessageResponse></ns0:Body></ns0:Envelope>'
+
+        # pass error as string
+        with self.assertRaises(RuntimeError):
+            BroadsoftRequest.check_error(response=error_return)
+
+        # pass error as xml
+        with self.assertRaises(RuntimeError):
+            BroadsoftRequest.check_error(response=ET.fromstring(text=error_return))
+
+        # pass valid as string
+        BroadsoftRequest.check_error(response=valid_return)
+
+        # pass valid as xml
+        BroadsoftRequest.check_error(response=ET.fromstring(text=valid_return))
+
+    @unittest.mock.patch('requests.post', side_effect=return_xml_error)
+    def test_find_error_in_post_call(
+            self,
+            post_patch
+    ):
+        # to_string() lives in XmlRequest, but can never be called by it since there's no to_xml() for this parent
+        # object. so we test with AuthenticationRequest
+        a = AuthenticationRequest()
+        a.session_id = 'sesh'
+        with self.assertRaises(RuntimeError):
+            a.post()
 
     def test_logging_when_noisy(self):
         self.assertFalse("write this")
