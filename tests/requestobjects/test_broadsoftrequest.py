@@ -9,16 +9,11 @@ class TestBroadsoftRequest(unittest.TestCase):
     def test_to_xml_call(self):
         x = BroadsoftRequest()
         x.default_domain = 'dd'
-        x.encoding = 'piglatin'
-        x.protocol = 'gopher'
         x.session_id = 'seshy'
-        x.version = '2.5'
-        x.xmlns = 'PG13'
-        x.xmlns_xsi = "http://youtube.com"
 
         (xml, cmd) = x.master_to_xml()
         self.assertEqual(
-            '<BroadsoftDocument protocol="' + x.protocol + '" xmlns="' + x.xmlns + '" xmlns:xsi="' + x.xmlns_xsi + '"><sessionId xmlns="">' + x.session_id + '</sessionId></BroadsoftDocument>',
+            '<BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><sessionId xmlns="">' + x.session_id + '</sessionId></BroadsoftDocument>',
             ET.tostring(element=xml).decode("utf-8")
         )
 

@@ -60,7 +60,7 @@ class BroadsoftRequest(XmlDocument):
         headers = {'content-type': 'text/xml', 'SOAPAction': ''}
         response = requests.post(self.api_url, data=envelope, headers=headers)
 
-        # dig actual message out of SOAP envelope it came in
+        # dig actual message out of SOAP envelope it came in (and return as XML object)
         if extract_payload:
             return BroadsoftRequest.extract_payload(response.text)
 

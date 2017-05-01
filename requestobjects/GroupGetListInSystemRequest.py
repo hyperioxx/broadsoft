@@ -1,6 +1,6 @@
 import xml.etree.ElementTree as ET
 
-from broadsoft.requestobjects.SearchRequest import SearchRequest
+from broadsoft.requestobjects.lib.SearchRequest import SearchRequest
 
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 

@@ -55,7 +55,7 @@ class TestBroadsoftGroupAddRequest(unittest.TestCase):
         with self.assertRaises(ValueError):
             gar.to_xml()
 
-    @unittest.mock.patch('broadsoft.requestobjects.XmlRequest.XmlRequest.convert_phone_number')
+    @unittest.mock.patch('broadsoft.requestobjects.lib.BroadsoftRequest.BroadsoftRequest.convert_phone_number')
     def test_groupaddrequest_to_xml_calls_convert_phone_number_when_number_present(
             self,
             convert_phone_number_patch
@@ -79,9 +79,10 @@ class TestBroadsoftGroupAddRequest(unittest.TestCase):
 
         xml = gar.to_xml()
         self.assertEqual(
-            '<BroadsoftDocument protocol="' + gar.protocol + '" xmlns="' + gar.xmlns + '" xmlns:xsi="' + gar.xmlns_xsi + '">' +
+            '<BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
             '<sessionId xmlns="">' + gar.session_id + '</sessionId>' +
             '<command xmlns="" xsi:type="' + gar.command_name + '">' +
+            '<serviceProviderId>' + gar.service_provider + '</serviceProviderId>' +
             '<groupId>' + gar.group_id + '</groupId>' +
             '<defaultDomain>' + gar.default_domain + '</defaultDomain>' +
             '<userLimit>' + str(gar.user_limit) + '</userLimit>' +

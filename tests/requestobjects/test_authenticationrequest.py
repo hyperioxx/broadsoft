@@ -10,7 +10,7 @@ class TestBroadsoftAuthenticationRequest(unittest.TestCase):
         a.session_id = 'sesh'
         xml = a.to_xml()
         self.assertEqual(
-            '<BroadsoftDocument protocol="' + a.protocol + '" xmlns="' + a.xmlns + '" xmlns:xsi="' + a.xmlns_xsi + '">' +
+            '<BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
             '<sessionId xmlns="">' + a.session_id + '</sessionId>' +
             '<command xmlns="" xsi:type="' + a.command_name + '">' +
             '<userId>' + a.user_id + '</userId>' +

@@ -12,6 +12,7 @@ class TestBroadsoftGroupGetListInSystemRequest(unittest.TestCase):
         g.group_id_case_insensitive = True
 
         x = g.to_xml()
+        self.maxDiff = None
         self.assertEqual(
             '<BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
                 '<sessionId xmlns="">None</sessionId>' +
@@ -22,6 +23,11 @@ class TestBroadsoftGroupGetListInSystemRequest(unittest.TestCase):
                         '<value>' + g.group_id + '</value>' +
                         '<isCaseInsensitive>true</isCaseInsensitive>' +
                     '</searchCriteriaGroupId>' +
+                    '<searchCriteriaExactServiceProvider>' +
+                        '<mode>' + g.service_provider_mode + '</mode>' +
+                        '<value>' + g.service_provider + '</value>' +
+                        '<isCaseInsensitive>true</isCaseInsensitive>' +
+                    '</searchCriteriaExactServiceProvider>' +
                 '</command>' +
             '</BroadsoftDocument>',
             ET.tostring(x).decode('utf-8')
@@ -44,6 +50,11 @@ class TestBroadsoftGroupGetListInSystemRequest(unittest.TestCase):
                         '<value>' + g.group_name + '</value>' +
                         '<isCaseInsensitive>false</isCaseInsensitive>' +
                     '</searchCriteriaGroupName>' +
+                    '<searchCriteriaExactServiceProvider>' +
+                        '<mode>' + g.service_provider_mode + '</mode>' +
+                        '<value>' + g.service_provider + '</value>' +
+                        '<isCaseInsensitive>true</isCaseInsensitive>' +
+                    '</searchCriteriaExactServiceProvider>' +
                 '</command>' +
             '</BroadsoftDocument>',
             ET.tostring(x).decode('utf-8')
@@ -97,6 +108,11 @@ class TestBroadsoftGroupGetListInSystemRequest(unittest.TestCase):
             '<value>' + g.group_name + '</value>' +
             '<isCaseInsensitive>false</isCaseInsensitive>' +
             '</searchCriteriaGroupName>' +
+            '<searchCriteriaExactServiceProvider>' +
+            '<mode>' + g.service_provider_mode + '</mode>' +
+            '<value>' + g.service_provider + '</value>' +
+            '<isCaseInsensitive>true</isCaseInsensitive>' +
+            '</searchCriteriaExactServiceProvider>' +
             '</command>' +
             '</BroadsoftDocument>',
             ET.tostring(x).decode('utf-8')
