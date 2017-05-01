@@ -1,8 +1,8 @@
 import xml.etree.ElementTree as ET
-from broadsoft.requestobjects.XmlRequest import XmlRequest
+from broadsoft.requestobjects.BroadsoftRequest import BroadsoftRequest
 
 
-class GroupAddRequest(XmlRequest):
+class GroupAddRequest(BroadsoftRequest):
     command_name = 'GroupAddRequest'
 
     def __init__(self, group_id=None, group_name=None):
@@ -13,7 +13,7 @@ class GroupAddRequest(XmlRequest):
         self.group_id = group_id
         self.group_name = group_name
         self.user_limit = None
-        XmlRequest.__init__(self)
+        BroadsoftRequest.__init__(self)
 
     def derive_build_contact(self):
         attrs = [self.contact_email, self.contact_name, self.contact_number]
@@ -38,7 +38,7 @@ class GroupAddRequest(XmlRequest):
 
         # master is the entire XML document, cmd is the command element inserted within, which this object will be
         # manipulating
-        (master, cmd) = XmlRequest.master_to_xml(self)
+        (master, cmd) = BroadsoftRequest.master_to_xml(self)
 
         if self.service_provider:
             sp = ET.SubElement(cmd, 'serviceProviderId')
@@ -74,7 +74,7 @@ class GroupAddRequest(XmlRequest):
 
             if self.contact_number:
                 cnumber = ET.SubElement(c, 'contactNumber')
-                cnumber.text = XmlRequest.convert_phone_number(number=self.contact_number)
+                cnumber.text = BroadsoftRequest.convert_phone_number(number=self.contact_number)
 
             if self.contact_email:
                 ce = ET.SubElement(c, 'contactEmail')

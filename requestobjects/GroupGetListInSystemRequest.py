@@ -1,6 +1,6 @@
 import xml.etree.ElementTree as ET
 from broadsoft.requestobjects.SearchRequest import SearchRequest
-from broadsoft.requestobjects.XmlRequest import XmlRequest
+from broadsoft.requestobjects.BroadsoftRequest import BroadsoftRequest
 
 
 class GroupGetListInSystemRequest(SearchRequest):
@@ -27,7 +27,7 @@ class GroupGetListInSystemRequest(SearchRequest):
     def to_xml(self):
         # master is the entire XML document, cmd is the command element inserted within, which this object will be
         # manipulating
-        (master, cmd) = XmlRequest.master_to_xml(self)
+        (master, cmd) = BroadsoftRequest.master_to_xml(self)
 
         rsl = ET.SubElement(cmd, 'responseSizeLimit')
         rsl.text = str(self.response_lize_limit)

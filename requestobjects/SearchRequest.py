@@ -1,15 +1,15 @@
 import xml.etree.ElementTree as ET
-from broadsoft.requestobjects.XmlRequest import XmlRequest
+from broadsoft.requestobjects.BroadsoftRequest import BroadsoftRequest
 
 """
 abstract class that should actually be instantiated as in GroupGetListInSystemRequest
 """
 
 
-class SearchRequest(XmlRequest):
+class SearchRequest(BroadsoftRequest):
     def __init__(self, response_lize_limit=None):
         self.response_lize_limit = response_lize_limit
-        XmlRequest.__init__(self)
+        BroadsoftRequest.__init__(self)
 
     class SearchCriteria:
         valid_modes = [
