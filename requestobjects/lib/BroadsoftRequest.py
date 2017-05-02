@@ -42,6 +42,13 @@ class BroadsoftRequest(XmlDocument):
         self.derive_creds()
         self.default_logging(require_logging)
 
+    def authenticate_and_login(self):
+        a = AuthenticationRequest.authenticate(use_test=self.use_test, session_id=self.session_id)
+        self.auth_object = a
+
+        l = LoginRequest.login(use_test=self.use_test, auth_object=a)
+        self.login_object = l
+
     def check_error(self, response):
         error_msg = None
 
@@ -143,13 +150,6 @@ class BroadsoftRequest(XmlDocument):
                     socket.gethostname() + ',' + \
                     str(datetime.datetime.utcnow()) + ',' + \
                     str(random.randint(1000000000, 9999999999))
-
-    def authenticate_and_login(self):
-        a = AuthenticationRequest.authenticate(use_test=self.use_test, session_id=self.session_id)
-        self.auth_object = a
-
-        l = LoginRequest.authenticate_and_login(use_test=self.use_test, auth_object=a)
-        self.login_object = l
 
     def master_to_xml(self):
         master = ET.Element('BroadsoftDocument')
@@ -348,7 +348,7 @@ class LoginRequest(BroadsoftRequest):
         return master
 
     @staticmethod
-    def authenticate_and_login(**kwargs):
+    def login(**kwargs):
         l = LoginRequest(**kwargs)
         l.post()
         return l

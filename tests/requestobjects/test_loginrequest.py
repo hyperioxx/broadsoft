@@ -24,10 +24,10 @@ class TestBroadsoftLoginRequest(unittest.TestCase):
 
         a = FakeAuth()
 
-        l = LoginRequest.authenticate_and_login(use_test=True, auth_object=a)
+        l = LoginRequest.login(use_test=True, auth_object=a)
         self.assertTrue(l.use_test)
 
-        l = LoginRequest.authenticate_and_login(use_test=False, auth_object=a)
+        l = LoginRequest.login(use_test=False, auth_object=a)
         self.assertFalse(l.use_test)
 
     def test_build_signed_password(self):
