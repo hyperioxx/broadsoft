@@ -8,8 +8,8 @@ abstract class that should actually be instantiated as in GroupGetListInSystemRe
 
 
 class SearchRequest(BroadsoftRequest):
-    def __init__(self, response_lize_limit=None, **kwargs):
-        self.response_lize_limit = response_lize_limit
+    def __init__(self, response_size_limit=100000, **kwargs):
+        self.response_size_limit = response_size_limit
         BroadsoftRequest.__init__(self, **kwargs)
 
     class SearchCriteria:

@@ -80,3 +80,6 @@ class TestBroadsoftSearchRequest(unittest.TestCase):
 
     def test_can_pass_auth_object(self):
         self.assertFalse("write this")
+
+    def test_can_pass_size_limit(self):
+        self.assertFalse("write this")

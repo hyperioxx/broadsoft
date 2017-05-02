@@ -1,12 +1,12 @@
 import unittest.mock
 import xml.etree.ElementTree as ET
-from broadsoft.requestobjects.GroupGetListInSystemRequest import GroupGetListInSystemRequest
+from broadsoft.requestobjects.GroupGetListInServiceProviderRequest import GroupGetListInServiceProviderRequest
 
 
 class TestBroadsoftGroupGetListInSystemRequest(unittest.TestCase):
     def test_GroupGetListInSystemRequest_to_xml(self):
         # group id/case insensitive True
-        g = GroupGetListInSystemRequest()
+        g = GroupGetListInServiceProviderRequest()
         g.group_id = 'group1'
         g.group_id_mode = 'Starts With'
         g.group_id_case_insensitive = True
@@ -34,7 +34,7 @@ class TestBroadsoftGroupGetListInSystemRequest(unittest.TestCase):
         )
 
         # group name/case insensitive False
-        g = GroupGetListInSystemRequest()
+        g = GroupGetListInServiceProviderRequest()
         g.group_name = 'group1'
         g.group_name_mode = 'Starts With'
         g.group_name_case_insensitive = False
@@ -62,7 +62,7 @@ class TestBroadsoftGroupGetListInSystemRequest(unittest.TestCase):
 
         # service provider/case insensitive True
         self.maxDiff = None
-        g = GroupGetListInSystemRequest()
+        g = GroupGetListInServiceProviderRequest()
         g.service_provider = 'group1'
         g.service_provider_mode = 'Starts With'
         g.service_provider_case_insensitive = True
@@ -84,7 +84,7 @@ class TestBroadsoftGroupGetListInSystemRequest(unittest.TestCase):
         )
 
         # multiple criteria with mixed case insensitivity
-        g = GroupGetListInSystemRequest()
+        g = GroupGetListInServiceProviderRequest()
         g.group_id = 'gid'
         g.group_id_mode = 'Starts With'
         g.group_id_case_insensitive = True
@@ -119,17 +119,17 @@ class TestBroadsoftGroupGetListInSystemRequest(unittest.TestCase):
         )
 
     def test_use_test_gets_passed_to_broadsoftdocument(self):
-        g = GroupGetListInSystemRequest()
+        g = GroupGetListInServiceProviderRequest()
         self.assertEqual(g.prod_url, g.api_url)
 
-        g = GroupGetListInSystemRequest(use_test=False)
+        g = GroupGetListInServiceProviderRequest(use_test=False)
         self.assertEqual(g.prod_url, g.api_url)
 
-        g = GroupGetListInSystemRequest(use_test=True)
+        g = GroupGetListInServiceProviderRequest(use_test=True)
         self.assertEqual(g.test_url, g.api_url)
 
     def test_can_pass_session_id(self):
-        g = GroupGetListInSystemRequest(session_id='sesh')
+        g = GroupGetListInServiceProviderRequest(session_id='sesh')
         self.assertEqual('sesh', g.session_id)
 
     def test_can_pass_auth_object(self):
