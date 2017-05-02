@@ -32,6 +32,9 @@ class GroupGetListInServiceProviderRequest(SearchRequest):
         response = g.post()
 
         # convert GroupTable to dict
-        xml = ET.fromstring(response)
+        if type(response) is str:
+            xml = ET.fromstring(response)
+        else:
+            xml = response
         group_table = xml.findall('./command/groupTable')[0]
         return BroadsoftRequest.convert_results_table(xml=group_table)

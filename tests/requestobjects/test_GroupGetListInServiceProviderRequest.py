@@ -70,4 +70,3 @@ class TestBroadsoftGroupGetListInServiceProviderRequest(unittest.TestCase):
              {'Group Name': None, 'User Limit': '25', 'Group Id': 'sandbox'}],
             data
         )
-
