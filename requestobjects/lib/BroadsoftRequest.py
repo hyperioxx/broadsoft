@@ -221,10 +221,10 @@ class BroadsoftRequest(XmlDocument):
 
     def need_login(self):
         if \
-            self.command_name != 'AuthenticationRequest'\
-            and self.command_name != 'LoginRequest14sp4'\
-            and not self.login_object:
-                return True
+           self.command_name != 'AuthenticationRequest'\
+           and self.command_name != 'LoginRequest14sp4'\
+           and not self.login_object:
+            return True
 
         return False
 
