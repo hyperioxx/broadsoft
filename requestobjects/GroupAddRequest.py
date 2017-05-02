@@ -13,7 +13,7 @@ class GroupAddRequest(BroadsoftRequest):
         self.contact_number = None
         self.group_id = group_id
         self.group_name = group_name
-        self.user_limit = None
+        self.user_limit = 25
         BroadsoftRequest.__init__(self, **kwargs)
 
     def derive_build_contact(self):
