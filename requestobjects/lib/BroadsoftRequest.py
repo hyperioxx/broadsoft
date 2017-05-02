@@ -144,11 +144,11 @@ class BroadsoftRequest(XmlDocument):
                     str(datetime.datetime.utcnow()) + ',' + \
                     str(random.randint(1000000000, 9999999999))
 
-    def login(self):
+    def authenticate_and_login(self):
         a = AuthenticationRequest.authenticate(use_test=self.use_test, session_id=self.session_id)
         self.auth_object = a
 
-        l = LoginRequest.login(use_test=self.use_test, auth_object=a)
+        l = LoginRequest.authenticate_and_login(use_test=self.use_test, auth_object=a)
         self.login_object = l
 
     def master_to_xml(self):
@@ -182,7 +182,7 @@ class BroadsoftRequest(XmlDocument):
         # if this isn't an auth/login request, check for login object. none? need to login.
         if self.need_login():
             if auto_login:
-                self.login()
+                self.authenticate_and_login()
             else:
                 raise RuntimeError("need an AuthenticationRequest and associated LoginRequest to continue, or set auto_login to True")
 
@@ -348,7 +348,7 @@ class LoginRequest(BroadsoftRequest):
         return master
 
     @staticmethod
-    def login(**kwargs):
+    def authenticate_and_login(**kwargs):
         l = LoginRequest(**kwargs)
         l.post()
         return l

@@ -213,7 +213,7 @@ class TestBroadsoftRequest(unittest.TestCase):
     def test_login(self):
         self.assertFalse("write this")
 
-    @unittest.mock.patch.object(BroadsoftRequest, 'login')
+    @unittest.mock.patch.object(BroadsoftRequest, 'authenticate_and_login')
     @unittest.mock.patch('requests.post', side_effect=return_xml)
     def test_auto_login(
             self,
