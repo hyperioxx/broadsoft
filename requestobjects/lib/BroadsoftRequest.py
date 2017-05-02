@@ -30,14 +30,15 @@ class BroadsoftRequest(XmlDocument):
 
     def __init__(self, use_test=False, session_id=None, require_logging=True, auth_object=None, login_object=None):
         self.api_password = None
-        self.api_url = self.derive_api_url(use_test=use_test)
+        self.use_test = use_test
+        self.api_url = self.derive_api_url()
         self.api_user_id = None
         self.auth_object = auth_object
         self.last_response = None
         self.login_object = login_object
         self.session_id = session_id
         self.derive_session_id()
-        self.derive_creds(use_test=use_test)
+        self.derive_creds()
         self.default_logging(require_logging)
 
     def check_error(self, response):
@@ -111,14 +112,14 @@ class BroadsoftRequest(XmlDocument):
                                            backupCount=12)
         logger.addHandler(handler)
 
-    def derive_api_url(self, use_test):
-        if use_test:
+    def derive_api_url(self):
+        if self.use_test:
             return self.test_api_url
 
         return self.prod_api_url
 
-    def derive_creds(self, use_test=False):
-        if use_test:
+    def derive_creds(self):
+        if self.use_test:
             self.api_user_id = self.test_api_user_id
             self.api_password = self.test_api_password
 
