@@ -1,6 +1,5 @@
 import unittest.mock
 import xml.etree.ElementTree as ET
-
 from broadsoft.requestobjects.lib.SoapEnvelope import SoapEnvelope
 
 

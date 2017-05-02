@@ -1,7 +1,5 @@
 import xml.etree.ElementTree as ET
 
-from broadsoft.requestobjects.auth.AuthenticationRequest import AuthenticationRequest
-from broadsoft.requestobjects.auth.LoginRequest import LoginRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 from broadsoft.requestobjects.lib.SearchRequest import SearchRequest
 
@@ -27,9 +25,8 @@ class GroupGetListInServiceProviderRequest(SearchRequest):
 
     @staticmethod
     def list_groups(**kwargs):
-        a = AuthenticationRequest.authenticate(**kwargs)
-        l = LoginRequest.login(auth_object=a, **kwargs)
-        g = GroupGetListInServiceProviderRequest(auth_object=a, login_object=l, **kwargs)
+        g = GroupGetListInServiceProviderRequest(**kwargs)
+        g.login()
         response = g.post()
 
         # convert GroupTable to dict

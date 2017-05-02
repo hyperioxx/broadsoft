@@ -1,5 +1,5 @@
 import unittest.mock
-from broadsoft.requestobjects.auth.LoginRequest import LoginRequest
+from broadsoft.requestobjects.lib.BroadsoftRequest import LoginRequest
 import xml.etree.ElementTree as ET
 
 

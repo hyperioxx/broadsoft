@@ -2,7 +2,7 @@ import http.cookiejar
 import unittest.mock
 import xml.etree.ElementTree as ET
 
-from broadsoft.requestobjects.auth.AuthenticationRequest import AuthenticationRequest
+from broadsoft.requestobjects.lib.BroadsoftRequest import AuthenticationRequest
 from broadsoft.requestobjects.GroupGetListInServiceProviderRequest import GroupGetListInServiceProviderRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 
@@ -207,3 +207,14 @@ class TestBroadsoftRequest(unittest.TestCase):
             [{'Group Id': 'anothertestgroup', 'Group Name': 'Another Test Group', 'User Limit': '25'}, {'Group Id': 'sandbox', 'Group Name': None, 'User Limit': '25'}],
             data
         )
+
+    def test_login(self):
+        self.assertFalse("write this")
+
+    def test_auto_login(self):
+        # now that solved import/inheritance problem, can do auto login
+        # flag for auto_login at post
+        self.assertFalse("write this")
+
+    def test_auth_login_logging(self):
+        self.assertFalse("write this")

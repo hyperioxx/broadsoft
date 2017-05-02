@@ -55,8 +55,8 @@ class TestBroadsoftGroupGetListInServiceProviderRequest(unittest.TestCase):
         g = GroupGetListInServiceProviderRequest(login_object=f)
         self.assertEqual(f, g.login_object)
 
-    @unittest.mock.patch('broadsoft.requestobjects.auth.AuthenticationRequest.AuthenticationRequest.authenticate')
-    @unittest.mock.patch('broadsoft.requestobjects.auth.LoginRequest.LoginRequest.login')
+    @unittest.mock.patch('broadsoft.requestobjects.lib.BroadsoftRequest.AuthenticationRequest.authenticate')
+    @unittest.mock.patch('broadsoft.requestobjects.lib.BroadsoftRequest.LoginRequest.login')
     @unittest.mock.patch.object(GroupGetListInServiceProviderRequest, 'post', side_effect=return_groups_list)
     def test_list_groups_convert_to_list(
         self,

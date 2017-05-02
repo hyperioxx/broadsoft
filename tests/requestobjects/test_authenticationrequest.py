@@ -1,7 +1,7 @@
 import http.cookiejar
 import unittest.mock
 import xml.etree.ElementTree as ET
-from broadsoft.requestobjects.auth.AuthenticationRequest import AuthenticationRequest
+from broadsoft.requestobjects.lib.BroadsoftRequest import AuthenticationRequest
 
 
 def return_xml(*args, **kwargs):
