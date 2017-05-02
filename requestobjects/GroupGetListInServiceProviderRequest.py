@@ -26,7 +26,6 @@ class GroupGetListInServiceProviderRequest(SearchRequest):
     @staticmethod
     def list_groups(**kwargs):
         g = GroupGetListInServiceProviderRequest(**kwargs)
-        g.login()
         response = g.post()
 
         # convert GroupTable to dict

@@ -2,9 +2,8 @@ import http.cookiejar
 import unittest.mock
 import xml.etree.ElementTree as ET
 
-from broadsoft.requestobjects.lib.BroadsoftRequest import AuthenticationRequest
 from broadsoft.requestobjects.GroupGetListInServiceProviderRequest import GroupGetListInServiceProviderRequest
-from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
+from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest, AuthenticationRequest, LoginRequest
 
 
 def return_xml(*args, **kwargs):
@@ -208,13 +207,56 @@ class TestBroadsoftRequest(unittest.TestCase):
             data
         )
 
+    def test_need_login(self):
+        self.assertFalse("write this")
+
     def test_login(self):
         self.assertFalse("write this")
 
-    def test_auto_login(self):
-        # now that solved import/inheritance problem, can do auto login
-        # flag for auto_login at post
-        self.assertFalse("write this")
+    @unittest.mock.patch.object(BroadsoftRequest, 'login')
+    @unittest.mock.patch('requests.post', side_effect=return_xml)
+    def test_auto_login(
+            self,
+            post_patch,
+            login_patch
+    ):
+        # with auto_login true and no attached auth objects, should auto login
+        g = GroupGetListInServiceProviderRequest()
+        g.post(auto_login=True)
+        self.assertTrue(login_patch.called)
+        login_patch.called = False
+
+        # with auto_login false, should throw an error (and not login)
+        g = GroupGetListInServiceProviderRequest()
+        with self.assertRaises(RuntimeError):
+            g.post(auto_login=False)
+            self.assertFalse(login_patch.called)
+        login_patch.called = False
+
+        # with auto_login true and attached login objects, should not login
+        class FakeAuth:
+            def __init__(self):
+                self.content = '<ns0:Envelope xmlns:ns0="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="urn:com:broadsoft:webservice"><ns0:Body><processOCIMessageResponse><ns1:processOCIMessageReturn>&lt;?xml version="1.0" encoding="UTF-8"?&gt;\n&lt;BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;&lt;sessionId xmlns=""&gt;None&lt;/sessionId&gt;&lt;command echo="" xsi:type="AuthenticationResponse" xmlns=""&gt;&lt;userId&gt;admMITapi&lt;/userId&gt;&lt;nonce&gt;1493661742798&lt;/nonce&gt;&lt;passwordAlgorithm&gt;MD5&lt;/passwordAlgorithm&gt;&lt;/command&gt;&lt;/BroadsoftDocument&gt;</ns1:processOCIMessageReturn></processOCIMessageResponse></ns0:Body></ns0:Envelope>'
+                self.auth_cookie_jar = http.cookiejar.CookieJar()
+        a = FakeAuth()
+        l = FakeAuth()
+        g = GroupGetListInServiceProviderRequest(auth_object=a, login_object=l)
+        g.post(auto_login=True)
+        self.assertFalse(login_patch.called)
+        login_patch.called = False
+
+        # with auto_login false and attached login objects, should not login
+        class FakeAuth:
+            def __init__(self):
+                self.content = '<ns0:Envelope xmlns:ns0="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="urn:com:broadsoft:webservice"><ns0:Body><processOCIMessageResponse><ns1:processOCIMessageReturn>&lt;?xml version="1.0" encoding="UTF-8"?&gt;\n&lt;BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;&lt;sessionId xmlns=""&gt;None&lt;/sessionId&gt;&lt;command echo="" xsi:type="AuthenticationResponse" xmlns=""&gt;&lt;userId&gt;admMITapi&lt;/userId&gt;&lt;nonce&gt;1493661742798&lt;/nonce&gt;&lt;passwordAlgorithm&gt;MD5&lt;/passwordAlgorithm&gt;&lt;/command&gt;&lt;/BroadsoftDocument&gt;</ns1:processOCIMessageReturn></processOCIMessageResponse></ns0:Body></ns0:Envelope>'
+                self.auth_cookie_jar = http.cookiejar.CookieJar()
+
+        a = FakeAuth()
+        l = FakeAuth()
+        g = GroupGetListInServiceProviderRequest(auth_object=a, login_object=l)
+        g.post(auto_login=False)
+        self.assertFalse(login_patch.called)
+        login_patch.called = False
 
     def test_auth_login_logging(self):
         self.assertFalse("write this")

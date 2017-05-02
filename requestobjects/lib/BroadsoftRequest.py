@@ -176,12 +176,15 @@ class BroadsoftRequest(XmlDocument):
         # descendant object
         return master, cmd
 
-    def post(self, extract_payload=True):
+    def post(self, extract_payload=True, auto_login=True):
         # this function is only for descendant objects, like AuthenticationRequest
 
         # if this isn't an auth/login request, check for login object. none? need to login.
         if self.need_login():
-            raise RuntimeError("need a LoginRequest to continue")
+            if auto_login:
+                self.login()
+            else:
+                raise RuntimeError("need an AuthenticationRequest and associated LoginRequest to continue, or set auto_login to True")
 
         # first, convert self into string representation
         # (to_string() comes from broadsoft.requestobjects.XmlDocument)
@@ -233,7 +236,7 @@ class BroadsoftRequest(XmlDocument):
         if \
            self.command_name != 'AuthenticationRequest'\
            and self.command_name != 'LoginRequest14sp4'\
-           and not self.login_object:
+           and (not self.login_object or not self.auth_object):
             return True
 
         return False
@@ -308,6 +311,7 @@ class AuthenticationRequest(BroadsoftRequest):
         # when successfully authenticate, auth token is encased inside a <nonce> element in the response payload
         token = payload.findall('./command/nonce')[0]
         return token.text
+
 
 class LoginRequest(BroadsoftRequest):
     command_name = 'LoginRequest14sp4'
