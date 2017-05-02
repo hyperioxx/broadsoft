@@ -79,7 +79,23 @@ class TestBroadsoftSearchRequest(unittest.TestCase):
         self.assertEqual('sesh', g.session_id)
 
     def test_can_pass_auth_object(self):
-        self.assertFalse("write this")
+        class FakeAuth:
+            def __init__(self):
+                self.nonce = 'nonce'
 
-    def test_can_pass_size_limit(self):
-        self.assertFalse("write this")
+        a = FakeAuth()
+        s = SearchRequest(auth_object=a)
+        self.assertEqual(a, s.auth_object)
+
+    def test_can_pass_login_object(self):
+        class FakeLogin:
+            def __init__(self):
+                self.nonce = 'nonce'
+
+        l = FakeLogin()
+        s = SearchRequest(login_object=l)
+        self.assertEqual(l, s.login_object)
+
+    def test_can_pass_response_size_limit(self):
+        s = SearchRequest(response_size_limit=420)
+        self.assertEqual(s.response_size_limit, 420)

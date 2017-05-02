@@ -114,4 +114,19 @@ class TestBroadsoftGroupAddRequest(unittest.TestCase):
         self.assertEqual('sesh', g.session_id)
 
     def test_can_pass_auth_object(self):
-        self.assertFalse("write this")
+        class FakeAuthObject:
+            def __init__(self):
+                self.foo = 'var'
+
+        f = FakeAuthObject()
+        g = GroupAddRequest(auth_object=f)
+        self.assertEqual(f, g.auth_object)
+
+    def test_can_pass_login_object(self):
+        class FakeLoginObject:
+            def __init__(self):
+                self.foo = 'var'
+
+        f = FakeLoginObject()
+        g = GroupAddRequest(login_object=f)
+        self.assertEqual(f, g.login_object)

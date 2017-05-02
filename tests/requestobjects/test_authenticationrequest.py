@@ -1,7 +1,7 @@
+import http.cookiejar
 import unittest.mock
 import xml.etree.ElementTree as ET
-import http.cookiejar
-from broadsoft.requestobjects.AuthenticationRequest import AuthenticationRequest
+from broadsoft.requestobjects.auth.AuthenticationRequest import AuthenticationRequest
 
 
 def return_xml(*args, **kwargs):
@@ -54,9 +54,19 @@ class TestBroadsoftAuthenticationRequest(unittest.TestCase):
 
     def test_derive_username_for_prod_and_dev(self):
         a = AuthenticationRequest()
-        self.assertEqual(a.prod_api_user_id, a.derive_creds())
-        self.assertEqual(a.prod_api_user_id, a.derive_creds(use_test=False))
-        self.assertEqual(a.test_api_user_id, a.derive_creds(use_test=True))
+        a.derive_creds()
+        self.assertEqual(a.prod_api_user_id, a.api_user_id)
+        self.assertEqual(a.prod_api_password, a.api_password)
+
+        a = AuthenticationRequest(use_test=False)
+        a.derive_creds()
+        self.assertEqual(a.prod_api_user_id, a.api_user_id)
+        self.assertEqual(a.prod_api_password, a.api_password)
+
+        a = AuthenticationRequest(use_test=True)
+        a.derive_creds()
+        self.assertEqual(a.test_api_user_id, a.api_user_id)
+        self.assertEqual(a.test_api_password, a.api_password)
 
     def test_use_test_passed_to_derive_user_id_from_init(self):
         a = AuthenticationRequest()
@@ -103,8 +113,11 @@ class TestBroadsoftAuthenticationRequest(unittest.TestCase):
         a = AuthenticationRequest(session_id='sesh')
         self.assertEqual('sesh', a.session_id)
 
-    def test_authentication_call_stores_jsession_cookie(self):
-        self.assertFalse("write this")
-
-    def test_on_init_non_auth_calls_require_auth_object(self):
-        self.assertFalse("write this")
+    @unittest.mock.patch('requests.post', side_effect=return_xml)
+    def test_authenticate_call_stores_jsession_cookie(
+            self,
+            post_patch
+    ):
+        a = AuthenticationRequest.authenticate()
+        self.assertIsNotNone(a.auth_cookie_jar)
+        self.assertEqual('CookieJar', a.auth_cookie_jar.__class__.__name__)

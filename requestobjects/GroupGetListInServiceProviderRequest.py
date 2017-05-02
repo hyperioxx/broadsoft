@@ -1,8 +1,9 @@
 import xml.etree.ElementTree as ET
-from broadsoft.requestobjects.lib.SearchRequest import SearchRequest
+
+from broadsoft.requestobjects.auth.AuthenticationRequest import AuthenticationRequest
+from broadsoft.requestobjects.auth.LoginRequest import LoginRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
-from broadsoft.requestobjects.AuthenticationRequest import AuthenticationRequest
-from broadsoft.requestobjects.LoginRequest import LoginRequest
+from broadsoft.requestobjects.lib.SearchRequest import SearchRequest
 
 
 class GroupGetListInServiceProviderRequest(SearchRequest):

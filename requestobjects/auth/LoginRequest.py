@@ -9,14 +9,7 @@ class LoginRequest(BroadsoftRequest):
     def __init__(self, use_test=False, **kwargs):
         BroadsoftRequest.__init__(self, use_test=use_test, **kwargs)
 
-    def to_xml(self):
-        # master is the entire XML document, cmd is the command element inserted within, which this object will be
-        # manipulating
-        (master, cmd) = BroadsoftRequest.master_to_xml(self)
-
-        uid = ET.SubElement(cmd, 'userId')
-        uid.text = self.api_user_id
-
+    def build_signed_password(self):
         # the signedPassword is convoluted
         # first, SHA encrypt password
         s = sha1()
@@ -27,8 +20,20 @@ class LoginRequest(BroadsoftRequest):
         concat_pwd = self.auth_object.nonce + ':' + sha_pwd
         m = md5()
         m.update(concat_pwd.encode())
+        signed_pwd = m.hexdigest()
+
+        return signed_pwd
+
+    def to_xml(self):
+        # master is the entire XML document, cmd is the command element inserted within, which this object will be
+        # manipulating
+        (master, cmd) = BroadsoftRequest.master_to_xml(self)
+
+        uid = ET.SubElement(cmd, 'userId')
+        uid.text = self.api_user_id
+
         pwd = ET.SubElement(cmd, 'signedPassword')
-        pwd.text = m.hexdigest()
+        pwd.text = self.build_signed_password()
 
         return master
 

@@ -1,10 +1,11 @@
-import unittest.mock
 import http.cookiejar
+import unittest.mock
 import xml.etree.ElementTree as ET
 
-from broadsoft.requestobjects.AuthenticationRequest import AuthenticationRequest
+from broadsoft.requestobjects.auth.AuthenticationRequest import AuthenticationRequest
+from broadsoft.requestobjects.GroupGetListInServiceProviderRequest import GroupGetListInServiceProviderRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
-from broadsoft.requestobjects.LoginRequest import LoginRequest
+
 
 def return_xml(*args, **kwargs):
     class Response:
@@ -171,19 +172,23 @@ class TestBroadsoftRequest(unittest.TestCase):
         b = BroadsoftRequest(use_test=True)
         self.assertEqual(b.api_url, b.test_api_url)
 
-    def test_passing_cookies_when_present(self):
-        self.assertFalse("write this")
+    @unittest.mock.patch('requests.post', side_effect=return_xml)
+    def test_passing_cookies_when_present(
+            self,
+            post_patch
+    ):
+        class FakeAuth:
+            def __init__(self):
+                self.content = '<ns0:Envelope xmlns:ns0="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="urn:com:broadsoft:webservice"><ns0:Body><processOCIMessageResponse><ns1:processOCIMessageReturn>&lt;?xml version="1.0" encoding="UTF-8"?&gt;\n&lt;BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;&lt;sessionId xmlns=""&gt;None&lt;/sessionId&gt;&lt;command echo="" xsi:type="AuthenticationResponse" xmlns=""&gt;&lt;userId&gt;admMITapi&lt;/userId&gt;&lt;nonce&gt;1493661742798&lt;/nonce&gt;&lt;passwordAlgorithm&gt;MD5&lt;/passwordAlgorithm&gt;&lt;/command&gt;&lt;/BroadsoftDocument&gt;</ns1:processOCIMessageReturn></processOCIMessageResponse></ns0:Body></ns0:Envelope>'
+                self.auth_cookie_jar = http.cookiejar.CookieJar()
 
-    def test_logs_in_when_not_logged_in(self):
-        # when not auth request
-        self.assertFalse("write this")
+        f = FakeAuth()
+        g = GroupGetListInServiceProviderRequest(auth_object=f, login_object=f)
+        g.post()
 
-    def test_login_sequence(self):
-        # auto_login arg to post, defaults to true
-        # if true, check if login needed
-        # login needed? run auth, attach. run login, attach.
-        # if autologin false, and no attached auth/login, error
-        self.assertFalse("static method that handles the login sequence; maybe run as needed when calling post?")
+        call = post_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertIsNotNone(kwargs['cookies'])
 
     @unittest.mock.patch('requests.post', side_effect=return_xml)
     def test_derive_session_id_notices_when_auth_object_attached(
