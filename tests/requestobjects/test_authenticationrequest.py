@@ -22,7 +22,7 @@ class TestBroadsoftAuthenticationRequest(unittest.TestCase):
             '<BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
             '<sessionId xmlns="">' + a.session_id + '</sessionId>' +
             '<command xmlns="" xsi:type="' + a.command_name + '">' +
-            '<userId>' + a.user_id + '</userId>' +
+            '<userId>' + a.api_user_id + '</userId>' +
             '</command>' +
             '</BroadsoftDocument>',
             ET.tostring(element=xml).decode("utf-8")
@@ -53,19 +53,19 @@ class TestBroadsoftAuthenticationRequest(unittest.TestCase):
 
     def test_derive_username_for_prod_and_dev(self):
         a = AuthenticationRequest()
-        self.assertEqual(a.prod_user_id, a.derive_user_id())
-        self.assertEqual(a.prod_user_id, a.derive_user_id(use_test=False))
-        self.assertEqual(a.test_user_id, a.derive_user_id(use_test=True))
+        self.assertEqual(a.prod_api_user_id, a.derive_creds())
+        self.assertEqual(a.prod_api_user_id, a.derive_creds(use_test=False))
+        self.assertEqual(a.test_api_user_id, a.derive_creds(use_test=True))
 
     def test_use_test_passed_to_derive_user_id_from_init(self):
         a = AuthenticationRequest()
-        self.assertEqual(a.prod_user_id, a.user_id)
+        self.assertEqual(a.prod_api_user_id, a.api_user_id)
 
         a = AuthenticationRequest(use_test=False)
-        self.assertEqual(a.prod_user_id, a.user_id)
+        self.assertEqual(a.prod_api_user_id, a.api_user_id)
 
         a = AuthenticationRequest(use_test=True)
-        self.assertEqual(a.test_user_id, a.user_id)
+        self.assertEqual(a.test_api_user_id, a.api_user_id)
 
     @unittest.mock.patch('requests.post', side_effect=return_xml)
     def test_authenticate_use_test_gets_passed_to_broadsoftdocument(
@@ -101,3 +101,9 @@ class TestBroadsoftAuthenticationRequest(unittest.TestCase):
     def test_can_pass_session_id(self):
         a = AuthenticationRequest(session_id='sesh')
         self.assertEqual('sesh', a.session_id)
+
+    def test_authentication_call_stores_jsession_cookie(self):
+        self.assertFalse("write this")
+
+    def test_on_init_non_auth_calls_require_auth_object(self):
+        self.assertFalse("write this")

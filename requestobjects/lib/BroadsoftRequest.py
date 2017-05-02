@@ -20,17 +20,75 @@ class BroadsoftRequest(XmlDocument):
     test_url = 'https://web1.voiplogic.net/webservice/services/ProvisioningService'
     logging_dir = '/var/log/broadsoft'
     logging_fname = 'api.log'
+    prod_api_user_id = '[unknown]'
+    test_api_user_id = 'admMITapi'
+    prod_api_password = '[unknown]'
+    test_api_password = 'EnM58#iD3vT'
 
-    def __init__(self, use_test=False, session_id=None, require_logging=True):
+    def __init__(self, use_test=False, session_id=None, require_logging=True, auth_object=None, login_object=None):
+        self.api_password = None
         self.api_url = self.derive_api_url(use_test=use_test)
+        self.api_user_id = None
+        self.auth_object = auth_object
         self.default_domain = 'voiplogic.net'
         self.last_response = None
+        self.login_object = login_object
         self.service_provider = 'ENT136'
         self.session_id = session_id
         self.timezone = 'America/New_York'
         self.derive_session_id()
-
+        self.derive_creds(use_test=use_test)
         self.default_logging(require_logging)
+
+    def check_error(self, response):
+        error_msg = None
+
+        # sometimes errors come in as Error commands inside a SOAP envelope
+        payload = BroadsoftRequest.extract_payload(response=response)
+        if payload:
+            cmd_container = payload.findall('./command')
+            if len(cmd_container) > 0:
+                cmd = cmd_container[0]
+                summary_container = cmd.findall('./summary')
+                summary_english_container = cmd.findall('./summaryEnglish')
+                detail_container = cmd.findall('./detail')
+
+                summary = None
+                summary_english = None
+                detail = None
+                error = False
+
+                if len(summary_container) > 0:
+                    summary = summary_container[0].text
+                    error = True
+                if len(summary_english_container) > 0:
+                    summary_english = summary_english_container[0].text
+                    error = True
+                if len(detail_container) > 0:
+                    detail = detail_container[0].text
+                    error = True
+
+                if error:
+                    error_msg = "the SOAP server threw an error: "
+                    error_msg += str(summary)
+                    error_msg += ' :: ' + str(summary_english)
+                    error_msg += ' :: ' + str(detail)
+
+        # sometimes errors come in as SOAP faults
+        if type(response) is str:
+            response = ET.fromstring(text=response)
+
+        faults = response.findall('.//{http://schemas.xmlsoap.org/soap/envelope/}Fault')
+        if len(faults) > 0:
+            fault = faults[0]
+            message = fault.findall('./faultstring')[0].text
+            detail = fault.findall('./detail/string')[0].text
+            error_msg = "the SOAP server threw an error: " + message + ' :: ' + detail
+
+        # found fault/error? log and raise exception
+        if error_msg:
+            logging.error(error_msg, extra={'session_id': self.session_id})
+            raise RuntimeError(error_msg)
 
     def default_logging(self, require_logging):
         import os
@@ -59,12 +117,30 @@ class BroadsoftRequest(XmlDocument):
 
         return self.prod_url
 
+    def derive_creds(self, use_test=False):
+        if use_test:
+            self.api_user_id = self.test_api_user_id
+            self.api_password = self.test_api_password
+
+        else:
+            self.api_user_id = self.prod_api_user_id
+            self.api_password = self.prod_api_password
+
     def derive_session_id(self):
         if self.session_id is None:
-            self.session_id = \
-                socket.gethostname() + ',' + \
-                str(datetime.datetime.utcnow()) + ',' + \
-                str(random.randint(1000000000, 9999999999))
+            # if there's an attached auth object, use that session id
+            if self.auth_object:
+                try:
+                    self.session_id = self.auth_object.session_id
+                except AttributeError:
+                    pass
+
+            # otherwise, build a fresh one
+            if self.session_id is None:
+                self.session_id = \
+                    socket.gethostname() + ',' + \
+                    str(datetime.datetime.utcnow()) + ',' + \
+                    str(random.randint(1000000000, 9999999999))
 
     def master_to_xml(self):
         master = ET.Element('BroadsoftDocument')
@@ -94,6 +170,10 @@ class BroadsoftRequest(XmlDocument):
     def post(self, extract_payload=True):
         # this function is only for descendant objects, like AuthenticationRequest
 
+        # if this isn't an auth request, check for login object. none? need to login.
+        if self.need_login():
+            raise RuntimeError("need a LoginRequest to continue")
+
         # first, convert self into string representation
         # (to_string() comes from broadsoft.requestobjects.XmlDocument)
         payload = self.to_string()
@@ -105,19 +185,31 @@ class BroadsoftRequest(XmlDocument):
         logging.info("url: " + self.api_url, extra={'session_id': self.session_id})
         logging.info("payload: " + envelope, extra={'session_id': self.session_id})
 
+        # if there's an attached auth object, grab cookies
+        cookies = None
+        if self.auth_object:
+            try:
+                cookies = self.auth_object.auth_cookie_jar
+                logging.info("cookies: " + str(cookies), extra={'session_id': self.session_id})
+                pass
+            except AttributeError:
+                pass
+
         # post to server
         headers = {'content-type': 'text/xml', 'SOAPAction': ''}
-        response = requests.post(url=self.api_url, data=envelope, headers=headers)
+        response = requests.post(url=self.api_url, data=envelope, headers=headers, cookies=cookies)
         self.last_response = response
 
         # massage the response and check for errors
         content = response.content
         try:
             content = content.decode('utf-8')
+
         except AttributeError:
             pass
+
         logging.info("response: " + content, extra={'session_id': self.session_id})
-        BroadsoftRequest.check_error(response=content)
+        self.check_error(response=content)
 
         # dig actual message out of SOAP envelope it came in (and return as XML object)
         if extract_payload:
@@ -127,19 +219,14 @@ class BroadsoftRequest(XmlDocument):
         xml = ET.fromstring(text=content)
         return xml
 
-    @staticmethod
-    def check_error(response):
-        if type(response) is str:
-            response = ET.fromstring(text=response)
+    def need_login(self):
+        if \
+            self.command_name != 'AuthenticationRequest'\
+            and self.command_name != 'LoginRequest14sp4'\
+            and not self.login_object:
+                return True
 
-        error = False
-        faults = response.findall('.//{http://schemas.xmlsoap.org/soap/envelope/}Fault')
-        if len(faults) > 0:
-            fault = faults[0]
-            message = fault.findall('./faultstring')[0].text
-            detail = fault.findall('./detail/string')[0].text
-            logging.error("SOAP error: " + message + ': ' + detail)
-            raise RuntimeError("the SOAP server threw an error: " + message + ': ' + detail)
+        return False
 
     @staticmethod
     def convert_phone_number(number):
@@ -152,5 +239,8 @@ class BroadsoftRequest(XmlDocument):
     @staticmethod
     def extract_payload(response):
         response = ET.fromstring(text=response)
-        payload = response.findall('.//processOCIMessageResponse/{urn:com:broadsoft:webservice}processOCIMessageReturn')[0].text
-        return ET.fromstring(text=payload)
+        payload_container = response.findall('.//processOCIMessageResponse/{urn:com:broadsoft:webservice}processOCIMessageReturn')
+        if len(payload_container) > 0:
+            payload = response.findall('.//processOCIMessageResponse/{urn:com:broadsoft:webservice}processOCIMessageReturn')[0].text
+            return ET.fromstring(text=payload)
+        return None

@@ -1,13 +1,16 @@
 import unittest.mock
+import http.cookiejar
 import xml.etree.ElementTree as ET
 
 from broadsoft.requestobjects.AuthenticationRequest import AuthenticationRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
+from broadsoft.requestobjects.LoginRequest import LoginRequest
 
 def return_xml(*args, **kwargs):
     class Response:
         def __init__(self):
             self.content = '<ns0:Envelope xmlns:ns0="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="urn:com:broadsoft:webservice"><ns0:Body><processOCIMessageResponse><ns1:processOCIMessageReturn>&lt;?xml version="1.0" encoding="UTF-8"?&gt;\n&lt;BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;&lt;sessionId xmlns=""&gt;None&lt;/sessionId&gt;&lt;command echo="" xsi:type="AuthenticationResponse" xmlns=""&gt;&lt;userId&gt;admMITapi&lt;/userId&gt;&lt;nonce&gt;1493661742798&lt;/nonce&gt;&lt;passwordAlgorithm&gt;MD5&lt;/passwordAlgorithm&gt;&lt;/command&gt;&lt;/BroadsoftDocument&gt;</ns1:processOCIMessageReturn></processOCIMessageResponse></ns0:Body></ns0:Envelope>'
+            self.cookies = http.cookiejar.CookieJar()
 
     r = Response()
     return r
@@ -17,6 +20,7 @@ def return_xml_error(*args, **kwargs):
     class Response:
         def __init__(self):
             self.content = '<ns0:Envelope xmlns:ns0="http://schemas.xmlsoap.org/soap/envelope/"><ns0:Body><ns0:Fault><faultcode>soapenv:Server.generalException</faultcode><faultstring>INVALID_REQUEST</faultstring><faultactor>ProvisioningService</faultactor><detail><string>Cannot process any request before user is logged in.</string></detail></ns0:Fault></ns0:Body></ns0:Envelope>'
+            self.cookies = http.cookiejar.CookieJar()
 
     r = Response()
     return r
@@ -58,14 +62,14 @@ class TestBroadsoftRequest(unittest.TestCase):
         # without urlencoding
         s = a.to_string(html_encode=False)
         self.assertEqual(
-            '<?xml version="1.0" encoding="UTF-8"?><BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><sessionId xmlns="">sesh</sessionId><command xmlns="" xsi:type="AuthenticationRequest"><userId>' + a.prod_user_id + '</userId></command></BroadsoftDocument>',
+            '<?xml version="1.0" encoding="UTF-8"?><BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><sessionId xmlns="">sesh</sessionId><command xmlns="" xsi:type="AuthenticationRequest"><userId>' + a.prod_api_user_id + '</userId></command></BroadsoftDocument>',
             s
         )
 
         # with urlencoding
         s = a.to_string(html_encode=True)
         self.assertEqual(
-            '&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&lt;BroadsoftDocument protocol=&quot;OCI&quot; xmlns=&quot;C&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;&gt;&lt;sessionId xmlns=&quot;&quot;&gt;sesh&lt;/sessionId&gt;&lt;command xmlns=&quot;&quot; xsi:type=&quot;AuthenticationRequest&quot;&gt;&lt;userId&gt;' + a.prod_user_id + '&lt;/userId&gt;&lt;/command&gt;&lt;/BroadsoftDocument&gt;',
+            '&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&lt;BroadsoftDocument protocol=&quot;OCI&quot; xmlns=&quot;C&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;&gt;&lt;sessionId xmlns=&quot;&quot;&gt;sesh&lt;/sessionId&gt;&lt;command xmlns=&quot;&quot; xsi:type=&quot;AuthenticationRequest&quot;&gt;&lt;userId&gt;' + a.prod_api_user_id + '&lt;/userId&gt;&lt;/command&gt;&lt;/BroadsoftDocument&gt;',
             s
         )
 
@@ -119,22 +123,28 @@ class TestBroadsoftRequest(unittest.TestCase):
         )
 
     def test_check_error(self):
-        error_return = '<ns0:Envelope xmlns:ns0="http://schemas.xmlsoap.org/soap/envelope/"><ns0:Body><ns0:Fault><faultcode>soapenv:Server.generalException</faultcode><faultstring>INVALID_REQUEST</faultstring><faultactor>ProvisioningService</faultactor><detail><string>Cannot process any request before user is logged in.</string></detail></ns0:Fault></ns0:Body></ns0:Envelope>'
+        fault_return = '<ns0:Envelope xmlns:ns0="http://schemas.xmlsoap.org/soap/envelope/"><ns0:Body><ns0:Fault><faultcode>soapenv:Server.generalException</faultcode><faultstring>INVALID_REQUEST</faultstring><faultactor>ProvisioningService</faultactor><detail><string>Cannot process any request before user is logged in.</string></detail></ns0:Fault></ns0:Body></ns0:Envelope>'
+        error_return = """<?xml version="1.0" encoding="UTF-8"?><soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><soapenv:Body><processOCIMessageResponse xmlns=""><ns1:processOCIMessageReturn xmlns:ns1="urn:com:broadsoft:webservice">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;BroadsoftDocument protocol=&quot;OCI&quot; xmlns=&quot;C&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;&gt;&lt;sessionId xmlns=&quot;&quot;&gt;Chriss-MacBook-Pro-4.local,2017-05-02 15:02:04.406815,5088044364&lt;/sessionId&gt;&lt;command type=&quot;Error&quot; echo=&quot;&quot; xsi:type=&quot;c:ErrorResponse&quot; xmlns:c=&quot;C&quot; xmlns=&quot;&quot;&gt;&lt;summary&gt;[Error 6004] OCI XML Request validation error&lt;/summary&gt;&lt;summaryEnglish&gt;[Error 6004] OCI XML Request validation error&lt;/summaryEnglish&gt;&lt;detail&gt;&lt;![CDATA[Invalid xsi:type qname: 'LoginRequest' in element BroadsoftDocument@C
+&lt;command xsi:type=&quot;LoginRequest&quot; echo=&quot;DA556300AF67EF366CA5540F85BF0717&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;&gt;&lt;userId&gt;admMITapi&lt;/userId&gt;&lt;signedPassword&gt;e00f8bf77e8c4115b6f9b3fc31a47cff&lt;/signedPassword&gt;&lt;/command&gt;
+
+]]&gt;&lt;/detail&gt;&lt;/command&gt;&lt;/BroadsoftDocument&gt;</ns1:processOCIMessageReturn></processOCIMessageResponse></soapenv:Body></soapenv:Envelope>
+"""
         valid_return = '<ns0:Envelope xmlns:ns0="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="urn:com:broadsoft:webservice"><ns0:Body><processOCIMessageResponse><ns1:processOCIMessageReturn>&lt;?xml version="1.0" encoding="UTF-8"?&gt;\n&lt;BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;&lt;sessionId xmlns=""&gt;None&lt;/sessionId&gt;&lt;command echo="" xsi:type="AuthenticationResponse" xmlns=""&gt;&lt;userId&gt;admMITapi&lt;/userId&gt;&lt;nonce&gt;1493661742798&lt;/nonce&gt;&lt;passwordAlgorithm&gt;MD5&lt;/passwordAlgorithm&gt;&lt;/command&gt;&lt;/BroadsoftDocument&gt;</ns1:processOCIMessageReturn></processOCIMessageResponse></ns0:Body></ns0:Envelope>'
+
+        # pass fault as string
+        with self.assertRaises(RuntimeError):
+            b = BroadsoftRequest()
+            b.check_error(response=fault_return)
 
         # pass error as string
         with self.assertRaises(RuntimeError):
-            BroadsoftRequest.check_error(response=error_return)
-
-        # pass error as xml
-        with self.assertRaises(RuntimeError):
-            BroadsoftRequest.check_error(response=ET.fromstring(text=error_return))
+            b = BroadsoftRequest()
+            b.check_error(response=error_return)
 
         # pass valid as string
-        BroadsoftRequest.check_error(response=valid_return)
-
-        # pass valid as xml
-        BroadsoftRequest.check_error(response=ET.fromstring(text=valid_return))
+        b = BroadsoftRequest()
+        b.check_error(response=valid_return)
 
     @unittest.mock.patch('requests.post', side_effect=return_xml_error)
     def test_find_error_in_post_call(
@@ -160,3 +170,22 @@ class TestBroadsoftRequest(unittest.TestCase):
         # use_test is True
         b = BroadsoftRequest(use_test=True)
         self.assertEqual(b.api_url, b.test_url)
+
+    def test_passing_cookies_when_present(self):
+        self.assertFalse("write this")
+
+    def test_logs_in_when_not_logged_in(self):
+        # when not auth request
+        self.assertFalse("write this")
+
+    def test_login_sequence(self):
+        self.assertFalse("static method that handles the login sequence; maybe run as needed when calling post?")
+
+    @unittest.mock.patch('requests.post', side_effect=return_xml)
+    def test_derive_session_id_notices_when_auth_object_attached(
+            self,
+            post_patch
+    ):
+        a = AuthenticationRequest.authenticate()
+        b = BroadsoftRequest(auth_object=a)
+        self.assertEqual(a.session_id, b.session_id)

@@ -131,3 +131,6 @@ class TestBroadsoftGroupGetListInSystemRequest(unittest.TestCase):
     def test_can_pass_session_id(self):
         g = GroupGetListInSystemRequest(session_id='sesh')
         self.assertEqual('sesh', g.session_id)
+
+    def test_can_pass_auth_object(self):
+        self.assertFalse("write this")

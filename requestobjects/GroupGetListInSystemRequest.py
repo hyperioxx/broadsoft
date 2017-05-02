@@ -1,6 +1,8 @@
 import xml.etree.ElementTree as ET
 from broadsoft.requestobjects.lib.SearchRequest import SearchRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
+from broadsoft.requestobjects.AuthenticationRequest import AuthenticationRequest
+from broadsoft.requestobjects.LoginRequest import LoginRequest
 
 
 class GroupGetListInSystemRequest(SearchRequest):
@@ -61,3 +63,11 @@ class GroupGetListInSystemRequest(SearchRequest):
             s.embed(parent=sc)
 
         return master
+
+    @staticmethod
+    def list_groups(**kwargs):
+        a = AuthenticationRequest.authenticate(**kwargs)
+        l = LoginRequest.login(auth_object=a, **kwargs)
+        g = GroupGetListInSystemRequest(auth_object=a, login_object=l, **kwargs)
+        response = g.post()
+        return response
