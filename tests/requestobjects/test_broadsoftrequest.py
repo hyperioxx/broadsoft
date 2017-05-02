@@ -161,15 +161,15 @@ class TestBroadsoftRequest(unittest.TestCase):
     def test_derive_url_for_test_and_prod_envs(self):
         # default value for use_test
         b = BroadsoftRequest()
-        self.assertEqual(b.api_url, b.prod_url)
+        self.assertEqual(b.api_url, b.prod_api_url)
 
         # use_test is False
         b = BroadsoftRequest(use_test=False)
-        self.assertEqual(b.api_url, b.prod_url)
+        self.assertEqual(b.api_url, b.prod_api_url)
 
         # use_test is True
         b = BroadsoftRequest(use_test=True)
-        self.assertEqual(b.api_url, b.test_url)
+        self.assertEqual(b.api_url, b.test_api_url)
 
     def test_passing_cookies_when_present(self):
         self.assertFalse("write this")
@@ -179,6 +179,10 @@ class TestBroadsoftRequest(unittest.TestCase):
         self.assertFalse("write this")
 
     def test_login_sequence(self):
+        # auto_login arg to post, defaults to true
+        # if true, check if login needed
+        # login needed? run auth, attach. run login, attach.
+        # if autologin false, and no attached auth/login, error
         self.assertFalse("static method that handles the login sequence; maybe run as needed when calling post?")
 
     @unittest.mock.patch('requests.post', side_effect=return_xml)
@@ -189,3 +193,12 @@ class TestBroadsoftRequest(unittest.TestCase):
         a = AuthenticationRequest.authenticate()
         b = BroadsoftRequest(auth_object=a)
         self.assertEqual(a.session_id, b.session_id)
+
+    def test_convert_results_table(self):
+        xml = '<groupTable><colHeading>Group Id</colHeading><colHeading>Group Name</colHeading><colHeading>User Limit</colHeading><row><col>anothertestgroup</col><col>Another Test Group</col><col>25</col></row><row><col>sandbox</col><col /><col>25</col></row></groupTable>'
+        xml = ET.fromstring(xml)
+        data = BroadsoftRequest.convert_results_table(xml=xml)
+        self.assertEqual(
+            [{'Group Id': 'anothertestgroup', 'Group Name': 'Another Test Group', 'User Limit': '25'}, {'Group Id': 'sandbox', 'Group Name': None, 'User Limit': '25'}],
+            data
+        )

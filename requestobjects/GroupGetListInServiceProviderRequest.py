@@ -30,4 +30,8 @@ class GroupGetListInServiceProviderRequest(SearchRequest):
         l = LoginRequest.login(auth_object=a, **kwargs)
         g = GroupGetListInServiceProviderRequest(auth_object=a, login_object=l, **kwargs)
         response = g.post()
-        return response
+
+        # convert GroupTable to dict
+        xml = ET.fromstring(response)
+        group_table = xml.findall('./command/groupTable')[0]
+        return BroadsoftRequest.convert_results_table(xml=group_table)

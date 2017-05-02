@@ -16,26 +16,26 @@ defines what a request to the Broadsoft OCI server looks like, how to post to it
 
 
 class BroadsoftRequest(XmlDocument):
-    prod_url = '[unknown]'
-    test_url = 'https://web1.voiplogic.net/webservice/services/ProvisioningService'
-    logging_dir = '/var/log/broadsoft'
-    logging_fname = 'api.log'
+    prod_api_url = '[unknown]'
+    test_api_url = 'https://web1.voiplogic.net/webservice/services/ProvisioningService'
     prod_api_user_id = '[unknown]'
     test_api_user_id = 'admMITapi'
     prod_api_password = '[unknown]'
     test_api_password = 'EnM58#iD3vT'
+    default_domain = 'voiplogic.net'
+    logging_dir = '/var/log/broadsoft'
+    logging_fname = 'api.log'
+    service_provider = 'ENT136'
+    timezone = 'America/New_York'
 
     def __init__(self, use_test=False, session_id=None, require_logging=True, auth_object=None, login_object=None):
         self.api_password = None
         self.api_url = self.derive_api_url(use_test=use_test)
         self.api_user_id = None
         self.auth_object = auth_object
-        self.default_domain = 'voiplogic.net'
         self.last_response = None
         self.login_object = login_object
-        self.service_provider = 'ENT136'
         self.session_id = session_id
-        self.timezone = 'America/New_York'
         self.derive_session_id()
         self.derive_creds(use_test=use_test)
         self.default_logging(require_logging)
@@ -113,9 +113,9 @@ class BroadsoftRequest(XmlDocument):
 
     def derive_api_url(self, use_test):
         if use_test:
-            return self.test_url
+            return self.test_api_url
 
-        return self.prod_url
+        return self.prod_api_url
 
     def derive_creds(self, use_test=False):
         if use_test:
@@ -170,7 +170,7 @@ class BroadsoftRequest(XmlDocument):
     def post(self, extract_payload=True):
         # this function is only for descendant objects, like AuthenticationRequest
 
-        # if this isn't an auth request, check for login object. none? need to login.
+        # if this isn't an auth/login request, check for login object. none? need to login.
         if self.need_login():
             raise RuntimeError("need a LoginRequest to continue")
 
@@ -183,7 +183,6 @@ class BroadsoftRequest(XmlDocument):
         envelope = e.to_string()
 
         logging.info("url: " + self.api_url, extra={'session_id': self.session_id})
-        logging.info("payload: " + envelope, extra={'session_id': self.session_id})
 
         # if there's an attached auth object, grab cookies
         cookies = None
@@ -194,6 +193,8 @@ class BroadsoftRequest(XmlDocument):
                 pass
             except AttributeError:
                 pass
+
+        logging.info("payload: " + envelope, extra={'session_id': self.session_id})
 
         # post to server
         headers = {'content-type': 'text/xml', 'SOAPAction': ''}
@@ -211,7 +212,7 @@ class BroadsoftRequest(XmlDocument):
         logging.info("response: " + content, extra={'session_id': self.session_id})
         self.check_error(response=content)
 
-        # dig actual message out of SOAP envelope it came in (and return as XML object)
+        # if requested, dig actual message out of SOAP envelope it came in (and return as XML object)
         if extract_payload:
             return BroadsoftRequest.extract_payload(content)
 
@@ -235,6 +236,27 @@ class BroadsoftRequest(XmlDocument):
         number = re.sub('\D', '', number)
         number = number[:3] + '-' + number[3:6] + '-' + number[6:]
         return number
+
+    @staticmethod
+    def convert_results_table(xml):
+        # extract column headings
+        headings = []
+        for heading in xml.findall('.//colHeading'):
+            headings.append(heading.text)
+
+        # associate rows/columns with headings
+        data = list()
+        for row in xml.findall('.//row'):
+            data_row = {}
+            col_count = 0
+            for col in row.findall('./col'):
+                col_name = headings[col_count]
+                col_val = col.text
+                data_row[col_name] = col_val
+                col_count += 1
+            data.append(data_row)
+
+        return data
 
     @staticmethod
     def extract_payload(response):

@@ -101,13 +101,13 @@ class TestBroadsoftGroupAddRequest(unittest.TestCase):
 
     def test_use_test_gets_passed_to_broadsoftdocument(self):
         g = GroupAddRequest()
-        self.assertEqual(g.prod_url, g.api_url)
+        self.assertEqual(g.prod_api_url, g.api_url)
 
         g = GroupAddRequest(use_test=False)
-        self.assertEqual(g.prod_url, g.api_url)
+        self.assertEqual(g.prod_api_url, g.api_url)
 
         g = GroupAddRequest(use_test=True)
-        self.assertEqual(g.test_url, g.api_url)
+        self.assertEqual(g.test_api_url, g.api_url)
 
     def test_can_pass_session_id(self):
         g = GroupAddRequest(session_id='sesh')
