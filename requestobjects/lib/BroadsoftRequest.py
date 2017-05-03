@@ -23,7 +23,7 @@ class BroadsoftRequest(XmlDocument):
     test_api_user_id = 'admMITapi'
     prod_api_password = '[unknown]'
     test_api_password = 'EnM58#iD3vT'
-    default_domain = 'voiplogic.net'
+    default_domain = 'broadsoft-dev.mit.edu'
     logging_dir = '/var/log/broadsoft'
     logging_fname = 'api.log'
     service_provider = 'ENT136'

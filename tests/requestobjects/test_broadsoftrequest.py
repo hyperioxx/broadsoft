@@ -292,3 +292,19 @@ class TestBroadsoftRequest(unittest.TestCase):
         g.post(auto_login=False)
         self.assertFalse(login_patch.called)
         login_patch.called = False
+
+    def test_abstract_out_creds(self):
+        self.assertFalse("write this")
+
+    def test_getting_logging_level_in_entries(self):
+        self.assertFalse("write this")
+
+    def test_derive_domain_based_on_test_and_prod(self):
+        self.assertFalse("write this")
+
+    def test_add_and_edit_functions_should_test_for_success(self):
+        """
+        <ns0:BroadsoftDocument xmlns:ns0="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" protocol="OCI"><sessionId>Chriss-MacBook-Pro-4.local,2017-05-03 15:53:30.388915,4743527360</sessionId><command echo="" xsi:type="c:SuccessResponse" /></ns0:BroadsoftDocument>
+        :return: 
+        """
+        self.assertFalse("write this")
