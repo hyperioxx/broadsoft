@@ -137,16 +137,16 @@ class TestBroadsoftRequest(unittest.TestCase):
         # pass fault as string
         with self.assertRaises(RuntimeError):
             b = BroadsoftRequest()
-            b.check_error(response=fault_return)
+            b.check_error(string_response=fault_return)
 
         # pass error as string
         with self.assertRaises(RuntimeError):
             b = BroadsoftRequest()
-            b.check_error(response=error_return)
+            b.check_error(string_response=error_return)
 
         # pass valid as string
         b = BroadsoftRequest()
-        b.check_error(response=valid_return)
+        b.check_error(string_response=valid_return)
 
     @unittest.mock.patch('requests.post', side_effect=return_xml_error)
     def test_find_error_in_post_call(
@@ -332,8 +332,26 @@ class TestBroadsoftRequest(unittest.TestCase):
         self.assertEqual(b.test_default_domain, b.default_domain)
 
     def test_add_and_edit_functions_should_test_for_success(self):
-        """
-        <ns0:BroadsoftDocument xmlns:ns0="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" protocol="OCI"><sessionId>Chriss-MacBook-Pro-4.local,2017-05-03 15:53:30.388915,4743527360</sessionId><command echo="" xsi:type="c:SuccessResponse" /></ns0:BroadsoftDocument>
-        :return: 
-        """
-        self.assertFalse("write this")
+        success_payload = '<ns0:BroadsoftDocument xmlns:ns0="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" protocol="OCI"><sessionId>Chriss-MacBook-Pro-4.local,2017-05-03 15:53:30.388915,4743527360</sessionId><command echo="" xsi:type="c:SuccessResponse" /></ns0:BroadsoftDocument>'
+        regular_payload = '<ns0:BroadsoftDocument xmlns:ns0="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" protocol="OCI"><sessionId>Chriss-MacBook-Pro-4.local,2017-05-03 15:53:30.388915,4743527360</sessionId><command echo="" xsi:type="otherdata" /></ns0:BroadsoftDocument>'
+
+        # with check_success no and a success payload, should go through without an exception raised
+        b = BroadsoftRequest()
+        b.check_success = False
+        b.check_error(string_response=success_payload)
+
+        # with check_success no and a non-success payload, should go through without an exception raised
+        b = BroadsoftRequest()
+        b.check_success = False
+        b.check_error(string_response=regular_payload)
+
+        # with check_success yes and a success payload, should go through without an exception raised
+        b = BroadsoftRequest()
+        b.check_success = True
+        b.check_error(string_response=success_payload)
+
+        # with check_success yes and a non-success payload, should raise an exception
+        b = BroadsoftRequest()
+        b.check_success = True
+        with self.assertRaises(RuntimeError):
+            b.check_error(string_response=regular_payload)

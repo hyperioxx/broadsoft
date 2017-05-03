@@ -25,8 +25,10 @@ class BroadsoftRequest(XmlDocument):
     logging_fname = 'api.log'
     service_provider = 'ENT136'
     timezone = 'America/New_York'
+    check_success = False
 
-    def __init__(self, use_test=False, session_id=None, require_logging=True, auth_object=None, login_object=None, auto_derive_creds=True):
+    def __init__(self, use_test=False, session_id=None, require_logging=True, auth_object=None,
+                 login_object=None, auto_derive_creds=True):
         self.api_password = None
         self.use_test = use_test
         self.api_url = self.derive_api_url()
@@ -52,50 +54,23 @@ class BroadsoftRequest(XmlDocument):
         self.login_object = l
         logging.info("continuing with request", extra={'session_id': self.session_id})
 
-    def check_error(self, response):
+    def check_error(self, string_response):
+        if type(string_response) is str:
+            response = ET.fromstring(text=string_response)
+
         error_msg = None
 
         # sometimes errors come in as Error commands inside a SOAP envelope
-        payload = BroadsoftRequest.extract_payload(response=response)
-        if payload:
-            cmd_container = payload.findall('./command')
-            if len(cmd_container) > 0:
-                cmd = cmd_container[0]
-                summary_container = cmd.findall('./summary')
-                summary_english_container = cmd.findall('./summaryEnglish')
-                detail_container = cmd.findall('./detail')
-
-                summary = None
-                summary_english = None
-                detail = None
-                error = False
-
-                if len(summary_container) > 0:
-                    summary = summary_container[0].text
-                    error = True
-                if len(summary_english_container) > 0:
-                    summary_english = summary_english_container[0].text
-                    error = True
-                if len(detail_container) > 0:
-                    detail = detail_container[0].text
-                    error = True
-
-                if error:
-                    error_msg = "the SOAP server threw an error: "
-                    error_msg += str(summary)
-                    error_msg += ' :: ' + str(summary_english)
-                    error_msg += ' :: ' + str(detail)
+        if not error_msg:
+            error_msg = self.check_error__message(response=string_response)
 
         # sometimes errors come in as SOAP faults
-        if type(response) is str:
-            response = ET.fromstring(text=response)
+        if not error_msg:
+            error_msg = self.check_error__fault(response=response)
 
-        faults = response.findall('.//{http://schemas.xmlsoap.org/soap/envelope/}Fault')
-        if len(faults) > 0:
-            fault = faults[0]
-            message = fault.findall('./faultstring')[0].text
-            detail = fault.findall('./detail/string')[0].text
-            error_msg = "the SOAP server threw an error: " + message + ' :: ' + detail
+        # request objects that make changes to the system should do an extra check
+        if not error_msg and self.check_success:
+            error_msg = self.check_error__success(response=response)
 
         # found fault/error? log and raise exception
         if error_msg:
@@ -235,7 +210,7 @@ class BroadsoftRequest(XmlDocument):
             pass
 
         logging.info("response: " + content, extra={'session_id': self.session_id})
-        self.check_error(response=content)
+        self.check_error(string_response=content)
 
         # if requested, dig actual message out of SOAP envelope it came in (and return as XML object)
         if extract_payload:
@@ -253,6 +228,67 @@ class BroadsoftRequest(XmlDocument):
             return True
 
         return False
+
+    @staticmethod
+    def check_error__fault(response):
+        error_msg = None
+
+        faults = response.findall('.//{http://schemas.xmlsoap.org/soap/envelope/}Fault')
+        if len(faults) > 0:
+            fault = faults[0]
+            message = fault.findall('./faultstring')[0].text
+            detail = fault.findall('./detail/string')[0].text
+            error_msg = "the SOAP server threw an error: " + message + ' :: ' + detail
+
+        return error_msg
+
+    @staticmethod
+    def check_error__message(response):
+        error_msg = None
+
+        payload = BroadsoftRequest.extract_payload(response=response)
+        if payload:
+            cmd_container = payload.findall('./command')
+            if len(cmd_container) > 0:
+                cmd = cmd_container[0]
+                summary_container = cmd.findall('./summary')
+                summary_english_container = cmd.findall('./summaryEnglish')
+                detail_container = cmd.findall('./detail')
+
+                summary = None
+                summary_english = None
+                detail = None
+                error = False
+
+                if len(summary_container) > 0:
+                    summary = summary_container[0].text
+                    error = True
+                if len(summary_english_container) > 0:
+                    summary_english = summary_english_container[0].text
+                    error = True
+                if len(detail_container) > 0:
+                    detail = detail_container[0].text
+                    error = True
+
+                if error:
+                    error_msg = "the SOAP server threw an error: "
+                    error_msg += str(summary)
+                    error_msg += ' :: ' + str(summary_english)
+                    error_msg += ' :: ' + str(detail)
+
+        return error_msg
+
+    @staticmethod
+    def check_error__success(response):
+        error_msg = None
+
+        command = response.findall('./command')[0]
+        command_name = command.get('{http://www.w3.org/2001/XMLSchema-instance}type')
+        if command_name != 'c:SuccessResponse':
+            error_msg = "we were expecting an explicit success message from the SOAP server, but got " + ET.tostring(
+                response).decode('utf-8')
+
+        return error_msg
 
     @staticmethod
     def convert_phone_number(number):

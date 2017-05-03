@@ -4,6 +4,7 @@ from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 
 class GroupAddRequest(BroadsoftRequest):
     command_name = 'GroupAddRequest'
+    check_success = True
 
     def __init__(self, group_id=None, group_name=None, **kwargs):
         self.calling_line_id_name = None
