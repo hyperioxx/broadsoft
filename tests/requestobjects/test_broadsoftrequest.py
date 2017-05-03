@@ -332,26 +332,26 @@ class TestBroadsoftRequest(unittest.TestCase):
         self.assertEqual(b.test_default_domain, b.default_domain)
 
     def test_add_and_edit_functions_should_test_for_success(self):
-        success_payload = '<ns0:BroadsoftDocument xmlns:ns0="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" protocol="OCI"><sessionId>Chriss-MacBook-Pro-4.local,2017-05-03 15:53:30.388915,4743527360</sessionId><command echo="" xsi:type="c:SuccessResponse" /></ns0:BroadsoftDocument>'
-        regular_payload = '<ns0:BroadsoftDocument xmlns:ns0="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" protocol="OCI"><sessionId>Chriss-MacBook-Pro-4.local,2017-05-03 15:53:30.388915,4743527360</sessionId><command echo="" xsi:type="otherdata" /></ns0:BroadsoftDocument>'
+        success_response = '<?xml version="1.0" encoding="UTF-8"?><soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><soapenv:Body><processOCIMessageResponse xmlns=""><ns1:processOCIMessageReturn xmlns:ns1="urn:com:broadsoft:webservice">&lt;?xml version=&quot;1.0&quot; encoding=&quot;ISO-8859-1&quot;?&gt;&lt;BroadsoftDocument protocol=&quot;OCI&quot; xmlns=&quot;C&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;&gt;&lt;sessionId xmlns=&quot;&quot;&gt;Chriss-MacBook-Pro-4.local,2017-05-03 19:23:06.900733,6698568134&lt;/sessionId&gt;&lt;command echo=&quot;&quot; xsi:type=&quot;c:SuccessResponse&quot; xmlns:c=&quot;C&quot; xmlns=&quot;&quot;/&gt;&lt;/BroadsoftDocument&gt;</ns1:processOCIMessageReturn></processOCIMessageResponse></soapenv:Body></soapenv:Envelope>'
+        regular_response = '<?xml version="1.0" encoding="UTF-8"?><soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><soapenv:Body><processOCIMessageResponse xmlns=""><ns1:processOCIMessageReturn xmlns:ns1="urn:com:broadsoft:webservice">&lt;?xml version=&quot;1.0&quot; encoding=&quot;ISO-8859-1&quot;?&gt;&lt;BroadsoftDocument protocol=&quot;OCI&quot; xmlns=&quot;C&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;&gt;&lt;sessionId xmlns=&quot;&quot;&gt;Chriss-MacBook-Pro-4.local,2017-05-03 19:23:06.900733,6698568134&lt;/sessionId&gt;&lt;command echo=&quot;&quot; xsi:type=&quot;c:whatever&quot; xmlns:c=&quot;C&quot; xmlns=&quot;&quot;/&gt;&lt;/BroadsoftDocument&gt;</ns1:processOCIMessageReturn></processOCIMessageResponse></soapenv:Body></soapenv:Envelope>'
 
         # with check_success no and a success payload, should go through without an exception raised
         b = BroadsoftRequest()
         b.check_success = False
-        b.check_error(string_response=success_payload)
+        b.check_error(string_response=success_response)
 
         # with check_success no and a non-success payload, should go through without an exception raised
         b = BroadsoftRequest()
         b.check_success = False
-        b.check_error(string_response=regular_payload)
+        b.check_error(string_response=regular_response)
 
         # with check_success yes and a success payload, should go through without an exception raised
         b = BroadsoftRequest()
         b.check_success = True
-        b.check_error(string_response=success_payload)
+        b.check_error(string_response=success_response)
 
         # with check_success yes and a non-success payload, should raise an exception
         b = BroadsoftRequest()
         b.check_success = True
         with self.assertRaises(RuntimeError):
-            b.check_error(string_response=regular_payload)
+            b.check_error(string_response=regular_response)

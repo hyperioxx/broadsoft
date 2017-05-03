@@ -55,14 +55,18 @@ class BroadsoftRequest(XmlDocument):
         logging.info("continuing with request", extra={'session_id': self.session_id})
 
     def check_error(self, string_response):
+        response = string_response
         if type(string_response) is str:
             response = ET.fromstring(text=string_response)
+        else:
+            string_response = ET.tostring(response)
+        payload = BroadsoftRequest.extract_payload(response=string_response)
 
         error_msg = None
 
         # sometimes errors come in as Error commands inside a SOAP envelope
         if not error_msg:
-            error_msg = self.check_error__message(response=string_response)
+            error_msg = self.check_error__message(payload=payload)
 
         # sometimes errors come in as SOAP faults
         if not error_msg:
@@ -70,7 +74,7 @@ class BroadsoftRequest(XmlDocument):
 
         # request objects that make changes to the system should do an extra check
         if not error_msg and self.check_success:
-            error_msg = self.check_error__success(response=response)
+            error_msg = self.check_error__success(payload=payload)
 
         # found fault/error? log and raise exception
         if error_msg:
@@ -243,10 +247,9 @@ class BroadsoftRequest(XmlDocument):
         return error_msg
 
     @staticmethod
-    def check_error__message(response):
+    def check_error__message(payload):
         error_msg = None
 
-        payload = BroadsoftRequest.extract_payload(response=response)
         if payload:
             cmd_container = payload.findall('./command')
             if len(cmd_container) > 0:
@@ -279,14 +282,14 @@ class BroadsoftRequest(XmlDocument):
         return error_msg
 
     @staticmethod
-    def check_error__success(response):
+    def check_error__success(payload):
         error_msg = None
 
-        command = response.findall('./command')[0]
+        command = payload.findall('./command')[0]
         command_name = command.get('{http://www.w3.org/2001/XMLSchema-instance}type')
         if command_name != 'c:SuccessResponse':
             error_msg = "we were expecting an explicit success message from the SOAP server, but got " + ET.tostring(
-                response).decode('utf-8')
+                payload).decode('utf-8')
 
         return error_msg
 

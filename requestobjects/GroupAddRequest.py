@@ -86,3 +86,8 @@ class GroupAddRequest(BroadsoftRequest):
     def validate(self):
         if self.group_id is None and self.group_name is None:
             raise ValueError("can't run broadsoft.GroupAddRequest.to_xml() without a value for group_id or group_name")
+
+    @staticmethod
+    def add(group_id, group_name, **kwargs):
+        g = GroupAddRequest(group_id=group_id, group_name=group_name, **kwargs)
+        g.post()

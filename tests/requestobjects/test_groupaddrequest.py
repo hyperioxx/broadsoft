@@ -129,6 +129,3 @@ class TestBroadsoftGroupAddRequest(unittest.TestCase):
         f = FakeLoginObject()
         g = GroupAddRequest(login_object=f)
         self.assertEqual(f, g.login_object)
-
-    def test_build_interface_method(self):
-        self.assertFalse("write this")
