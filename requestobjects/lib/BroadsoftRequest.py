@@ -19,17 +19,13 @@ defines what a request to the Broadsoft OCI server looks like, how to post to it
 class BroadsoftRequest(XmlDocument):
     prod_api_url = '[unknown]'
     test_api_url = 'https://web1.voiplogic.net/webservice/services/ProvisioningService'
-    prod_api_user_id = '[unknown]'
-    test_api_user_id = 'admMITapi'
-    prod_api_password = '[unknown]'
-    test_api_password = 'EnM58#iD3vT'
     default_domain = 'broadsoft-dev.mit.edu'
     logging_dir = '/var/log/broadsoft'
     logging_fname = 'api.log'
     service_provider = 'ENT136'
     timezone = 'America/New_York'
 
-    def __init__(self, use_test=False, session_id=None, require_logging=True, auth_object=None, login_object=None):
+    def __init__(self, use_test=False, session_id=None, require_logging=True, auth_object=None, login_object=None, auto_derive_creds=True):
         self.api_password = None
         self.use_test = use_test
         self.api_url = self.derive_api_url()
@@ -39,8 +35,9 @@ class BroadsoftRequest(XmlDocument):
         self.login_object = login_object
         self.session_id = session_id
         self.derive_session_id()
-        self.derive_creds()
         self.default_logging(require_logging)
+        if auto_derive_creds:
+            self.derive_creds()
 
     def authenticate_and_login(self):
         logging.info("running authenticate request", extra={'session_id': self.session_id})
@@ -130,13 +127,13 @@ class BroadsoftRequest(XmlDocument):
         return self.prod_api_url
 
     def derive_creds(self):
+        from nistcreds.NistCreds import NistCreds
+        creds_member = 'prod'
         if self.use_test:
-            self.api_user_id = self.test_api_user_id
-            self.api_password = self.test_api_password
-
-        else:
-            self.api_user_id = self.prod_api_user_id
-            self.api_password = self.prod_api_password
+            creds_member = 'test'
+        creds = NistCreds(group='broadsoft', member=creds_member)
+        self.api_user_id = creds.username
+        self.api_password = creds.password
 
     def derive_session_id(self):
         if self.session_id is None:
