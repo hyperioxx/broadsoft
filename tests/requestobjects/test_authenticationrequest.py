@@ -52,31 +52,15 @@ class TestBroadsoftAuthenticationRequest(unittest.TestCase):
             '&lt;sessionId xmlns=""&gt;' + session_id + '&lt;/sessionId&gt;' in kwargs['data']
         )
 
-    def test_derive_username_for_prod_and_dev(self):
-        a = AuthenticationRequest()
-        a.derive_creds()
-        self.assertEqual(a.prod_api_user_id, a.api_user_id)
-        self.assertEqual(a.prod_api_password, a.api_password)
-
-        a = AuthenticationRequest(use_test=False)
-        a.derive_creds()
-        self.assertEqual(a.prod_api_user_id, a.api_user_id)
-        self.assertEqual(a.prod_api_password, a.api_password)
-
-        a = AuthenticationRequest(use_test=True)
-        a.derive_creds()
-        self.assertEqual(a.test_api_user_id, a.api_user_id)
-        self.assertEqual(a.test_api_password, a.api_password)
-
     def test_use_test_passed_to_derive_user_id_from_init(self):
         a = AuthenticationRequest()
-        self.assertEqual(a.prod_api_user_id, a.api_user_id)
+        self.assertFalse(a.use_test)
 
         a = AuthenticationRequest(use_test=False)
-        self.assertEqual(a.prod_api_user_id, a.api_user_id)
+        self.assertFalse(a.use_test)
 
         a = AuthenticationRequest(use_test=True)
-        self.assertEqual(a.test_api_user_id, a.api_user_id)
+        self.assertTrue(a.use_test)
 
     @unittest.mock.patch('requests.post', side_effect=return_xml)
     def test_authenticate_use_test_gets_passed_to_broadsoftdocument(
