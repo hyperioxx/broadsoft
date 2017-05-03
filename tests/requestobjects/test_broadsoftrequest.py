@@ -257,6 +257,3 @@ class TestBroadsoftRequest(unittest.TestCase):
         g.post(auto_login=False)
         self.assertFalse(login_patch.called)
         login_patch.called = False
-
-    def test_auth_login_logging(self):
-        self.assertFalse("write this")

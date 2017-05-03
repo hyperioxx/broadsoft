@@ -43,11 +43,14 @@ class BroadsoftRequest(XmlDocument):
         self.default_logging(require_logging)
 
     def authenticate_and_login(self):
+        logging.info("running authenticate request", extra={'session_id': self.session_id})
         a = AuthenticationRequest.authenticate(use_test=self.use_test, session_id=self.session_id)
         self.auth_object = a
 
+        logging.info("running login request", extra={'session_id': self.session_id})
         l = LoginRequest.login(use_test=self.use_test, auth_object=a)
         self.login_object = l
+        logging.info("continuing with request", extra={'session_id': self.session_id})
 
     def check_error(self, response):
         error_msg = None
@@ -179,11 +182,16 @@ class BroadsoftRequest(XmlDocument):
     def post(self, extract_payload=True, auto_login=True):
         # this function is only for descendant objects, like AuthenticationRequest
 
+        logging.info("running " + self.command_name + " request", extra={'session_id': self.session_id})
+
         # if this isn't an auth/login request, check for login object. none? need to login.
         if self.need_login():
+            logging.info("auth/login needed. auto_login is " + str(auto_login), extra={'session_id': self.session_id})
             if auto_login:
                 self.authenticate_and_login()
             else:
+                logging.error("need an AuthenticationRequest and associated LoginRequest to continue, or set auto_login to True",
+                             extra={'session_id': self.session_id})
                 raise RuntimeError("need an AuthenticationRequest and associated LoginRequest to continue, or set auto_login to True")
 
         # first, convert self into string representation
