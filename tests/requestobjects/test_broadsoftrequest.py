@@ -324,10 +324,6 @@ class TestBroadsoftRequest(unittest.TestCase):
         args, kwargs = call
         self.assertEqual('prod', kwargs['member'])
 
-
-    def test_getting_logging_level_in_entries(self):
-        self.assertFalse("write this")
-
     def test_derive_domain_based_on_test_and_prod(self):
         self.assertFalse("write this")
 

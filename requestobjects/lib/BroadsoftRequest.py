@@ -111,7 +111,7 @@ class BroadsoftRequest(XmlDocument):
             raise IOError('no permission to create ' + self.logging_dir)
 
         logging.basicConfig(filename=self.logging_dir + '/' + self.logging_fname, level=logging.INFO,
-                            format='%(asctime)s (%(session_id)s) %(message)s')
+                            format='%(levelname)s:%(asctime)s (%(session_id)s) %(message)s')
         logger = logging.getLogger(name='broadsoftapilog')
         logger.setLevel(level=logging.INFO)
         handler = TimedRotatingFileHandler(filename=self.logging_dir + '/' + self.logging_fname,
