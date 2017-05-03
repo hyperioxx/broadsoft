@@ -325,7 +325,11 @@ class TestBroadsoftRequest(unittest.TestCase):
         self.assertEqual('prod', kwargs['member'])
 
     def test_derive_domain_based_on_test_and_prod(self):
-        self.assertFalse("write this")
+        b = BroadsoftRequest(use_test=False)
+        self.assertEqual(b.prod_default_domain, b.default_domain)
+
+        b = BroadsoftRequest(use_test=True)
+        self.assertEqual(b.test_default_domain, b.default_domain)
 
     def test_add_and_edit_functions_should_test_for_success(self):
         """

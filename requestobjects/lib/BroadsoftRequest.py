@@ -19,7 +19,8 @@ defines what a request to the Broadsoft OCI server looks like, how to post to it
 class BroadsoftRequest(XmlDocument):
     prod_api_url = '[unknown]'
     test_api_url = 'https://web1.voiplogic.net/webservice/services/ProvisioningService'
-    default_domain = 'broadsoft-dev.mit.edu'
+    prod_default_domain = 'broadsoft.mit.edu'
+    test_default_domain = 'broadsoft-dev.mit.edu'
     logging_dir = '/var/log/broadsoft'
     logging_fname = 'api.log'
     service_provider = 'ENT136'
@@ -34,6 +35,8 @@ class BroadsoftRequest(XmlDocument):
         self.last_response = None
         self.login_object = login_object
         self.session_id = session_id
+        self.default_domain = None
+        self.derive_default_domain()
         self.derive_session_id()
         self.default_logging(require_logging)
         if auto_derive_creds:
@@ -134,6 +137,11 @@ class BroadsoftRequest(XmlDocument):
         creds = NistCreds(group='broadsoft', member=creds_member)
         self.api_user_id = creds.username
         self.api_password = creds.password
+
+    def derive_default_domain(self):
+        self.default_domain = self.prod_default_domain
+        if self.use_test:
+            self.default_domain = self.test_default_domain
 
     def derive_session_id(self):
         if self.session_id is None:
