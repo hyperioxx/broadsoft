@@ -208,10 +208,45 @@ class TestBroadsoftRequest(unittest.TestCase):
         )
 
     def test_need_login(self):
-        self.assertFalse("write this")
+        # with no attached auth or login objects, needs login
+        g = GroupGetListInServiceProviderRequest()
+        self.assertTrue(g.need_login())
 
-    def test_login(self):
-        self.assertFalse("write this")
+        # with no attached auth object, needs login
+        g = GroupGetListInServiceProviderRequest()
+        g.login_object = 'test'
+        self.assertTrue(g.need_login())
+
+        # with no attached login object, needs login
+        g = GroupGetListInServiceProviderRequest()
+        g.auth_object = 'test'
+        self.assertTrue(g.need_login())
+
+        # with attached login/auth objects, don't need login
+        g = GroupGetListInServiceProviderRequest()
+        g.auth_object = 'test'
+        g.login_object = 'test'
+        self.assertFalse(g.need_login())
+
+        # when command name is AuthenticationRequest, don't need login
+        a = AuthenticationRequest()
+        self.assertFalse(g.need_login())
+
+        # when command name is LoginRequest14sp4, don't need login
+        l = LoginRequest()
+        self.assertFalse(l.need_login())
+
+    @unittest.mock.patch.object(AuthenticationRequest, 'authenticate')
+    @unittest.mock.patch.object(LoginRequest, 'login')
+    def test_authenticate_and_login(
+            self,
+            login_patch,
+            auth_patch
+    ):
+        b = BroadsoftRequest()
+        b.authenticate_and_login()
+        self.assertTrue(login_patch.called)
+        self.assertTrue(auth_patch.called)
 
     @unittest.mock.patch.object(BroadsoftRequest, 'authenticate_and_login')
     @unittest.mock.patch('requests.post', side_effect=return_xml)
