@@ -75,7 +75,7 @@ class GroupAddRequest(BroadsoftRequest):
 
             if self.contact_number:
                 cnumber = ET.SubElement(c, 'contactNumber')
-                cnumber.text = BroadsoftRequest.convert_phone_number(number=self.contact_number)
+                cnumber.text = BroadsoftRequest.convert_phone_number(number=self.contact_number, dashes=True)
 
             if self.contact_email:
                 ce = ET.SubElement(c, 'contactEmail')
