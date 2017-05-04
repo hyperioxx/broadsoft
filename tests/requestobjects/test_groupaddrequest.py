@@ -49,11 +49,6 @@ class TestBroadsoftGroupAddRequest(unittest.TestCase):
         gar.contact_number = 'test'
         self.assertTrue(gar.derive_build_contact())
 
-    def test_groupaddrequest_to_xml_requires_groupid(self):
-        gar = GroupAddRequest()
-        with self.assertRaises(ValueError):
-            gar.to_xml()
-
     @unittest.mock.patch('broadsoft.requestobjects.lib.BroadsoftRequest.BroadsoftRequest.convert_phone_number')
     def test_groupaddrequest_to_xml_calls_convert_phone_number_when_number_present(
             self,
