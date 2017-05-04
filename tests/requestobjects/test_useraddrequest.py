@@ -7,10 +7,14 @@ from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 class TestBroadsoftUserAddRequest(unittest.TestCase):
     def test_build_user_id_from_did_and_domain(self):
         did = '6175551212'
+        int_did = 6175551212
         sip_user_id = 'timebeaver@mit.edu'
 
         u = UserAddRequest(did=did)
         self.assertEqual(did + '@' + u.default_domain, u.sip_user_id)
+
+        u = UserAddRequest(did=int_did)
+        self.assertEqual(str(did) + '@' + u.default_domain, u.sip_user_id)
 
         u = UserAddRequest(sip_user_id=sip_user_id)
         self.assertEqual(sip_user_id, u.sip_user_id)
