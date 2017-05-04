@@ -98,7 +98,6 @@ class TestBroadsoftUserAddRequest(unittest.TestCase):
         with self.assertRaises(ValueError):
             u.validate()
 
-
     def test_can_override_default_group_id(self):
         u = UserAddRequest(group_id='blah')
         self.assertEqual('blah', u.group_id)
