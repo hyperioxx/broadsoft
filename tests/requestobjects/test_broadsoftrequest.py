@@ -41,10 +41,14 @@ class TestBroadsoftRequest(unittest.TestCase):
         )
 
     def test_convert_phone_number(self):
-        self.assertEqual('617-555-1212', BroadsoftRequest.convert_phone_number(number='6175551212'))
-        self.assertEqual('617-555-1212', BroadsoftRequest.convert_phone_number(number='617 555 1212'))
-        self.assertEqual('617-555-1212', BroadsoftRequest.convert_phone_number(number='(617) 555-1212'))
-        self.assertEqual('617-555-1212', BroadsoftRequest.convert_phone_number(number='(617)-555-1212'))
+        self.assertEqual('6175551212', BroadsoftRequest.convert_phone_number(number='6175551212', dashes=False))
+        self.assertEqual('6175551212', BroadsoftRequest.convert_phone_number(number='617 555 1212', dashes=False))
+        self.assertEqual('6175551212', BroadsoftRequest.convert_phone_number(number='(617) 555-1212', dashes=False))
+        self.assertEqual('6175551212', BroadsoftRequest.convert_phone_number(number='(617)-555-1212', dashes=False))
+        self.assertEqual('617-555-1212', BroadsoftRequest.convert_phone_number(number='6175551212', dashes=True))
+        self.assertEqual('617-555-1212', BroadsoftRequest.convert_phone_number(number='617 555 1212', dashes=True))
+        self.assertEqual('617-555-1212', BroadsoftRequest.convert_phone_number(number='(617) 555-1212', dashes=True))
+        self.assertEqual('617-555-1212', BroadsoftRequest.convert_phone_number(number='(617)-555-1212', dashes=True))
 
     def test_generate_session_id(self):
         b = BroadsoftRequest()

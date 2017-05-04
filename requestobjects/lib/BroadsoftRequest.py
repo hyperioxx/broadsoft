@@ -299,11 +299,12 @@ class BroadsoftRequest(XmlDocument):
         return error_msg
 
     @staticmethod
-    def convert_phone_number(number):
+    def convert_phone_number(number, dashes=False):
         import re
         number = str(number)
         number = re.sub('\D', '', number)
-        number = number[:3] + '-' + number[3:6] + '-' + number[6:]
+        if dashes:
+            number = number[:3] + '-' + number[3:6] + '-' + number[6:]
         return number
 
     @staticmethod
