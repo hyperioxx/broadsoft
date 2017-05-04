@@ -11,6 +11,8 @@ class UserAddRequest(BroadsoftRequest):
         # group_id will be inherited from BroadsoftRequest.default_group_id, but can be overridden by passing
         # group_id (will get picked up in **kwargs)
         self.did = did
+        if self.did:
+            self.did = BroadsoftRequest.convert_phone_number(number=self.did)
         self.first_name = first_name
         self.kname = kname
         self.last_name = last_name
@@ -32,8 +34,8 @@ class UserAddRequest(BroadsoftRequest):
             self.sip_password = str(random.randint(1000000000, 9999999999))
 
     def derive_user_id(self):
-        if not self.sip_user_id and self.kname:
-            self.sip_user_id = str(self.kname) + '@' + self.default_domain
+        if not self.sip_user_id and self.did:
+            self.sip_user_id = BroadsoftRequest.convert_phone_number(number=str(self.did)) + '@' + self.default_domain
 
     def to_xml(self):
         self.did = BroadsoftRequest.convert_phone_number(number=self.did)
