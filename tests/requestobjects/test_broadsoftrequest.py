@@ -355,3 +355,10 @@ class TestBroadsoftRequest(unittest.TestCase):
         b.check_success = True
         with self.assertRaises(RuntimeError):
             b.check_error(string_response=regular_response)
+
+    def test_default_group_id(self):
+        b = BroadsoftRequest(group_id='blah')
+        self.assertEqual('blah', b.group_id)
+
+        b = BroadsoftRequest()
+        self.assertEqual(b.default_group_id, b.group_id)

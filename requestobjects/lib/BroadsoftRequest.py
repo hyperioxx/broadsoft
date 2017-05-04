@@ -26,9 +26,10 @@ class BroadsoftRequest(XmlDocument):
     service_provider = 'ENT136'
     timezone = 'America/New_York'
     check_success = False
+    default_group_id = 'mit'
 
     def __init__(self, use_test=False, session_id=None, require_logging=True, auth_object=None,
-                 login_object=None, auto_derive_creds=True):
+                 login_object=None, auto_derive_creds=True, group_id=None):
         self.api_password = None
         self.use_test = use_test
         self.api_url = self.derive_api_url()
@@ -43,6 +44,10 @@ class BroadsoftRequest(XmlDocument):
         self.default_logging(require_logging)
         if auto_derive_creds:
             self.derive_creds()
+        if group_id:
+            self.group_id = group_id
+        else:
+            self.group_id = self.default_group_id
 
     def authenticate_and_login(self):
         logging.info("running authenticate request", extra={'session_id': self.session_id})
