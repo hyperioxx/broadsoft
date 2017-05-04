@@ -14,7 +14,7 @@ class GroupAddRequest(BroadsoftRequest):
         self.group_id = group_id
         self.group_name = group_name
         self.user_limit = 100000
-        BroadsoftRequest.__init__(self, **kwargs)
+        BroadsoftRequest.__init__(self, auto_derive_group_id=False, **kwargs)
 
     def derive_build_contact(self):
         attrs = [self.contact_email, self.contact_name, self.contact_number]

@@ -366,3 +366,6 @@ class TestBroadsoftRequest(unittest.TestCase):
 
         b = BroadsoftRequest()
         self.assertEqual(b.default_group_id, b.group_id)
+
+        b = BroadsoftRequest(auto_derive_group_id=False)
+        self.assertIsNone(b.group_id)
