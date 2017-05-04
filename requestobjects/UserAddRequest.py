@@ -100,5 +100,5 @@ class UserAddRequest(BroadsoftRequest):
 
     @staticmethod
     def add(first_name, last_name, did, sip_user_id=None, kname=None, sip_password=None, email=None, **kwargs):
-        g = UserAddRequest(**kwargs)
-        g.post()
+        u = UserAddRequest(first_name=first_name, last_name=last_name, did=did, sip_user_id=sip_user_id, kname=kname, sip_password=sip_password, email=email, **kwargs)
+        u.post()
