@@ -83,6 +83,9 @@ class UserAddRequest(BroadsoftRequest):
         if self.sip_user_id is None:
             raise ValueError("can't run broadsoft.UserAddRequest.to_xml() without a value for sip_user_id. you can also add a kname and run derive_user_id()")
 
+        if self.email is None:
+            raise ValueError("can't run broadsoft.UserAddRequest.to_xml() without a value for email. you can also add a kname and run derive_email()")
+
         if self.first_name is None:
             raise ValueError("can't run broadsoft.UserAddRequest.to_xml() without a value for first_name")
 

@@ -57,13 +57,52 @@ class TestBroadsoftUserAddRequest(unittest.TestCase):
                            did='617555121x', sip_password='123456789')
         self.assertEqual('123456789', u.sip_password)
 
-        u = UserAddRequest(group_id='testgroup', session_id='sesh', kname='beaver', last_name='Beaver',
+        u = UserAddRequest(session_id='sesh', kname='beaver', last_name='Beaver',
                            first_name='Tim', email='beaver@mit.edu',
                            did='617555121x')
         self.assertIsNotNone(u.sip_password)
 
     def test_validation(self):
-        self.assertFalse("write this")
+        """
+        u = UserAddRequest(group_id='testgroup', session_id='sesh', last_name='Beaver',
+                           first_name='Tim', email='beaver@mit.edu', sip_user_id='beaver@broadsoft-dev.mit.edu',
+                           did='6175551212')
+        """
+
+        # no last_name
+        u = UserAddRequest(group_id='testgroup', session_id='sesh',
+                           first_name='Tim', email='beaver@mit.edu', sip_user_id='beaver@broadsoft-dev.mit.edu',
+                           did='6175551212')
+        with self.assertRaises(ValueError):
+            u.validate()
+
+        # no first_name
+        u = UserAddRequest(group_id='testgroup', session_id='sesh', last_name='Beaver',
+                           email='beaver@mit.edu', sip_user_id='beaver@broadsoft-dev.mit.edu',
+                           did='6175551212')
+        with self.assertRaises(ValueError):
+            u.validate()
+
+        # no email
+        u = UserAddRequest(group_id='testgroup', session_id='sesh', last_name='Beaver',
+                           first_name='Tim', sip_user_id='beaver@broadsoft-dev.mit.edu',
+                           did='6175551212')
+        with self.assertRaises(ValueError):
+            u.validate()
+
+        # no sip_user_id
+        u = UserAddRequest(group_id='testgroup', session_id='sesh', last_name='Beaver',
+                           first_name='Tim', email='beaver@mit.edu',
+                           did='6175551212')
+        with self.assertRaises(ValueError):
+            u.validate()
+
+        # no did
+        u = UserAddRequest(group_id='testgroup', session_id='sesh', last_name='Beaver',
+                           first_name='Tim', email='beaver@mit.edu', sip_user_id='beaver@broadsoft-dev.mit.edu')
+        with self.assertRaises(ValueError):
+            u.validate()
+
 
     def test_can_override_default_group_id(self):
         u = UserAddRequest(group_id='blah')
