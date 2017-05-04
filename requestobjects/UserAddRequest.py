@@ -36,8 +36,8 @@ class UserAddRequest(BroadsoftRequest):
             self.sip_user_id = str(self.kname) + '@' + self.default_domain
 
     def to_xml(self):
-        self.validate()
         self.did = BroadsoftRequest.convert_phone_number(number=self.did)
+        self.validate()
 
         # master is the entire XML document, cmd is the command element inserted within, which this object will be
         # manipulating

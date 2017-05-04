@@ -22,8 +22,10 @@ class TestBroadsoftUserAddRequest(unittest.TestCase):
         self.assertIsNone(u.sip_user_id)
 
     @unittest.mock.patch.object(BroadsoftRequest, 'convert_phone_number')
+    @unittest.mock.patch.object(UserAddRequest, 'validate')
     def test_did_gets_converted(
             self,
+            validate_patch,
             convert_phone_number_patch
     ):
         u = UserAddRequest(group_id='testgroup', session_id='sesh', kname='beaver', last_name='Beaver',
