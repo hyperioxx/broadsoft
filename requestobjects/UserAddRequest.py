@@ -18,12 +18,18 @@ class UserAddRequest(BroadsoftRequest):
         self.sip_user_id = sip_user_id
         self.email = email
         self.derive_email()
+        self.derive_sip_password()
         BroadsoftRequest.__init__(self, **kwargs)
         self.derive_user_id()
 
     def derive_email(self):
         if not self.email and self.kname:
             self.email = str(self.kname) + '@mit.edu'
+
+    def derive_sip_password(self):
+        if self.sip_password is None:
+            import random
+            self.sip_password = str(random.randint(1000000000, 9999999999))
 
     def derive_user_id(self):
         if not self.sip_user_id and self.kname:

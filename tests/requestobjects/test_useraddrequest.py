@@ -21,9 +21,6 @@ class TestBroadsoftUserAddRequest(unittest.TestCase):
         u = UserAddRequest()
         self.assertIsNone(u.sip_user_id)
 
-    def test_derive_email_from_kname_as_needed(self):
-        self.assertFalse("write this")
-
     @unittest.mock.patch.object(BroadsoftRequest, 'convert_phone_number')
     def test_did_gets_converted(
             self,
@@ -55,7 +52,15 @@ class TestBroadsoftUserAddRequest(unittest.TestCase):
             u.validate()
 
     def test_auto_password_generation(self):
-        self.assertFalse("write this")
+        u = UserAddRequest(group_id='testgroup', session_id='sesh', kname='beaver', last_name='Beaver',
+                           first_name='Tim', email='beaver@mit.edu',
+                           did='617555121x', sip_password='123456789')
+        self.assertEqual('123456789', u.sip_password)
+
+        u = UserAddRequest(group_id='testgroup', session_id='sesh', kname='beaver', last_name='Beaver',
+                           first_name='Tim', email='beaver@mit.edu',
+                           did='617555121x')
+        self.assertIsNotNone(u.sip_password)
 
     def test_validation(self):
         self.assertFalse("write this")
