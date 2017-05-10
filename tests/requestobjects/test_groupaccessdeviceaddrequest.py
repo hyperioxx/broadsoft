@@ -4,107 +4,95 @@ from broadsoft.requestobjects.GroupAccessDeviceAddRequest import GroupAccessDevi
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 
 
-class TestBroadsoftGroupAccessDeviceAddRequest:
+class TestBroadsoftGroupAccessDeviceAddRequest(unittest.TestCase):
     @unittest.mock.patch.object(BroadsoftRequest, 'convert_phone_number')
-    @unittest.mock.patch.object(UserAddRequest, 'validate')
+    @unittest.mock.patch.object(GroupAccessDeviceAddRequest, 'validate')
     def test_did_gets_converted(
             self,
             validate_patch,
             convert_phone_number_patch
     ):
-        u = UserAddRequest(group_id='testgroup', session_id='sesh', kname='beaver', last_name='Beaver',
-                           first_name='Tim', email='beaver@mit.edu',
-                           did='617 555 1212', sip_password='123456789')
+        u = GroupAccessDeviceAddRequest(did='617 555 1212', device_name='test phone',
+                                        device_type='Polycom SoundPoint IP 550')
         u.to_xml()
         self.assertTrue(convert_phone_number_patch.called)
 
     def test_did_format_gets_validated(self):
-        u = UserAddRequest(group_id='testgroup', session_id='sesh', kname='beaver', last_name='Beaver',
-                           first_name='Tim', email='beaver@mit.edu',
-                           did='617555121', sip_password='123456789')
+        u = GroupAccessDeviceAddRequest(did='617555121', device_name='test phone',
+                                        device_type='Polycom SoundPoint IP 550')
         with self.assertRaises(ValueError):
             u.validate()
 
-        u = UserAddRequest(group_id='testgroup', session_id='sesh', kname='beaver', last_name='Beaver',
-                           first_name='Tim', email='beaver@mit.edu',
-                           did='61755512111', sip_password='123456789')
+        u = GroupAccessDeviceAddRequest(did='61755512111', device_name='test phone',
+                                        device_type='Polycom SoundPoint IP 550')
         with self.assertRaises(ValueError):
             u.validate()
 
-        u = UserAddRequest(group_id='testgroup', session_id='sesh', kname='beaver', last_name='Beaver',
-                           first_name='Tim', email='beaver@mit.edu',
-                           did='617555121x', sip_password='123456789')
+        u = GroupAccessDeviceAddRequest(did='617555121x', device_name='test phone',
+                                        device_type='Polycom SoundPoint IP 550')
         with self.assertRaises(ValueError):
             u.validate()
 
     def test_validation(self):
         """
-        u = UserAddRequest(group_id='testgroup', session_id='sesh', last_name='Beaver',
-                           first_name='Tim', email='beaver@mit.edu', sip_user_id='beaver@broadsoft-dev.mit.edu',
-                           did='6175551212')
+        g = GroupAccessDeviceAddRequest(did=None, device_name=None, device_type=None, protocol='SIP 2.0',
+                 transport_protocol='Unspecified')
         """
 
-        # no last_name
-        u = UserAddRequest(group_id='testgroup', session_id='sesh',
-                           first_name='Tim', email='beaver@mit.edu', sip_user_id='beaver@broadsoft-dev.mit.edu',
-                           did='6175551212')
+        # no device_name
+        u = GroupAccessDeviceAddRequest(did=6175551212, device_name=None, device_type='dtype', protocol='SIP 2.0',
+                                        transport_protocol='Unspecified')
         with self.assertRaises(ValueError):
             u.validate()
 
-        # no first_name
-        u = UserAddRequest(group_id='testgroup', session_id='sesh', last_name='Beaver',
-                           email='beaver@mit.edu', sip_user_id='beaver@broadsoft-dev.mit.edu',
-                           did='6175551212')
+        # no device_type
+        u = GroupAccessDeviceAddRequest(did=6175551212, device_name='dname', device_type=None, protocol='SIP 2.0',
+                                        transport_protocol='Unspecified')
         with self.assertRaises(ValueError):
             u.validate()
 
-        # no email
-        u = UserAddRequest(group_id='testgroup', session_id='sesh', last_name='Beaver',
-                           first_name='Tim', sip_user_id='beaver@broadsoft-dev.mit.edu',
-                           did='6175551212')
+        # no protocol
+        u = GroupAccessDeviceAddRequest(did=6175551212, device_name='dname', device_type='dtype', protocol=None,
+                                        transport_protocol='Unspecified')
         with self.assertRaises(ValueError):
             u.validate()
 
-        # no did
-        u = UserAddRequest(group_id='testgroup', session_id='sesh', last_name='Beaver',
-                           first_name='Tim', email='beaver@mit.edu', sip_user_id='beaver@broadsoft-dev.mit.edu')
+        # no transport_protocol
+        u = GroupAccessDeviceAddRequest(did=6175551212, device_name='dname', device_type='dtype', protocol='SIP 2.0',
+                                        transport_protocol=None)
         with self.assertRaises(ValueError):
             u.validate()
 
-    def test_can_override_default_group_id(self):
-        u = UserAddRequest(group_id='blah')
-        self.assertEqual('blah', u.group_id)
+        # bad mac addr
+        u = GroupAccessDeviceAddRequest(did=6175551212, device_name='dname', device_type='dtype',
+                                        protocol='SIP 2.0', mac_address='a',
+                                        transport_protocol=None)
+        with self.assertRaises(ValueError):
+            u.validate()
 
-        u = UserAddRequest()
-        self.assertEqual(u.default_group_id, u.group_id)
+    def test_group_id_inheritance(self):
+        # defaults to default set in BroadsoftRequest
+        g = GroupAccessDeviceAddRequest()
+        self.assertEqual(g.default_group_id, g.group_id)
+
+        # can also override
+        g = GroupAccessDeviceAddRequest(group_id='gid')
+        self.assertEqual('gid', g.group_id)
 
     def test_to_xml(self):
-        u = UserAddRequest(group_id='testgroup', session_id='sesh', kname='beaver', last_name='Beaver',
-                           first_name='Tim', email='beaver@mit.edu',
-                           did='617 555 1212', sip_password='123456789')
+        g = GroupAccessDeviceAddRequest(did='6175551212', device_name='dname', mac_address='aabbcc112233',
+                                        device_type='dtype', description='desc', group_id='testgroup')
 
         target_xml = \
-            '<command xmlns="" xsi:type="UserAddRequest17sp4">' + \
+            '<command xmlns="" xsi:type="GroupAccessDeviceAddRequest14">' + \
             '<serviceProviderId>ENT136</serviceProviderId>' + \
             '<groupId>testgroup</groupId>' + \
-            '<userId>6175551212@' + u.default_domain + '</userId>' + \
-            '<lastName>Beaver</lastName>' + \
-            '<firstName>Tim</firstName>' + \
-            '<callingLineIdLastName>Beaver</callingLineIdLastName>' + \
-            '<callingLineIdFirstName>Tim</callingLineIdFirstName>' + \
-            '<phoneNumber>6175551212</phoneNumber>' + \
-            '<password>123456789</password>' + \
-            '<emailAddress>beaver@mit.edu</emailAddress>' + \
+            '<deviceName>dname</deviceName>' + \
+            '<deviceType>dtype</deviceType>' + \
+            '<macAddress>aabbcc112233</macAddress>' + \
+            '<description>desc</description>' + \
             '</command>'
 
-        xml = u.to_xml()
-        command = xml.findall('.//command')[0]
+        cmd = g.build_command_xml()
         self.maxDiff = None
-        self.assertEqual(target_xml, ET.tostring(command).decode('utf-8'))
-
-    def test_did_can_be_integer(self):
-        def test_to_xml(self):
-            u = UserAddRequest(group_id='testgroup', session_id='sesh', kname='beaver', last_name='Beaver',
-                               first_name='Tim', email='beaver@mit.edu',
-                               did=6175551212, sip_password='123456789')
-            xml = u.to_xml()
+        self.assertEqual(target_xml, ET.tostring(cmd).decode('utf-8'))
