@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
+from nettools.MACtools import MAC
 
 
 class GroupAccessDeviceAddRequest(BroadsoftRequest):
@@ -14,11 +15,15 @@ class GroupAccessDeviceAddRequest(BroadsoftRequest):
         self.device_name = device_name
         self.device_type = device_type
         self.mac_address = mac_address
+        if self.mac_address:
+            self.convert_mac_address()
         self.protocol = protocol
         self.transport_protocol = transport_protocol
         BroadsoftRequest.__init__(self, **kwargs)
 
     def build_command_xml(self):
+        if self.mac_address:
+            self.convert_mac_address()
         self.validate()
 
         cmd = self.build_command_shell()
@@ -35,16 +40,28 @@ class GroupAccessDeviceAddRequest(BroadsoftRequest):
         dt = ET.SubElement(cmd, 'deviceType')
         dt.text = self.device_type
 
-        ma = ET.SubElement(cmd, 'macAddress')
-        ma.text = self.mac_address
+        if self.mac_address:
+            ma = ET.SubElement(cmd, 'macAddress')
+            ma.text = self.mac_address
 
         d = ET.SubElement(cmd, 'description')
         d.text = self.description
 
         return cmd
 
+    def convert_mac_address(self):
+        m = MAC(mac=self.mac_address)
+        m.denude()
+        self.mac_address = m.bare_mac
+
     def validate(self):
         import re
+
+        if self.mac_address:
+            m = MAC(mac=self.mac_address)
+            m.validate()
+            if not m.valid:
+                raise ValueError("the MAC address you provided to broadsoft.GroupAccessDeviceAddRequest.to_xml() is not valid")
 
         if self.device_name is None:
             raise ValueError("can't run broadsoft.GroupAccessDeviceAddRequest.to_xml() without a value for device_name")
