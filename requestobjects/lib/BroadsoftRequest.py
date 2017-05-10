@@ -364,7 +364,7 @@ class AuthenticationRequest(BroadsoftRequest):
         self.nonce = None
         BroadsoftRequest.__init__(self, use_test=use_test, **kwargs)
 
-    def to_xml(self):
+    def build_command_xml(self):
         cmd = self.build_command_shell()
 
         uid = ET.SubElement(cmd, 'userId')
@@ -393,6 +393,17 @@ class LoginRequest(BroadsoftRequest):
     def __init__(self, use_test=False, **kwargs):
         BroadsoftRequest.__init__(self, use_test=use_test, **kwargs)
 
+    def build_command_xml(self):
+        cmd = self.build_command_shell()
+
+        uid = ET.SubElement(cmd, 'userId')
+        uid.text = self.api_user_id
+
+        pwd = ET.SubElement(cmd, 'signedPassword')
+        pwd.text = self.build_signed_password()
+
+        return cmd
+
     def build_signed_password(self):
         # the signedPassword is convoluted
         # first, SHA encrypt password
@@ -407,17 +418,6 @@ class LoginRequest(BroadsoftRequest):
         signed_pwd = m.hexdigest()
 
         return signed_pwd
-
-    def to_xml(self):
-        cmd = self.build_command_shell()
-
-        uid = ET.SubElement(cmd, 'userId')
-        uid.text = self.api_user_id
-
-        pwd = ET.SubElement(cmd, 'signedPassword')
-        pwd.text = self.build_signed_password()
-
-        return cmd
 
     @staticmethod
     def login(**kwargs):

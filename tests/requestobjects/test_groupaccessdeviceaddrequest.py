@@ -4,7 +4,7 @@ from broadsoft.requestobjects.GroupAccessDeviceAddRequest import GroupAccessDevi
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 
 
-class TestBroadsoftGroupAccessDeviceAddRequest
+class TestBroadsoftGroupAccessDeviceAddRequest:
     @unittest.mock.patch.object(BroadsoftRequest, 'convert_phone_number')
     @unittest.mock.patch.object(UserAddRequest, 'validate')
     def test_did_gets_converted(

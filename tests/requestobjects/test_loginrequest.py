@@ -76,12 +76,13 @@ class TestBroadsoftLoginRequest(unittest.TestCase):
         signed_pwd = m.hexdigest()
 
         xml = l.to_xml()
-        cmd = xml.findall('.//command')[0]
-
         self.assertEqual(
+            '<BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
+            '<sessionId xmlns="">' + l.session_id + '</sessionId>'
             '<command xmlns="" xsi:type="LoginRequest14sp4">' +
             '<userId>' + l.api_user_id + '</userId>' +
             '<signedPassword>' + signed_pwd + '</signedPassword>' +
-            '</command>',
-            ET.tostring(cmd).decode('utf-8')
+            '</command>' +
+            '</BroadsoftDocument>',
+            ET.tostring(xml).decode('utf-8')
         )
