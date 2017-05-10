@@ -31,22 +31,29 @@ class BroadsoftRequest(XmlDocument):
     def __init__(self, use_test=False, session_id=None, require_logging=True, auth_object=None,
                  login_object=None, auto_derive_creds=True, group_id=None, auto_derive_group_id=True):
         self.api_password = None
-        self.use_test = use_test
-        self.api_url = self.derive_api_url()
+        self.api_url = None
         self.api_user_id = None
         self.auth_object = auth_object
+        self.commands = []
+        self.default_domain = None
+        self.group_id = group_id
         self.last_response = None
         self.login_object = login_object
         self.session_id = session_id
-        self.default_domain = None
+        self.use_test = use_test
+
+        self.derive_api_url()
         self.derive_default_domain()
         self.derive_session_id()
-        self.default_logging(require_logging)
+
         if auto_derive_creds:
             self.derive_creds()
-        self.group_id = group_id
+
         if not self.group_id and auto_derive_group_id:
             self.group_id = self.default_group_id
+
+        # now that we're done setting up shop, start the logging
+        self.default_logging(require_logging)
 
     def authenticate_and_login(self):
         logging.info("running authenticate request", extra={'session_id': self.session_id})
@@ -57,6 +64,12 @@ class BroadsoftRequest(XmlDocument):
         l = LoginRequest.login(use_test=self.use_test, auth_object=a)
         self.login_object = l
         logging.info("continuing with request", extra={'session_id': self.session_id})
+
+    def build_command_shell(self):
+        cmd = ET.Element('command')
+        cmd.set('xsi:type', self.command_name)
+        cmd.set('xmlns', '')
+        return cmd
 
     def check_error(self, string_response):
         response = string_response
@@ -107,10 +120,23 @@ class BroadsoftRequest(XmlDocument):
         logger.addHandler(handler)
 
     def derive_api_url(self):
+        self.api_url = self.prod_api_url
         if self.use_test:
-            return self.test_api_url
+            self.api_url = self.test_api_url
 
-        return self.prod_api_url
+    def derive_commands(self):
+        # determine source of commands we'll be injecting into the master XML document
+
+        # begin by presuming what's in self.commands
+        # this will be when submitting a compound request of multiple commands
+        commands = self.commands
+
+        # otherwise, will be self
+        # this will be when directly calling a descendant object, like UserAddRequest
+        if self.__class__.__name__ != 'BroadsoftRequest':
+            commands = [self]
+
+        return commands
 
     def derive_creds(self):
         from nistcreds.NistCreds import NistCreds
@@ -141,31 +167,6 @@ class BroadsoftRequest(XmlDocument):
                     socket.gethostname() + ',' + \
                     str(datetime.datetime.utcnow()) + ',' + \
                     str(random.randint(1000000000, 9999999999))
-
-    def master_to_xml(self):
-        master = ET.Element('BroadsoftDocument')
-        master.set('protocol', 'OCI')
-        master.set('xmlns', 'C')
-        master.set('xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance')
-
-        sid = ET.SubElement(master, 'sessionId')
-        sid.set('xmlns', '')
-        sid.text = str(self.session_id)
-
-        # if self.command_name is set (should be a class var in the descendant object), build a <command> subelement
-        cmd = None
-        try:
-            command_name = self.command_name
-            cmd = ET.SubElement(master, 'command')
-            cmd.set('xsi:type', command_name)
-            cmd.set('xmlns', '')
-
-        except AttributeError:
-            pass
-
-        # returns both master XML and (for convenience) inserted command, which is where more stuff gets inserted by
-        # descendant object
-        return master, cmd
 
     def post(self, extract_payload=True, auto_login=True):
         # this function is only for descendant objects, like AuthenticationRequest
@@ -236,6 +237,24 @@ class BroadsoftRequest(XmlDocument):
             return True
 
         return False
+
+    def to_xml(self):
+        doc = ET.Element('BroadsoftDocument')
+        doc.set('protocol', 'OCI')
+        doc.set('xmlns', 'C')
+        doc.set('xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance')
+
+        sid = ET.SubElement(doc, 'sessionId')
+        sid.set('xmlns', '')
+        sid.text = str(self.session_id)
+
+        # inject command XML
+        commands = self.derive_commands()
+        for cmd_object in commands:
+            cmd = cmd_object.build_command_xml()
+            doc.append(cmd)
+
+        return doc
 
     @staticmethod
     def check_error__fault(response):
@@ -346,14 +365,12 @@ class AuthenticationRequest(BroadsoftRequest):
         BroadsoftRequest.__init__(self, use_test=use_test, **kwargs)
 
     def to_xml(self):
-        # master is the entire XML document, cmd is the command element inserted within, which this object will be
-        # manipulating
-        (master, cmd) = BroadsoftRequest.master_to_xml(self)
+        cmd = self.build_command_shell()
 
         uid = ET.SubElement(cmd, 'userId')
         uid.text = self.api_user_id
 
-        return master
+        return cmd
 
     @staticmethod
     def authenticate(**kwargs):
@@ -392,9 +409,7 @@ class LoginRequest(BroadsoftRequest):
         return signed_pwd
 
     def to_xml(self):
-        # master is the entire XML document, cmd is the command element inserted within, which this object will be
-        # manipulating
-        (master, cmd) = BroadsoftRequest.master_to_xml(self)
+        cmd = self.build_command_shell()
 
         uid = ET.SubElement(cmd, 'userId')
         uid.text = self.api_user_id
@@ -402,7 +417,7 @@ class LoginRequest(BroadsoftRequest):
         pwd = ET.SubElement(cmd, 'signedPassword')
         pwd.text = self.build_signed_password()
 
-        return master
+        return cmd
 
     @staticmethod
     def login(**kwargs):

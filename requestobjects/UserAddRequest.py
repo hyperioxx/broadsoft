@@ -24,26 +24,11 @@ class UserAddRequest(BroadsoftRequest):
         BroadsoftRequest.__init__(self, **kwargs)
         self.derive_user_id()
 
-    def derive_email(self):
-        if not self.email and self.kname:
-            self.email = str(self.kname) + '@mit.edu'
-
-    def derive_sip_password(self):
-        if self.sip_password is None:
-            import random
-            self.sip_password = str(random.randint(1000000000, 9999999999))
-
-    def derive_user_id(self):
-        if not self.sip_user_id and self.did:
-            self.sip_user_id = BroadsoftRequest.convert_phone_number(number=str(self.did)) + '@' + self.default_domain
-
-    def to_xml(self):
+    def build_command_xml(self):
         self.did = BroadsoftRequest.convert_phone_number(number=self.did)
         self.validate()
 
-        # master is the entire XML document, cmd is the command element inserted within, which this object will be
-        # manipulating
-        (master, cmd) = BroadsoftRequest.master_to_xml(self)
+        cmd = self.build_command_shell()
 
         spid = ET.SubElement(cmd, 'serviceProviderId')
         spid.text = self.service_provider
@@ -75,7 +60,20 @@ class UserAddRequest(BroadsoftRequest):
         e = ET.SubElement(cmd, 'emailAddress')
         e.text = self.email
 
-        return master
+        return cmd
+
+    def derive_email(self):
+        if not self.email and self.kname:
+            self.email = str(self.kname) + '@mit.edu'
+
+    def derive_sip_password(self):
+        if self.sip_password is None:
+            import random
+            self.sip_password = str(random.randint(1000000000, 9999999999))
+
+    def derive_user_id(self):
+        if not self.sip_user_id and self.did:
+            self.sip_user_id = BroadsoftRequest.convert_phone_number(number=str(self.did)) + '@' + self.default_domain
 
     def validate(self):
         import re

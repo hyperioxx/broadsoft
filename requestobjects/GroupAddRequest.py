@@ -16,30 +16,10 @@ class GroupAddRequest(BroadsoftRequest):
         self.user_limit = 100000
         BroadsoftRequest.__init__(self, auto_derive_group_id=False, **kwargs)
 
-    def derive_build_contact(self):
-        attrs = [self.contact_email, self.contact_name, self.contact_number]
-        for attr in attrs:
-            if attr is not None:
-                return True
-
-        return False
-
-    def derive_calling_line_id_name(self):
-        if self.calling_line_id_name is not None:
-            return self.calling_line_id_name
-
-        elif self.group_name is not None:
-            return str(self.group_name) + ' Line'
-
-        elif self.group_id is not None:
-            return str(self.group_id) + ' Line'
-
-    def to_xml(self):
+    def build_command_xml(self):
         self.validate()
 
-        # master is the entire XML document, cmd is the command element inserted within, which this object will be
-        # manipulating
-        (master, cmd) = BroadsoftRequest.master_to_xml(self)
+        cmd = self.build_command_shell()
 
         if self.service_provider:
             sp = ET.SubElement(cmd, 'serviceProviderId')
@@ -81,7 +61,25 @@ class GroupAddRequest(BroadsoftRequest):
                 ce = ET.SubElement(c, 'contactEmail')
                 ce.text = self.contact_email
 
-        return master
+        return cmd
+
+    def derive_build_contact(self):
+        attrs = [self.contact_email, self.contact_name, self.contact_number]
+        for attr in attrs:
+            if attr is not None:
+                return True
+
+        return False
+
+    def derive_calling_line_id_name(self):
+        if self.calling_line_id_name is not None:
+            return self.calling_line_id_name
+
+        elif self.group_name is not None:
+            return str(self.group_name) + ' Line'
+
+        elif self.group_id is not None:
+            return str(self.group_id) + ' Line'
 
     def validate(self):
         if self.group_id is None and self.group_name is None:

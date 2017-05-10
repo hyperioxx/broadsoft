@@ -1,8 +1,9 @@
 import http.cookiejar
 import unittest.mock
 import xml.etree.ElementTree as ET
-
 from broadsoft.requestobjects.GroupGetListInServiceProviderRequest import GroupGetListInServiceProviderRequest
+from broadsoft.requestobjects.GroupAddRequest import GroupAddRequest
+from broadsoft.requestobjects.UserAddRequest import UserAddRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest, AuthenticationRequest, LoginRequest
 
 def return_none(*args, **kwargs):
@@ -29,17 +30,6 @@ def return_xml_error(*args, **kwargs):
 
 
 class TestBroadsoftRequest(unittest.TestCase):
-    def test_to_xml_call(self):
-        x = BroadsoftRequest()
-        x.default_domain = 'dd'
-        x.session_id = 'seshy'
-
-        (xml, cmd) = x.master_to_xml()
-        self.assertEqual(
-            '<BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><sessionId xmlns="">' + x.session_id + '</sessionId></BroadsoftDocument>',
-            ET.tostring(element=xml).decode("utf-8")
-        )
-
     def test_convert_phone_number(self):
         self.assertEqual('6175551212', BroadsoftRequest.convert_phone_number(number='6175551212', dashes=False))
         self.assertEqual('6175551212', BroadsoftRequest.convert_phone_number(number='617 555 1212', dashes=False))
@@ -68,14 +58,14 @@ class TestBroadsoftRequest(unittest.TestCase):
         # without urlencoding
         s = a.to_string(html_encode=False)
         self.assertEqual(
-            '<?xml version="1.0" encoding="UTF-8"?><BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><sessionId xmlns="">sesh</sessionId><command xmlns="" xsi:type="AuthenticationRequest"><userId>' + a.api_user_id + '</userId></command></BroadsoftDocument>',
+            '<?xml version="1.0" encoding="UTF-8"?><command xmlns="" xsi:type="AuthenticationRequest"><userId>' + a.api_user_id + '</userId></command>',
             s
         )
 
         # with urlencoding
         s = a.to_string(html_encode=True)
         self.assertEqual(
-            '&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&lt;BroadsoftDocument protocol=&quot;OCI&quot; xmlns=&quot;C&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;&gt;&lt;sessionId xmlns=&quot;&quot;&gt;sesh&lt;/sessionId&gt;&lt;command xmlns=&quot;&quot; xsi:type=&quot;AuthenticationRequest&quot;&gt;&lt;userId&gt;' + a.api_user_id + '&lt;/userId&gt;&lt;/command&gt;&lt;/BroadsoftDocument&gt;',
+            '&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&lt;command xmlns=&quot;&quot; xsi:type=&quot;AuthenticationRequest&quot;&gt;&lt;userId&gt;' + a.api_user_id + '&lt;/userId&gt;&lt;/command&gt;',
             s
         )
 
@@ -369,3 +359,62 @@ class TestBroadsoftRequest(unittest.TestCase):
 
         b = BroadsoftRequest(auto_derive_group_id=False)
         self.assertIsNone(b.group_id)
+
+    def test_to_xml_with_no_contents(self):
+        b = BroadsoftRequest()
+        x = b.to_xml()
+        self.assertEqual(
+            '<BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
+            '<sessionId xmlns="">' + b.session_id + '</sessionId>' +
+            '</BroadsoftDocument>',
+            ET.tostring(x).decode('utf-8')
+        )
+
+    def test_derive_commands(self):
+        gg = GroupGetListInServiceProviderRequest()
+        ga = GroupAddRequest()
+        ga.group_id = 'newgroup'
+
+        # instantiated a BroadsoftRequest object; expect to see contents of BroadsoftRequest.commands
+        b = BroadsoftRequest()
+        b.commands = [ga, gg]
+        self.assertEqual([ga, gg], b.derive_commands())
+
+        # not a BroadsoftRequest object; expect to see self
+        self.assertEqual([ga], ga.derive_commands())
+
+    def test_build_command_shell(self):
+        # BroadsoftRequest doesn't have a command_name property, so we'll use UserAddRequest
+        u = UserAddRequest()
+        self.assertEqual(
+            '<command xmlns="" xsi:type="' + u.command_name + '" />',
+            ET.tostring(u.build_command_shell()).decode('utf-8')
+        )
+
+    def test_to_xml_with_attached_commands(self):
+        gg = GroupGetListInServiceProviderRequest()
+        ga = GroupAddRequest()
+        ga.group_id = 'newgroup'
+
+        b = BroadsoftRequest()
+        b.commands = [ga, gg]
+
+        x = b.to_xml()
+        self.assertEqual(
+            '<BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
+            '<sessionId xmlns="">' + b.session_id + '</sessionId>' +
+            '<command xmlns="" xsi:type="GroupAddRequest">' +
+                '<serviceProviderId>' + ga.service_provider + '</serviceProviderId>' +
+                '<groupId>newgroup</groupId>' +
+                '<defaultDomain>' + ga.default_domain + '</defaultDomain>' +
+                '<userLimit>' + str(ga.user_limit) + '</userLimit>' +
+                '<callingLineIdName>newgroup Line</callingLineIdName>' +
+                '<timeZone>' + ga.timezone + '</timeZone>' +
+            '</command>' +
+            '<command xmlns="" xsi:type="GroupGetListInServiceProviderRequest">' +
+                '<serviceProviderId>' + gg.service_provider + '</serviceProviderId>' +
+                '<responseSizeLimit>' + str(gg.response_size_limit) + '</responseSizeLimit>' +
+            '</command>' +
+            '</BroadsoftDocument>',
+            ET.tostring(x).decode('utf-8')
+        )

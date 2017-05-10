@@ -10,10 +10,8 @@ class GroupGetListInServiceProviderRequest(SearchRequest):
     def __init__(self, **kwargs):
         SearchRequest.__init__(self, **kwargs)
 
-    def to_xml(self):
-        # master is the entire XML document, cmd is the command element inserted within, which this object will be
-        # manipulating
-        (master, cmd) = BroadsoftRequest.master_to_xml(self)
+    def build_command_xml(self):
+        cmd = self.build_command_shell()
 
         sid = ET.SubElement(cmd, 'serviceProviderId')
         sid.text = self.service_provider
@@ -21,7 +19,7 @@ class GroupGetListInServiceProviderRequest(SearchRequest):
         rsl = ET.SubElement(cmd, 'responseSizeLimit')
         rsl.text = str(self.response_size_limit)
 
-        return master
+        return cmd
 
     @staticmethod
     def list_groups(**kwargs):
