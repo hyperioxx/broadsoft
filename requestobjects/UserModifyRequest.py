@@ -40,7 +40,7 @@ class UserModifyRequest(BroadsoftRequest):
             self.line_port = self.derive_sip_user_id(line_port=True)
 
     def build_command_xml(self):
-        from broadsoft.requestobjects.datatypes.endpoint import Endpoint
+        from broadsoft.requestobjects.datatypes.EndPoint import Endpoint
         if self.did:
             self.did = BroadsoftRequest.convert_phone_number(number=self.did)
         if self.clid_did:

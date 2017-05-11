@@ -1,7 +1,7 @@
 import unittest
 import unittest.mock
 import xml.etree.ElementTree as ET
-from broadsoft.requestobjects.datatypes.endpoint import Endpoint
+from broadsoft.requestobjects.datatypes.EndPoint import Endpoint
 
 def return_false(**kwargs):
     return False
