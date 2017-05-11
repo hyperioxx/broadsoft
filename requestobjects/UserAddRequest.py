@@ -22,7 +22,8 @@ class UserAddRequest(BroadsoftRequest):
         self.derive_email()
         self.derive_sip_password()
         BroadsoftRequest.__init__(self, **kwargs)
-        self.derive_user_id()
+        if not self.sip_user_id:
+            self.sip_user_id = self.derive_sip_user_id()
 
     def build_command_xml(self):
         self.did = BroadsoftRequest.convert_phone_number(number=self.did)
@@ -70,10 +71,6 @@ class UserAddRequest(BroadsoftRequest):
         if self.sip_password is None:
             import random
             self.sip_password = str(random.randint(1000000000, 9999999999))
-
-    def derive_user_id(self):
-        if not self.sip_user_id and self.did:
-            self.sip_user_id = BroadsoftRequest.convert_phone_number(number=str(self.did)) + '@' + self.default_domain
 
     def validate(self):
         import re

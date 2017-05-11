@@ -44,7 +44,7 @@ class BroadsoftRequest(XmlDocument):
 
         self.derive_api_url()
         self.derive_default_domain()
-        self.derive_session_id()
+        self.build_session_id()
 
         if auto_derive_creds:
             self.derive_creds()
@@ -70,6 +70,22 @@ class BroadsoftRequest(XmlDocument):
         cmd.set('xsi:type', self.command_name)
         cmd.set('xmlns', '')
         return cmd
+
+    def build_session_id(self):
+        if self.session_id is None:
+            # if there's an attached auth object, use that session id
+            if self.auth_object:
+                try:
+                    self.session_id = self.auth_object.session_id
+                except AttributeError:
+                    pass
+
+            # otherwise, build a fresh one
+            if self.session_id is None:
+                self.session_id = \
+                    socket.gethostname() + ',' + \
+                    str(datetime.datetime.utcnow()) + ',' + \
+                    str(random.randint(1000000000, 9999999999))
 
     def check_error(self, string_response):
         response = string_response
@@ -152,21 +168,13 @@ class BroadsoftRequest(XmlDocument):
         if self.use_test:
             self.default_domain = self.test_default_domain
 
-    def derive_session_id(self):
-        if self.session_id is None:
-            # if there's an attached auth object, use that session id
-            if self.auth_object:
-                try:
-                    self.session_id = self.auth_object.session_id
-                except AttributeError:
-                    pass
-
-            # otherwise, build a fresh one
-            if self.session_id is None:
-                self.session_id = \
-                    socket.gethostname() + ',' + \
-                    str(datetime.datetime.utcnow()) + ',' + \
-                    str(random.randint(1000000000, 9999999999))
+    def derive_sip_user_id(self, lineport=False):
+        if self.did:
+            uname = BroadsoftRequest.convert_phone_number(number=str(self.did))
+            if lineport:
+                uname += '_lp'
+            return uname + '@' + self.default_domain
+        return None
 
     def post(self, extract_payload=True, auto_login=True):
         # this function is only for descendant objects, like AuthenticationRequest

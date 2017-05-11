@@ -149,3 +149,27 @@ class TestBroadsoftUserAddRequest(unittest.TestCase):
                                first_name='Tim', email='beaver@mit.edu',
                                did=6175551212, sip_password='123456789')
             xml = u.to_xml()
+
+    @unittest.mock.patch.object(BroadsoftRequest, 'derive_sip_user_id')
+    def test_derive_sip_user_id_gets_called_on_init(
+            self,
+            derive_sip_user_id_patch
+    ):
+        # shouldn't be called, since there is a sip_user_id
+        u = UserAddRequest(sip_user_id='blah@mit.edu')
+        self.assertFalse(derive_sip_user_id_patch.called)
+        u = UserAddRequest(sip_user_id='blah@mit.edu', did=6175551212)
+        self.assertFalse(derive_sip_user_id_patch.called)
+
+        # should be called, since no sip_user_id
+        u = UserAddRequest()
+        self.assertTrue(derive_sip_user_id_patch.called)
+        derive_sip_user_id_patch.called = False
+
+        # should be called, since there is a did and no sip_user_id
+        u = UserAddRequest(did=6175551212)
+        self.assertTrue(derive_sip_user_id_patch.called)
+
+    def test_derive_sip_user_id_results(self):
+        u = UserAddRequest(did=6175551212)
+        self.assertEqual('6175551212@' + u.default_domain, u.sip_user_id)
