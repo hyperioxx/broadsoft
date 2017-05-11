@@ -89,13 +89,6 @@ class TestBroadsoftUserAddRequest(unittest.TestCase):
         with self.assertRaises(ValueError):
             u.validate()
 
-        # no email
-        u = UserAddRequest(group_id='testgroup', session_id='sesh', last_name='Beaver',
-                           first_name='Tim', sip_user_id='beaver@broadsoft-dev.mit.edu',
-                           did='6175551212')
-        with self.assertRaises(ValueError):
-            u.validate()
-
         # no did
         u = UserAddRequest(group_id='testgroup', session_id='sesh', last_name='Beaver',
                            first_name='Tim', email='beaver@mit.edu', sip_user_id='beaver@broadsoft-dev.mit.edu')
