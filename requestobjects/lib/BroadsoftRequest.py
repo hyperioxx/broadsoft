@@ -168,10 +168,10 @@ class BroadsoftRequest(XmlDocument):
         if self.use_test:
             self.default_domain = self.test_default_domain
 
-    def derive_sip_user_id(self, lineport=False):
+    def derive_sip_user_id(self, line_port=False):
         if self.did:
             uname = BroadsoftRequest.convert_phone_number(number=str(self.did))
-            if lineport:
+            if line_port:
                 uname += '_lp'
             return uname + '@' + self.default_domain
         return None

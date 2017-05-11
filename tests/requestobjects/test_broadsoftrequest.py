@@ -1,3 +1,4 @@
+import unittest
 import http.cookiejar
 import unittest.mock
 import xml.etree.ElementTree as ET
@@ -89,7 +90,7 @@ class TestBroadsoftRequest(unittest.TestCase):
         # lineport is true
         u = UserAddRequest()
         u.did = '617-555-1212'
-        self.assertEqual('6175551212_lp@' + u.default_domain, u.derive_sip_user_id(lineport=True))
+        self.assertEqual('6175551212_lp@' + u.default_domain, u.derive_sip_user_id(line_port=True))
 
     def test_extract_payload(self):
         # sending string

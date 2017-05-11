@@ -58,8 +58,9 @@ class UserAddRequest(BroadsoftRequest):
         pw = ET.SubElement(cmd, 'password')
         pw.text = self.sip_password
 
-        e = ET.SubElement(cmd, 'emailAddress')
-        e.text = self.email
+        if self.email:
+            e = ET.SubElement(cmd, 'emailAddress')
+            e.text = self.email
 
         return cmd
 
@@ -78,10 +79,7 @@ class UserAddRequest(BroadsoftRequest):
             raise ValueError("can't run broadsoft.UserAddRequest.to_xml() without a value for group_id")
 
         if self.sip_user_id is None:
-            raise ValueError("can't run broadsoft.UserAddRequest.to_xml() without a value for sip_user_id. you can also add a kname and run derive_user_id()")
-
-        if self.email is None:
-            raise ValueError("can't run broadsoft.UserAddRequest.to_xml() without a value for email. you can also add a kname and run derive_email()")
+            raise ValueError("can't run broadsoft.UserAddRequest.to_xml() without a value for sip_user_id. you can also add a did and run derive_user_id()")
 
         if self.first_name is None:
             raise ValueError("can't run broadsoft.UserAddRequest.to_xml() without a value for first_name")
