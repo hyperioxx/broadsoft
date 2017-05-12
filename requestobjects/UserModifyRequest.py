@@ -30,10 +30,9 @@ class UserModifyRequest(BroadsoftRequest):
         self.old_password = old_password
         self.sip_user_id = sip_user_id
 
-        # derive linePort as necessary
-        # derive email if kname and no email
-
         BroadsoftRequest.__init__(self, **kwargs)
+
+        # now that BroadsoftRequest has set domain, can run these
         if not self.sip_user_id:
             self.sip_user_id = self.derive_sip_user_id()
         if not self.line_port:
