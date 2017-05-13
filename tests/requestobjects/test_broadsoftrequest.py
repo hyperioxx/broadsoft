@@ -441,3 +441,43 @@ class TestBroadsoftRequest(unittest.TestCase):
             '</BroadsoftDocument>',
             ET.tostring(x).decode('utf-8')
         )
+
+    def test_convert_booleans_when_present(self):
+        class FakeRequest(BroadsoftRequest):
+            booleans = ['a', 'b', 'c']
+
+            def __init__(self):
+                self.a = True
+                self.b = False
+                self.c = 'hi'
+
+        f = FakeRequest()
+        f.convert_booleans()
+
+        self.assertEqual('true', f.a)
+        self.assertEqual('false', f.b)
+        self.assertEqual('true', f.c)
+
+    def test_convert_booleans_when_not_present(self):
+        class FakeRequest(BroadsoftRequest):
+            def __init__(self):
+                self.a = True
+                self.b = False
+                self.c = 'hi'
+
+        f = FakeRequest()
+
+        # should invoke without error or effect
+        f.convert_booleans()
+        self.assertTrue(f.a)
+        self.assertFalse(f.b)
+        self.assertEqual('hi', f.c)
+
+    @unittest.mock.patch.object(BroadsoftRequest, 'convert_booleans')
+    def test_to_xml_calls_convert_booleans(
+            self,
+            convert_booleans_patch
+    ):
+        b = BroadsoftRequest()
+        b.to_xml()
+        self.assertTrue(convert_booleans_patch.called)

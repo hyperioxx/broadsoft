@@ -114,6 +114,16 @@ class BroadsoftRequest(XmlDocument):
             logging.error(error_msg, extra={'session_id': self.session_id})
             raise RuntimeError(error_msg)
 
+    def convert_booleans(self):
+        try:
+            for a in self.booleans:
+                val = 'false'
+                if getattr(self, a):
+                    val = 'true'
+                setattr(self, a, val)
+        except AttributeError:
+            pass
+
     def default_logging(self, require_logging):
         import os
         from logging.handlers import TimedRotatingFileHandler
@@ -247,6 +257,8 @@ class BroadsoftRequest(XmlDocument):
         return False
 
     def to_xml(self):
+        self.convert_booleans()
+
         doc = ET.Element('BroadsoftDocument')
         doc.set('protocol', 'OCI')
         doc.set('xmlns', 'C')
