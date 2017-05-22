@@ -239,6 +239,11 @@ class BroadsoftRequest(XmlDocument):
         logging.info("response: " + content, extra={'session_id': self.session_id})
         self.check_error(string_response=content)
 
+        # if we're managing login behavior, also do an implicit logout
+        #if self.should_logout(auto_login):
+        #    logging.info("automatically running logout request", extra={'session_id': self.session_id})
+        #    l = LogoutRequest.logout(use_test=self.use_test, auth_object=self.auth_object)
+
         # if requested, dig actual message out of SOAP envelope it came in (and return as XML object)
         if extract_payload:
             return BroadsoftRequest.extract_payload(content)
@@ -248,9 +253,10 @@ class BroadsoftRequest(XmlDocument):
         return xml
 
     def need_login(self):
+        exceptions = ['AuthenticationRequest', 'LoginRequest14sp4', 'LogoutRequest']
+
         if \
-           self.command_name != 'AuthenticationRequest'\
-           and self.command_name != 'LoginRequest14sp4'\
+           self.command_name not in exceptions \
            and (not self.login_object or not self.auth_object):
             return True
 
@@ -442,5 +448,26 @@ class LoginRequest(BroadsoftRequest):
     @staticmethod
     def login(**kwargs):
         l = LoginRequest(**kwargs)
+        l.post()
+        return l
+
+
+class LogoutRequest(BroadsoftRequest):
+    command_name = 'LogoutRequest'
+
+    def __init__(self, use_test=False, **kwargs):
+        BroadsoftRequest.__init__(self, use_test=use_test, **kwargs)
+
+    def build_command_xml(self):
+        cmd = self.build_command_shell()
+
+        uid = ET.SubElement(cmd, 'userId')
+        uid.text = self.api_user_id
+
+        return cmd
+
+    @staticmethod
+    def logout(**kwargs):
+        l = LogoutRequest(**kwargs)
         l.post()
         return l
