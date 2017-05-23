@@ -19,7 +19,7 @@ class Device(BroadsoftObject):
         # optional; will be derived by broadsoft.RequestObjects as needed
         self.extension = extension
 
-        BroadsoftObject.__init__(**kwargs)
+        BroadsoftObject.__init__(self, **kwargs)
 
     def build_request_object(self):
         g = GroupAccessDeviceAddRequest(use_test=self.use_test)

@@ -29,6 +29,7 @@ class UserModifyRequest(BroadsoftRequest):
         self.new_password = new_password
         self.old_password = old_password
         self.sip_user_id = sip_user_id
+        self.derive_extension()
 
         BroadsoftRequest.__init__(self, **kwargs)
 

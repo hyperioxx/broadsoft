@@ -219,3 +219,11 @@ class TestBroadsoftUserModifyRequest(unittest.TestCase):
         u.clid_did = 6175551212
         u.build_command_xml()
         self.assertTrue(derive_extension_patch.called)
+
+    @unittest.mock.patch.object(UserModifyRequest, 'derive_extension')
+    def test_init_calls_derive_extension(
+            self,
+            derive_extension_patch
+    ):
+        u = UserModifyRequest()
+        self.assertTrue(derive_extension_patch.called)
