@@ -3,15 +3,15 @@ from broadsoft.BroadsoftObject import BroadsoftObject
 
 
 class Device(BroadsoftObject):
-    def __init__(self, did, name, type, description, extension=None, use_test=False, mac_address=None, protocol=None,
+    def __init__(self, name, type, description, did=None, extension=None, use_test=False, mac_address=None, protocol=None,
                  transport_protocol=None, **kwargs):
         self.description = description
-        self.did = did
         self.name = name
         self.type = type
         self.use_test = use_test
 
         # optional
+        self.did = did
         self.mac_address = mac_address
         self.protocol = protocol
         self.transport_protocol = transport_protocol
