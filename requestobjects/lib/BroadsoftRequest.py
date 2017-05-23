@@ -25,12 +25,12 @@ class BroadsoftRequest(XmlDocument):
     logging_dir = '/var/log/broadsoft'
     logging_fname = 'api.log'
     service_provider = 'ENT136'
-    timezone = 'America/New_York'
+    default_timezone = 'America/New_York'
     check_success = False
     default_group_id = 'mit'
 
     def __init__(self, use_test=False, session_id=None, require_logging=True, auth_object=None,
-                 login_object=None, auto_derive_creds=True, group_id=None, auto_derive_group_id=True):
+                 login_object=None, auto_derive_creds=True, group_id=None, auto_derive_group_id=True, timezone=None):
         self.api_password = None
         self.api_url = None
         self.api_user_id = None
@@ -42,6 +42,10 @@ class BroadsoftRequest(XmlDocument):
         self.login_object = login_object
         self.session_id = session_id
         self.use_test = use_test
+        if timezone:
+            self.timezone = timezone
+        else:
+            self.timezone = self.default_timezone
 
         self.derive_api_url()
         self.derive_default_domain()

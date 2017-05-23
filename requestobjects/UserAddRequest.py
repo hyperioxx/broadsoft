@@ -62,6 +62,9 @@ class UserAddRequest(BroadsoftRequest):
             e = ET.SubElement(cmd, 'emailAddress')
             e.text = self.email
 
+        tz = ET.SubElement(cmd, 'timeZone')
+        tz.text = self.timezone
+
         return cmd
 
     def derive_email(self):

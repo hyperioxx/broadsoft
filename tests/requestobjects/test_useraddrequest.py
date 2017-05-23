@@ -112,6 +112,13 @@ class TestBroadsoftUserAddRequest(unittest.TestCase):
         u = UserAddRequest(email='timb@gmail.com', kname='beaver')
         self.assertEqual('timb@gmail.com', u.email)
 
+    def test_can_override_timezone(self):
+        u = UserAddRequest()
+        self.assertEqual(BroadsoftRequest.default_timezone, u.timezone)
+
+        u = UserAddRequest(timezone='blah')
+        self.assertEqual('blah', u.timezone)
+
     def test_to_xml(self):
         u = UserAddRequest(group_id='testgroup', session_id='sesh', kname='beaver', last_name='Beaver',
                            first_name='Tim', email='beaver@mit.edu',
@@ -129,6 +136,7 @@ class TestBroadsoftUserAddRequest(unittest.TestCase):
             '<phoneNumber>6175551212</phoneNumber>' + \
             '<password>123456789</password>' + \
             '<emailAddress>beaver@mit.edu</emailAddress>' + \
+            '<timeZone>' + u.timezone + '</timeZone>' + \
             '</command>'
 
         xml = u.to_xml()
