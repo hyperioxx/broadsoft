@@ -7,3 +7,8 @@ single command (directly via object)
 compound command (via attaching to BroadsoftRequest.commands)
 
 building a new request object
+
+provisioning a user
+    build an Account object
+    add Device objects to it
+    run .provision()
