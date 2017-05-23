@@ -194,7 +194,13 @@ class BroadsoftRequest(XmlDocument):
     def post(self, extract_payload=True, auto_login=True):
         # this function is only for descendant objects, like AuthenticationRequest
 
-        logging.info("running " + self.command_name + " request", extra={'session_id': self.session_id})
+        command_name = "base BroadsoftRequest"
+        try:
+            command_name = self.command_name
+        except AttributeError:
+            pass
+
+        logging.info("running " + command_name + " request", extra={'session_id': self.session_id})
 
         # if this isn't an auth/login request, check for login object. none? need to login.
         if self.need_login():
@@ -258,10 +264,15 @@ class BroadsoftRequest(XmlDocument):
         return xml
 
     def need_login(self):
-        if \
-           self.command_name not in self.auth_exceptions \
-           and (not self.login_object or not self.auth_object):
-            return True
+        # command_name may not exist
+        try:
+            if \
+               self.command_name not in self.auth_exceptions \
+               and (not self.login_object or not self.auth_object):
+                return True
+
+        except AttributeError:
+            pass
 
         return False
 
