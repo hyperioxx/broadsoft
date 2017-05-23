@@ -27,6 +27,8 @@ class Device(BroadsoftObject):
         g.device_name = self.name
         g.device_type = self.type
         g.mac_address = self.mac_address
-        g.protocol = self.protocol
-        g.transport_protocol = self.transport_protocol
+        if self.protocol:
+            g.protocol = self.protocol
+        if self.transport_protocol:
+            g.transport_protocol = self.transport_protocol
         return g
