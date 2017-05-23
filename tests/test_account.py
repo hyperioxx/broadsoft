@@ -35,6 +35,13 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertEqual(a.email, uadd.email)
         self.assertEqual(a.use_test, uadd.use_test)
 
+    def test_account_build_request_object_derives_sip_user_id(self):
+        a = Account(did=6175551212, extension=51212, last_name='beaver', first_name='tim',
+                    kname='beaver', email='beaver@mit.edu')
+        ro = a.build_request_object()
+        cmd = ro.commands[0]
+        self.assertEqual('6175551212@' + ro.default_domain, cmd.sip_user_id)
+
     def test_devices_added_get_built_into_request_object(self):
         d1 = Device(did=6175551111, description='beaver phone 1', name='beaverphone1', type='iphone')
         d2 = Device(did=6175551111, description='beaver phone 2', name='beaverphone2', type='hamburger')

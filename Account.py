@@ -35,6 +35,7 @@ class Account(BroadsoftObject):
         u_add.did = self.did
         u_add.kname = self.kname
         u_add.sip_user_id = self.sip_user_id
+        u_add.sip_user_id = u_add.derive_sip_user_id()
         u_add.email = self.email
         b.commands = [u_add]
 
