@@ -35,7 +35,8 @@ class Account(BroadsoftObject):
         u_add.did = self.did
         u_add.kname = self.kname
         u_add.sip_user_id = self.sip_user_id
-        u_add.sip_user_id = u_add.derive_sip_user_id()
+        if not u_add.sip_user_id:
+            u_add.sip_user_id = u_add.derive_sip_user_id()
         u_add.email = self.email
         b.commands = [u_add]
 
@@ -48,8 +49,10 @@ class Account(BroadsoftObject):
 
             # ...and then associate it with this user
             u_mod = UserModifyRequest(use_test=self.use_test)
+            u_mod.did = self.did
             u_mod.sip_user_id = self.sip_user_id
-            u_mod.did = d.did
+            if not u_mod.sip_user_id:
+                u_mod.sip_user_id = u_mod.derive_sip_user_id()
             u_mod.device_name = d.name
             b.commands.append(u_mod)
 

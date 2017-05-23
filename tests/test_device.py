@@ -5,8 +5,8 @@ from broadsoft.requestobjects.GroupAccessDeviceAddRequest import GroupAccessDevi
 
 class TestBroadsoftDevice(unittest.TestCase):
     def test_device_attrs_get_passed_to_request_object(self):
-        d = Device(did=6175551212, name='beaverphone', description="Tim Beaver's Phone", type='iphone',
-                   extension=51212, use_test=True, mac_address='aabbcc112233', protocol='gopher',
+        d = Device(name='beaverphone', description="Tim Beaver's Phone", type='iphone',
+                   use_test=True, mac_address='aabbcc112233', protocol='gopher',
                    transport_protocol='ftp')
         ro = d.build_request_object()
         self.assertEqual(d.name, ro.device_name)
@@ -16,8 +16,8 @@ class TestBroadsoftDevice(unittest.TestCase):
         self.assertEqual(d.transport_protocol, ro.transport_protocol)
 
         # try again, flip-flopping use test
-        d = Device(did=6175551212, name='beaverphone', description="Tim Beaver's Phone", type='iphone',
-                   extension=51212, use_test=False, mac_address='aabbcc112233', protocol='gopher',
+        d = Device(name='beaverphone', description="Tim Beaver's Phone", type='iphone',
+                   use_test=False, mac_address='aabbcc112233', protocol='gopher',
                    transport_protocol='ftp')
         ro = d.build_request_object()
         self.assertEqual(d.name, ro.device_name)
@@ -27,8 +27,8 @@ class TestBroadsoftDevice(unittest.TestCase):
         self.assertEqual(d.transport_protocol, ro.transport_protocol)
 
     def test_device_default_protocols_respected(self):
-        d = Device(did=6175551212, name='beaverphone', description="Tim Beaver's Phone", type='iphone',
-                   extension=51212, mac_address='aabbcc112233', protocol=None, transport_protocol=None)
+        d = Device(name='beaverphone', description="Tim Beaver's Phone", type='iphone',
+                   mac_address='aabbcc112233', protocol=None, transport_protocol=None)
         ro = d.build_request_object()
 
         g = GroupAccessDeviceAddRequest()
