@@ -17,6 +17,7 @@ defines what a request to the Broadsoft OCI server looks like, how to post to it
 
 
 class BroadsoftRequest(XmlDocument):
+    auth_exceptions = ['AuthenticationRequest', 'LoginRequest14sp4', 'LogoutRequest']
     prod_api_url = '[unknown]'
     test_api_url = 'https://web1.voiplogic.net/webservice/services/ProvisioningService'
     prod_default_domain = 'broadsoft.mit.edu'
@@ -240,9 +241,9 @@ class BroadsoftRequest(XmlDocument):
         self.check_error(string_response=content)
 
         # if we're managing login behavior, also do an implicit logout
-        #if self.should_logout(auto_login):
-        #    logging.info("automatically running logout request", extra={'session_id': self.session_id})
-        #    l = LogoutRequest.logout(use_test=self.use_test, auth_object=self.auth_object)
+        if self.need_logout(auto_login):
+            logging.info("automatically running logout request", extra={'session_id': self.session_id})
+            l = LogoutRequest.logout(use_test=self.use_test, auth_object=self.auth_object)
 
         # if requested, dig actual message out of SOAP envelope it came in (and return as XML object)
         if extract_payload:
@@ -253,11 +254,17 @@ class BroadsoftRequest(XmlDocument):
         return xml
 
     def need_login(self):
-        exceptions = ['AuthenticationRequest', 'LoginRequest14sp4', 'LogoutRequest']
-
         if \
-           self.command_name not in exceptions \
+           self.command_name not in self.auth_exceptions \
            and (not self.login_object or not self.auth_object):
+            return True
+
+        return False
+
+    def need_logout(self, auto_login):
+        if \
+           self.command_name not in self.auth_exceptions \
+           and auto_login:
             return True
 
         return False
@@ -378,7 +385,8 @@ class BroadsoftRequest(XmlDocument):
         payload_container = response.findall('.//processOCIMessageResponse/{urn:com:broadsoft:webservice}processOCIMessageReturn')
         if len(payload_container) > 0:
             payload = response.findall('.//processOCIMessageResponse/{urn:com:broadsoft:webservice}processOCIMessageReturn')[0].text
-            return ET.fromstring(text=payload)
+            if payload:
+                return ET.fromstring(text=payload)
         return None
 
 

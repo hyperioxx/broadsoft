@@ -5,10 +5,13 @@ import xml.etree.ElementTree as ET
 from broadsoft.requestobjects.GroupGetListInServiceProviderRequest import GroupGetListInServiceProviderRequest
 from broadsoft.requestobjects.GroupAddRequest import GroupAddRequest
 from broadsoft.requestobjects.UserAddRequest import UserAddRequest
-from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest, AuthenticationRequest, LoginRequest
+from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest, AuthenticationRequest, LoginRequest,\
+    LogoutRequest
+
 
 def return_none(*args, **kwargs):
     return None
+
 
 def return_xml(*args, **kwargs):
     class Response:
@@ -255,6 +258,10 @@ class TestBroadsoftRequest(unittest.TestCase):
         l = LoginRequest()
         self.assertFalse(l.need_login())
 
+        # when command name is LogoutRequest, don't need login
+        l = LogoutRequest()
+        self.assertFalse(l.need_login())
+
     @unittest.mock.patch.object(AuthenticationRequest, 'authenticate')
     @unittest.mock.patch.object(LoginRequest, 'login')
     def test_authenticate_and_login(
@@ -481,3 +488,47 @@ class TestBroadsoftRequest(unittest.TestCase):
         b = BroadsoftRequest()
         b.to_xml()
         self.assertTrue(convert_booleans_patch.called)
+
+    def test_need_logout(self):
+        class FakeRequest(BroadsoftRequest):
+            command_name = 'BogusRequest'
+
+            def __init__(self, **kwargs):
+                self.a = True
+                self.b = False
+                self.c = 'hi'
+                BroadsoftRequest.__init__(self, **kwargs)
+
+            def build_command_xml(self):
+                cmd = self.build_command_shell()
+                return cmd
+
+        # with a non-login related function, need_logout() depends on auto_login
+        f = FakeRequest()
+        self.assertTrue(f.need_logout(auto_login=True))
+        self.assertFalse(f.need_logout(auto_login=False))
+
+        # with a login related function, need_logout() is always False
+        l = LoginRequest()
+        self.assertFalse(l.need_logout(auto_login=True))
+        self.assertFalse(l.need_logout(auto_login=False))
+
+    def test_extract_payload_returns_none_for_empty_results(self):
+        response = '<?xml version="1.0" encoding="UTF-8"?><soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><soapenv:Body><processOCIMessageResponse xmlns=""><ns1:processOCIMessageReturn xmlns:ns1="urn:com:broadsoft:webservice"></ns1:processOCIMessageReturn></processOCIMessageResponse></soapenv:Body></soapenv:Envelope>'
+        self.assertIsNone(BroadsoftRequest.extract_payload(response=response))
+
+    @unittest.mock.patch.object(LogoutRequest, 'logout')
+    @unittest.mock.patch.object(BroadsoftRequest, 'need_logout')
+    @unittest.mock.patch.object(BroadsoftRequest, 'authenticate_and_login')
+    @unittest.mock.patch('requests.post', side_effect=return_xml)
+    def test_need_logout_patch_called(
+            self,
+            post_patch,
+            login_patch,
+            need_logout_patch,
+            logout_patch
+    ):
+        # should call need_logout
+        g = GroupGetListInServiceProviderRequest()
+        g.post(auto_login=True)
+        self.assertTrue(need_logout_patch.called)
