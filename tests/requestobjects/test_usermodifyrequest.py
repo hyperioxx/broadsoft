@@ -227,3 +227,10 @@ class TestBroadsoftUserModifyRequest(unittest.TestCase):
     ):
         u = UserModifyRequest()
         self.assertTrue(derive_extension_patch.called)
+
+    def test_build_command_xml_derives_lineport_and_user_id(self):
+        u = UserModifyRequest()
+        u.did = 6175551212
+        u.to_xml()
+        self.assertEqual('6175551212@' + u.default_domain, u.sip_user_id)
+        self.assertEqual('6175551212_lp@' + u.default_domain, u.line_port)

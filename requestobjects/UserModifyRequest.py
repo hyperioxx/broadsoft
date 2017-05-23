@@ -46,6 +46,10 @@ class UserModifyRequest(BroadsoftRequest):
         if self.clid_did:
             self.clid_did = BroadsoftRequest.convert_phone_number(number=self.clid_did)
         self.derive_extension()
+        if not self.sip_user_id:
+            self.sip_user_id = self.derive_sip_user_id()
+        if not self.line_port:
+            self.line_port = self.derive_sip_user_id(line_port=True)
 
         self.validate()
 
