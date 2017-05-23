@@ -177,3 +177,45 @@ class TestBroadsoftUserModifyRequest(unittest.TestCase):
         def test_to_xml(self):
             u = UserModifyRequest(sip_user_id='6175551212@broadsoft-dev.mit.edu', did='61755512121')
             xml = u.to_xml()
+
+    def test_derive_extension(self):
+        # various formats of did
+        u = UserModifyRequest()
+        u.did = '6175551212'
+        u.derive_extension()
+        self.assertEqual('1212', u.extension)
+
+        u = UserModifyRequest()
+        u.did = '617-555-1212'
+        u.derive_extension()
+        self.assertEqual('1212', u.extension)
+
+        u = UserModifyRequest()
+        u.did = 6175551212
+        u.derive_extension()
+        self.assertEqual('1212', u.extension)
+
+        # doesn't clobber extension when explicitly set
+        u = UserModifyRequest()
+        u.did = '617-555-1212'
+        u.extension = '1234'
+        u.derive_extension()
+        self.assertEqual('1234', u.extension)
+
+        # can override number of digits
+        u = UserModifyRequest()
+        u.did = 6175551212
+        u.derive_extension(digits=5)
+        self.assertEqual('51212', u.extension)
+
+    @unittest.mock.patch.object(UserModifyRequest, 'derive_extension')
+    def test_build_command_xml_calls_derive_extension(
+            self,
+            derive_extension_patch
+    ):
+        u = UserModifyRequest()
+        u.sip_user_id = 'test'
+        u.did = 6175551212
+        u.clid_did = 6175551212
+        u.build_command_xml()
+        self.assertTrue(derive_extension_patch.called)

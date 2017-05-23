@@ -44,6 +44,7 @@ class UserModifyRequest(BroadsoftRequest):
             self.did = BroadsoftRequest.convert_phone_number(number=self.did)
         if self.clid_did:
             self.clid_did = BroadsoftRequest.convert_phone_number(number=self.clid_did)
+        self.derive_extension()
 
         self.validate()
 
@@ -103,6 +104,11 @@ class UserModifyRequest(BroadsoftRequest):
             cmd.append(ex)
 
         return cmd
+
+    def derive_extension(self, digits=4):
+        if not self.extension and self.did:
+            self.did = BroadsoftRequest.convert_phone_number(number=self.did)
+            self.extension = str(self.did)[-digits:]
 
     def validate(self):
         import re
