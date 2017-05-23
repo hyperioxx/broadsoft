@@ -262,6 +262,16 @@ class TestBroadsoftRequest(unittest.TestCase):
         l = LogoutRequest()
         self.assertFalse(l.need_login())
 
+        # when command is BroadsoftRequest, and no auth/login object, need login
+        b = BroadsoftRequest()
+        self.assertTrue(b.need_login())
+
+        # when command is BroadsoftRequest, and is auth/login object, don't need login
+        b = BroadsoftRequest()
+        b.auth_object = 'test'
+        b.login_object = 'test'
+        self.assertFalse(b.need_login())
+
     @unittest.mock.patch.object(AuthenticationRequest, 'authenticate')
     @unittest.mock.patch.object(LoginRequest, 'login')
     def test_authenticate_and_login(

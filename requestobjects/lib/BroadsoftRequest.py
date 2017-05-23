@@ -264,15 +264,20 @@ class BroadsoftRequest(XmlDocument):
         return xml
 
     def need_login(self):
-        # command_name may not exist
-        try:
-            if \
-               self.command_name not in self.auth_exceptions \
-               and (not self.login_object or not self.auth_object):
-                return True
+        # commands that are part of the login/logout suite don't ever need login
+        is_login_suite = False
 
+        # command_name may not exist, so run in try/except. No command_name? Clearly not part of the
+        # login/logout suite.
+        try:
+            if self.command_name in self.auth_exceptions:
+                is_login_suite = True
         except AttributeError:
             pass
+
+        # not part of the login/logout suite, and no login/auth object attached? need to login.
+        if not is_login_suite and (not self.login_object or not self.auth_object):
+            return True
 
         return False
 
