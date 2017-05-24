@@ -6,7 +6,11 @@ from broadsoft.BroadsoftObject import BroadsoftObject
 
 
 class Account(BroadsoftObject):
-    default_services = ['Shared Call Appearance 10']
+    # these are optional broadsoft services that will get applied by default to every new
+    # account
+    default_services = [
+        'Shared Call Appearance 10'
+    ]
 
     def __init__(self, did=None, extension=None, last_name=None, first_name=None,
                  sip_user_id=None, kname=None, email=None, use_test=False, services=None,
