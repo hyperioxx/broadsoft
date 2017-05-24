@@ -191,6 +191,20 @@ class BroadsoftRequest(XmlDocument):
             return uname + '@' + self.default_domain
         return None
 
+    def is_auth_suite(self):
+        # commands that are part of the login/logout suite don't ever need login
+        is_auth_suite = False
+
+        # command_name may not exist, so run in try/except. No command_name? Clearly not part of the
+        # login/logout suite.
+        try:
+            if self.command_name in self.auth_exceptions:
+                is_auth_suite = True
+        except AttributeError:
+            pass
+
+        return is_auth_suite
+
     def post(self, extract_payload=True, auto_login=True):
         # this function is only for descendant objects, like AuthenticationRequest
 
@@ -264,27 +278,15 @@ class BroadsoftRequest(XmlDocument):
         return xml
 
     def need_login(self):
-        # commands that are part of the login/logout suite don't ever need login
-        is_login_suite = False
-
-        # command_name may not exist, so run in try/except. No command_name? Clearly not part of the
-        # login/logout suite.
-        try:
-            if self.command_name in self.auth_exceptions:
-                is_login_suite = True
-        except AttributeError:
-            pass
-
         # not part of the login/logout suite, and no login/auth object attached? need to login.
-        if not is_login_suite and (not self.login_object or not self.auth_object):
+        if not self.is_auth_suite() and (not self.login_object or not self.auth_object):
             return True
 
         return False
 
     def need_logout(self, auto_login):
-        if \
-           self.command_name not in self.auth_exceptions \
-           and auto_login:
+        # not part of the login/logout suite, and auto_login? run auto logout.
+        if not self.is_auth_suite() and auto_login:
             return True
 
         return False

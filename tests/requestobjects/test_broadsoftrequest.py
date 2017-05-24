@@ -542,3 +542,36 @@ class TestBroadsoftRequest(unittest.TestCase):
         g = GroupGetListInServiceProviderRequest()
         g.post(auto_login=True)
         self.assertTrue(need_logout_patch.called)
+
+    def test_is_auth_suite(self):
+        # BroadsoftRequest is no
+        b = BroadsoftRequest()
+        self.assertFalse(b.is_auth_suite())
+
+        # LoginRequest is yes
+        lo = LoginRequest()
+        self.assertTrue(lo.is_auth_suite())
+
+        # LogoutRequest is yes
+        lo = LogoutRequest()
+        self.assertTrue(lo.is_auth_suite())
+
+        # AuthenticationRequest is yes
+        a = AuthenticationRequest()
+        self.assertTrue(a.is_auth_suite())
+
+        # new one with command_name is no
+        class FakeRequest(BroadsoftRequest):
+            command_name = 'BogusRequest'
+
+            def __init__(self, **kwargs):
+                self.a = True
+                self.b = False
+                self.c = 'hi'
+                BroadsoftRequest.__init__(self, **kwargs)
+
+            def build_command_xml(self):
+                cmd = self.build_command_shell()
+                return cmd
+        f = FakeRequest()
+        self.assertFalse(f.is_auth_suite())
