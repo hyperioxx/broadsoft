@@ -170,3 +170,12 @@ class TestBroadsoftUserAddRequest(unittest.TestCase):
         # should be called, since there is a did and no sip_user_id
         u = UserAddRequest(did=6175551212)
         self.assertTrue(derive_sip_user_id_patch.called)
+
+    def test_build_command_xml_derives_sip_user_id(self):
+        u = UserAddRequest()
+        u.did = 6175551212
+        u.first_name = 'tim'
+        u.last_name = 'beaver'
+        self.assertIsNone(u.sip_user_id)
+        u.build_command_xml()
+        self.assertEqual('6175551212@' + u.default_domain, u.sip_user_id)

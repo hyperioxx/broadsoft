@@ -27,6 +27,8 @@ class UserAddRequest(BroadsoftRequest):
 
     def build_command_xml(self):
         self.did = BroadsoftRequest.convert_phone_number(number=self.did)
+        if not self.sip_user_id:
+            self.sip_user_id = self.derive_sip_user_id()
         self.validate()
 
         cmd = self.build_command_shell()
