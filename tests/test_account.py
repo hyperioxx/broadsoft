@@ -3,6 +3,7 @@ from broadsoft.Device import Device
 from broadsoft.Account import Account
 from broadsoft.requestobjects.UserAddRequest import UserAddRequest
 from broadsoft.requestobjects.UserModifyRequest import UserModifyRequest
+from broadsoft.requestobjects.UserServiceAssignListRequest import UserServiceAssignListRequest
 from broadsoft.requestobjects.GroupAccessDeviceAddRequest import GroupAccessDeviceAddRequest
 
 
@@ -40,34 +41,39 @@ class TestBroadsoftAccount(unittest.TestCase):
         d2 = Device(description='beaver phone 2', name='beaverphone2', type='hamburger')
         a = Account(did=6175551212, extension=51212, last_name='beaver', first_name='tim',
                     sip_user_id='beaver@broadsoft.mit.edu', kname='beaver', email='beaver@mit.edu',
-                    use_test=True)
+                    use_test=True, services=['a'])
         a.devices = [d1, d2]
         ro = a.build_request_object()
 
-        # expect to see 5 commands in the request object...
-        self.assertEqual(5, len(ro.commands))
+        # expect to see 6 commands in the request object...
+        self.assertEqual(6, len(ro.commands))
 
         # ... one to add the user
         cmd = ro.commands[0]
         self.assertIsInstance(cmd, UserAddRequest)
 
-        # ... one to add d1
+        # ... one to configure services
         cmd = ro.commands[1]
+        self.assertIsInstance(cmd, UserServiceAssignListRequest)
+        self.assertEqual(['a'], cmd.services)
+
+        # ... one to add d1
+        cmd = ro.commands[2]
         self.assertIsInstance(cmd, GroupAccessDeviceAddRequest)
         self.assertEqual(cmd.device_name, 'beaverphone1')
 
         # ... one to associate d1 with the user
-        cmd = ro.commands[2]
+        cmd = ro.commands[3]
         self.assertIsInstance(cmd, UserModifyRequest)
         self.assertEqual(cmd.device_name, 'beaverphone1')
 
         # ... one to add d2
-        cmd = ro.commands[3]
+        cmd = ro.commands[4]
         self.assertIsInstance(cmd, GroupAccessDeviceAddRequest)
         self.assertEqual(cmd.device_name, 'beaverphone2')
 
         # ... one to associate d2 with the user
-        cmd = ro.commands[4]
+        cmd = ro.commands[5]
         self.assertIsInstance(cmd, UserModifyRequest)
         self.assertEqual(cmd.device_name, 'beaverphone2')
 
@@ -80,3 +86,11 @@ class TestBroadsoftAccount(unittest.TestCase):
         ro = a.build_request_object()
         for cmd in ro.commands:
             self.assertTrue(cmd.use_test)
+
+    def test_inherits_default_services(self):
+        a = Account()
+        self.assertEqual(a.default_services, a.services)
+
+        # and can override default services
+        a = Account(services=['a'])
+        self.assertEqual(['a'], a.services)

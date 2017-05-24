@@ -1,17 +1,26 @@
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 from broadsoft.requestobjects.UserAddRequest import UserAddRequest
 from broadsoft.requestobjects.UserModifyRequest import UserModifyRequest
+from broadsoft.requestobjects.UserServiceAssignListRequest import UserServiceAssignListRequest
 from broadsoft.BroadsoftObject import BroadsoftObject
 
 
 class Account(BroadsoftObject):
+    default_services = ['Shared Call Appearance 10']
+
     def __init__(self, did=None, extension=None, last_name=None, first_name=None,
-                 sip_user_id=None, kname=None, email=None, use_test=False, **kwargs):
+                 sip_user_id=None, kname=None, email=None, use_test=False, services=None,
+                 **kwargs):
         self.did = did
         self.email = email
         self.first_name = first_name
         self.kname = kname
         self.last_name = last_name
+        self.services = self.default_services
+        if services:
+            if type(services) == str:
+                services = [services]
+            self.services = services
         self.use_test = use_test
 
         # these are optional; will be derived by broadsoft.RequestObjects as needed
@@ -37,6 +46,14 @@ class Account(BroadsoftObject):
         u_add.sip_user_id = self.sip_user_id
         u_add.email = self.email
         b.commands = [u_add]
+
+        # if there are services to add for user, add them
+        if self.services and len(self.services) > 0:
+            s = UserServiceAssignListRequest(use_test=self.use_test)
+            s.did = self.did
+            s.sip_user_id = self.sip_user_id
+            s.services = self.services
+            b.commands.append(s)
 
         # now, for each Device added...
         for d in self.devices:
