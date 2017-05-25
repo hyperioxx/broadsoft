@@ -3,8 +3,10 @@ import unittest.mock
 import xml.etree.ElementTree as ET
 from broadsoft.requestobjects.datatypes.EndPoint import Endpoint
 
+
 def return_false(**kwargs):
     return False
+
 
 class TestEndpoint(unittest.TestCase):
     def test_is_quorum(self):

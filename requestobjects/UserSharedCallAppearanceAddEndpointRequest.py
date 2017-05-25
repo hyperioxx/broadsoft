@@ -1,34 +1,63 @@
 import xml.etree.ElementTree as ET
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
+from broadsoft.requestobjects.datatypes.AccessDevice import AccessDevice
 
 
 class UserSharedCallAppearanceAddEndpointRequest(BroadsoftRequest):
     command_name = 'UserSharedCallAppearanceAddEndpointRequest14sp2'
     check_success = True
+    booleans = [
+        'is_active',
+        'allow_origination',
+        'allow_termination'
+    ]
 
-    def __init__(self, **kwargs):
+    def __init__(self, did=None, sip_user_id=None, device_name=None, line_port=None, **kwargs):
+        self.device_name = device_name
+        self.did = did
+        self.line_port = line_port
+        self.sip_user_id = sip_user_id
+
+        # don't expect to ever overwrite these, so not in init
+        self.is_active = True
+        self.allow_origination = True
+        self.allow_termination = True
+
         BroadsoftRequest.__init__(self, **kwargs)
+        if not self.sip_user_id:
+            self.sip_user_id = self.derive_sip_user_id()
+        if not self.line_port:
+            self.line_port = self.derive_sip_user_id(line_port=True)
 
     def build_command_xml(self):
+        if not self.sip_user_id:
+            self.sip_user_id = self.derive_sip_user_id()
+        if not self.line_port:
+            self.line_port = self.derive_sip_user_id(line_port=True)
+
         self.validate()
 
         cmd = self.build_command_shell()
 
-        """
-        <command xsi:type="UserSharedCallAppearanceAddEndpointRequest14sp2" xmlns="" echo="UserSharedCallAppearanceAddEndpointRequest14sp2 add – add SCA for BTBC Mobile">
-        <userId>mituser1@broadsoft.com</userId>
-        <accessDeviceEndpoint>
-        <accessDevice>
-        <deviceLevel>Group</deviceLevel>
-        <deviceName>mituser1_btbc_mob</deviceName>
-        </accessDevice>
-        <linePort>mituser1_btbc_mob_sca@broadsoft.com</linePort>
-        </accessDeviceEndpoint>
-        <isActive>true</isActive>
-        <allowOrigination>true</allowOrigination>
-        <allowTermination>true</allowTermination>
-        </command>
-        """
+        e = ET.SubElement(cmd, 'userId')
+        e.text = self.sip_user_id
+
+        ade = ET.SubElement(cmd, 'accessDeviceEndpoint')
+        ad = AccessDevice(device_name=self.device_name)
+        ad_xml = ad.to_xml()
+        ade.append(ad_xml)
+
+        e = ET.SubElement(ade, 'linePort')
+        e.text = self.line_port
+
+        e = ET.SubElement(cmd, 'isActive')
+        e.text = self.is_active
+
+        e = ET.SubElement(cmd, 'allowOrigination')
+        e.text = self.allow_origination
+
+        e = ET.SubElement(cmd, 'allowTermination')
+        e.text = self.allow_termination
 
         return cmd
 

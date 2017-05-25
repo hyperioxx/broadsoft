@@ -1,4 +1,5 @@
 import xml.etree.ElementTree as ET
+from broadsoft.requestobjects.datatypes.AccessDevice import AccessDevice
 
 
 class Endpoint:
@@ -27,13 +28,8 @@ class Endpoint:
         ade = ET.SubElement(ep, 'accessDeviceEndpoint')
 
         if self.device_name:
-            ad = ET.SubElement(ade, 'accessDevice')
-
-            dl = ET.SubElement(ad, 'deviceLevel')
-            dl.text = self.device_level
-
-            dn = ET.SubElement(ad, 'deviceName')
-            dn.text = self.device_name
+            ad = AccessDevice(device_name=self.device_name, device_level=self.device_level)
+            ade.append(ad.to_xml())
 
         if self.line_port:
             lp = ET.SubElement(ade, 'linePort')
