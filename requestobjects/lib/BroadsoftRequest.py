@@ -6,6 +6,7 @@ import random
 import logging
 from broadsoft.requestobjects.lib.SoapEnvelope import SoapEnvelope
 from hashlib import sha1, md5
+from nettools.MACtools import MAC
 
 from broadsoft.requestobjects.lib.XmlDocument import XmlDocument
 
@@ -128,6 +129,11 @@ class BroadsoftRequest(XmlDocument):
                 setattr(self, a, val)
         except AttributeError:
             pass
+
+    def convert_mac_address(self):
+        m = MAC(mac=self.mac_address)
+        m.denude()
+        self.mac_address = m.bare_mac
 
     def default_logging(self, require_logging):
         import os

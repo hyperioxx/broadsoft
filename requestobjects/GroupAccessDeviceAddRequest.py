@@ -49,11 +49,6 @@ class GroupAccessDeviceAddRequest(BroadsoftRequest):
 
         return cmd
 
-    def convert_mac_address(self):
-        m = MAC(mac=self.mac_address)
-        m.denude()
-        self.mac_address = m.bare_mac
-
     def validate(self):
         import re
 
