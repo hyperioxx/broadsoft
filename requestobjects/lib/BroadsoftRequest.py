@@ -312,6 +312,7 @@ class BroadsoftRequest(XmlDocument):
         # inject command XML
         commands = self.derive_commands()
         for cmd_object in commands:
+            cmd_object.convert_booleans()
             cmd = cmd_object.build_command_xml()
             doc.append(cmd)
 

@@ -575,3 +575,18 @@ class TestBroadsoftRequest(unittest.TestCase):
                 return cmd
         f = FakeRequest()
         self.assertFalse(f.is_auth_suite())
+
+    @unittest.mock.patch.object(BroadsoftRequest, 'convert_booleans')
+    def test_embedded_commands_get_convert_booleans_called(
+            self,
+            convert_booleans_patch
+    ):
+        b = BroadsoftRequest(use_test=True)
+        g = GroupGetListInServiceProviderRequest()
+        u = UserAddRequest(did=6175551212, first_name='tim', last_name='beaver')
+        b.commands = [g,u]
+        b.to_xml()
+
+        # expect to see 3 calls to convert_booleans: one for BroadsoftRequest, and one for each of the
+        # two nested commands
+        self.assertEqual(3, len(convert_booleans_patch.call_args_list))
