@@ -2,6 +2,7 @@ from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 from broadsoft.requestobjects.UserAddRequest import UserAddRequest
 from broadsoft.requestobjects.UserModifyRequest import UserModifyRequest
 from broadsoft.requestobjects.UserServiceAssignListRequest import UserServiceAssignListRequest
+from broadsoft.requestobjects.UserSharedCallAppearanceAddEndpointRequest import UserSharedCallAppearanceAddEndpointRequest
 from broadsoft.BroadsoftObject import BroadsoftObject
 
 
@@ -36,6 +37,29 @@ class Account(BroadsoftObject):
 
         BroadsoftObject.__init__(self, **kwargs)
 
+    def add_devices(self, req_object):
+        if len(self.devices) > 0:
+            # first, all devices get added to system
+            for d in self.devices:
+                d_ro = d.build_request_object()
+                d_ro.use_test = self.use_test
+                req_object.commands.append(d_ro)
+
+            # first device gets associated directly with user
+            self.link_primary_device(req_object=req_object, device=self.devices[0])
+
+            # remaining devices get added as shared call appearances
+            for d in self.devices[1:]:
+                self.link_sca_device(req_object=req_object, device=d)
+
+    def add_services(self, req_object):
+        if self.services and len(self.services) > 0:
+            s = UserServiceAssignListRequest(use_test=self.use_test)
+            s.did = self.did
+            s.sip_user_id = self.sip_user_id
+            s.services = self.services
+            req_object.commands.append(s)
+
     def build_request_object(self):
         # going to do this as a compound request so that it's pseudo-atomic...if one fails, the rest should
         # fail, regardless of where in the process that failure occurs
@@ -52,25 +76,23 @@ class Account(BroadsoftObject):
         b.commands = [u_add]
 
         # if there are services to add for user, add them
-        if self.services and len(self.services) > 0:
-            s = UserServiceAssignListRequest(use_test=self.use_test)
-            s.did = self.did
-            s.sip_user_id = self.sip_user_id
-            s.services = self.services
-            b.commands.append(s)
+        self.add_services(req_object=b)
 
-        # now, for each Device added...
-        for d in self.devices:
-            # ...want to run a device add request
-            d_ro = d.build_request_object()
-            d_ro.use_test = self.use_test
-            b.commands.append(d_ro)
-
-            # ...and then associate it with this user
-            u_mod = UserModifyRequest(use_test=self.use_test)
-            u_mod.did = self.did
-            u_mod.sip_user_id = self.sip_user_id
-            u_mod.device_name = d.name
-            b.commands.append(u_mod)
+        # if there are devices to add for user, add them
+        self.add_devices(req_object=b)
 
         return b
+
+    def link_primary_device(self, req_object, device):
+        u_mod = UserModifyRequest(did=self.did, sip_user_id=self.sip_user_id,
+                                  device_name=device.name, use_test=self.use_test)
+        req_object.commands.append(u_mod)
+
+    def link_sca_device(self, req_object, device):
+        line_port = device.line_port
+        if not line_port:
+            line_port = device.name + '_lp@' + req_object.default_domain
+        sca = UserSharedCallAppearanceAddEndpointRequest(did=self.did, sip_user_id=self.sip_user_id,
+                                                         device_name=device.name, line_port=line_port,
+                                                         use_test=self.use_test)
+        req_object.commands.append(sca)
