@@ -134,7 +134,7 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertEqual(1, len(b.commands))
         cmd = b.commands[0]
         self.assertIsInstance(cmd, UserSharedCallAppearanceAddEndpointRequest)
-        self.assertEqual(cmd.did, a.did)
+        self.assertEqual(cmd.did, str(a.did))
         self.assertEqual(cmd.sip_user_id, str(a.did) + '@' + b.default_domain)
         self.assertEqual(cmd.device_name, d1.name)
         self.assertEqual(cmd.line_port, d1.name + '_lp@' + b.default_domain)
