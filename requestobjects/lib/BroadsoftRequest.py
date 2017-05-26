@@ -123,10 +123,14 @@ class BroadsoftRequest(XmlDocument):
     def convert_booleans(self):
         try:
             for a in self.booleans:
-                val = 'false'
-                if getattr(self, a):
-                    val = 'true'
-                setattr(self, a, val)
+                current_val = getattr(self, a)
+                if current_val == 'true' or current_val == 'false':
+                    continue
+
+                new_val = 'false'
+                if current_val:
+                    new_val = 'true'
+                setattr(self, a, new_val)
         except AttributeError:
             pass
 
