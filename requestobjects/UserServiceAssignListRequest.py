@@ -17,12 +17,9 @@ class UserServiceAssignListRequest(BroadsoftRequest):
         self.sip_user_id = sip_user_id
 
         BroadsoftRequest.__init__(self, **kwargs)
-        if self.did and self.sip_user_id is None:
-            self.sip_user_id = self.derive_sip_user_id()
 
     def build_command_xml(self):
-        if self.did and not self.sip_user_id:
-            self.sip_user_id = self.derive_sip_user_id()
+        self.prep_for_xml()
         self.validate()
 
         cmd = self.build_command_shell()

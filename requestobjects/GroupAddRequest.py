@@ -17,6 +17,7 @@ class GroupAddRequest(BroadsoftRequest):
         BroadsoftRequest.__init__(self, auto_derive_group_id=False, **kwargs)
 
     def build_command_xml(self):
+        self.prep_for_xml()
         self.validate()
 
         cmd = self.build_command_shell()

@@ -163,7 +163,7 @@ class TestBroadsoftUserAddRequest(unittest.TestCase):
         self.assertFalse(derive_sip_user_id_patch.called)
 
         # should be called, since no sip_user_id
-        u = UserAddRequest()
+        u = UserAddRequest(did=6175551212)
         self.assertTrue(derive_sip_user_id_patch.called)
         derive_sip_user_id_patch.called = False
 

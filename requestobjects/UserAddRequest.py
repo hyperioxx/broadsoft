@@ -11,8 +11,6 @@ class UserAddRequest(BroadsoftRequest):
         # group_id will be inherited from BroadsoftRequest.default_group_id, but can be overridden by passing
         # group_id (will get picked up in **kwargs)
         self.did = did
-        if self.did:
-            self.did = BroadsoftRequest.convert_phone_number(number=self.did)
         self.first_name = first_name
         self.kname = kname
         self.last_name = last_name
@@ -22,13 +20,9 @@ class UserAddRequest(BroadsoftRequest):
         self.derive_email()
         self.derive_sip_password()
         BroadsoftRequest.__init__(self, **kwargs)
-        if not self.sip_user_id:
-            self.sip_user_id = self.derive_sip_user_id()
 
     def build_command_xml(self):
-        self.did = BroadsoftRequest.convert_phone_number(number=self.did)
-        if not self.sip_user_id:
-            self.sip_user_id = self.derive_sip_user_id()
+        self.prep_for_xml()
         self.validate()
 
         cmd = self.build_command_shell()

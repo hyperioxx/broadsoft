@@ -16,8 +16,6 @@ class GroupAccessDeviceModifyRequest(BroadsoftRequest):
         self.device_name = device_name
         self.ip_address = ip_address
         self.mac_address = mac_address
-        if self.mac_address:
-            self.convert_mac_address()
         self.port = port
         self.protocol = protocol
         self.transport_protocol = transport_protocol
@@ -38,8 +36,7 @@ class GroupAccessDeviceModifyRequest(BroadsoftRequest):
         BroadsoftRequest.__init__(self, **kwargs)
 
     def build_command_xml(self):
-        if self.mac_address:
-            self.convert_mac_address()
+        self.prep_for_xml()
         self.validate()
 
         cmd = self.build_command_shell()

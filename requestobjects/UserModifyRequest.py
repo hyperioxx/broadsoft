@@ -12,14 +12,10 @@ class UserModifyRequest(BroadsoftRequest):
                  line_port=None,
                  **kwargs):
         self.clid_did = clid_did
-        if self.clid_did:
-            self.clid_did = BroadsoftRequest.convert_phone_number(number=self.clid_did)
         self.clid_first_name = clid_first_name
         self.clid_last_name = clid_last_name
         self.device_name = device_name
         self.did = did
-        if self.did:
-            self.did = BroadsoftRequest.convert_phone_number(number=self.did)
         self.email_address = email_address
         self.extension = extension
         self.first_name = first_name
@@ -33,24 +29,11 @@ class UserModifyRequest(BroadsoftRequest):
 
         BroadsoftRequest.__init__(self, **kwargs)
 
-        # now that BroadsoftRequest has set domain, can run these
-        if not self.sip_user_id:
-            self.sip_user_id = self.derive_sip_user_id()
-        if not self.line_port:
-            self.line_port = self.derive_sip_user_id(line_port=True)
-
     def build_command_xml(self):
         from broadsoft.requestobjects.datatypes.EndPoint import Endpoint
-        if self.did:
-            self.did = BroadsoftRequest.convert_phone_number(number=self.did)
-        if self.clid_did:
-            self.clid_did = BroadsoftRequest.convert_phone_number(number=self.clid_did)
-        self.derive_extension()
-        if not self.sip_user_id:
-            self.sip_user_id = self.derive_sip_user_id()
-        if not self.line_port:
-            self.line_port = self.derive_sip_user_id(line_port=True)
 
+        self.prep_for_xml()
+        self.derive_extension()
         self.validate()
 
         cmd = self.build_command_shell()

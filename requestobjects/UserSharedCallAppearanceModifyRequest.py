@@ -30,12 +30,9 @@ class UserSharedCallAppearanceModifyRequest(BroadsoftRequest):
         self.bridge_warning_tone = bridge_warning_tone
         self.enable_call_park_notification = enable_call_park_notification
         BroadsoftRequest.__init__(self, **kwargs)
-        if self.did and self.sip_user_id is None:
-            self.sip_user_id = self.derive_sip_user_id()
 
     def build_command_xml(self):
-        if self.did and not self.sip_user_id:
-            self.sip_user_id = self.derive_sip_user_id()
+        self.prep_for_xml()
         self.validate()
 
         cmd = self.build_command_shell()

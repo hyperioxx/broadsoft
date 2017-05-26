@@ -5,6 +5,7 @@ import xml.etree.ElementTree as ET
 from broadsoft.requestobjects.GroupGetListInServiceProviderRequest import GroupGetListInServiceProviderRequest
 from broadsoft.requestobjects.GroupAddRequest import GroupAddRequest
 from broadsoft.requestobjects.UserAddRequest import UserAddRequest
+from broadsoft.requestobjects.GroupAccessDeviceAddRequest import GroupAccessDeviceAddRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest, AuthenticationRequest, LoginRequest,\
     LogoutRequest
 
@@ -90,10 +91,16 @@ class TestBroadsoftRequest(unittest.TestCase):
         u = UserAddRequest()
         self.assertIsNone(u.derive_sip_user_id())
 
-        # lineport is true
+        # lineport is true, no device_name
         u = UserAddRequest()
         u.did = '617-555-1212'
         self.assertEqual('6175551212_lp@' + u.default_domain, u.derive_sip_user_id(line_port=True))
+
+        # lineport is true, device_name is set
+        g = GroupAccessDeviceAddRequest()
+        g.did = '617-555-1212'
+        g.device_name = 'beaverphone'
+        self.assertEqual('beaverphone_lp@' + g.default_domain, g.derive_sip_user_id(line_port=True))
 
     def test_extract_payload(self):
         # sending string

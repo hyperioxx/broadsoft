@@ -7,19 +7,12 @@ class UserGetRequest(BroadsoftRequest):
 
     def __init__(self, did=None, sip_user_id=None, **kwargs):
         self.did = did
-        if self.did:
-            self.did = BroadsoftRequest.convert_phone_number(number=self.did)
         self.sip_user_id = sip_user_id
 
         BroadsoftRequest.__init__(self, **kwargs)
-        if not self.sip_user_id:
-            self.sip_user_id = self.derive_sip_user_id()
 
     def build_command_xml(self):
-        if self.did:
-            self.did = BroadsoftRequest.convert_phone_number(number=self.did)
-        if not self.sip_user_id:
-            self.sip_user_id = self.derive_sip_user_id()
+        self.prep_for_xml()
         self.validate()
 
         cmd = self.build_command_shell()

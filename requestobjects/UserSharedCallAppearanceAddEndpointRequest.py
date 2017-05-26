@@ -24,17 +24,9 @@ class UserSharedCallAppearanceAddEndpointRequest(BroadsoftRequest):
         self.allow_termination = True
 
         BroadsoftRequest.__init__(self, **kwargs)
-        if not self.sip_user_id:
-            self.sip_user_id = self.derive_sip_user_id()
-        if not self.line_port:
-            self.line_port = self.derive_sip_user_id(line_port=True)
 
     def build_command_xml(self):
-        if not self.sip_user_id:
-            self.sip_user_id = self.derive_sip_user_id()
-        if not self.line_port:
-            self.line_port = self.derive_sip_user_id(line_port=True)
-
+        self.prep_for_xml()
         self.validate()
 
         cmd = self.build_command_shell()

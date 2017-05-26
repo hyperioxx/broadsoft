@@ -58,6 +58,8 @@ class BroadsoftRequest(XmlDocument):
         if not self.group_id and auto_derive_group_id:
             self.group_id = self.default_group_id
 
+        self.prep_attributes()
+
         # now that we're done setting up shop, start the logging
         self.default_logging(require_logging)
 
@@ -197,6 +199,8 @@ class BroadsoftRequest(XmlDocument):
         if self.did:
             uname = BroadsoftRequest.convert_phone_number(number=str(self.did))
             if line_port:
+                if hasattr(self, 'device_name') and self.device_name:
+                    uname = self.device_name
                 uname += '_lp'
             return uname + '@' + self.default_domain
         return None
@@ -301,9 +305,29 @@ class BroadsoftRequest(XmlDocument):
 
         return False
 
-    def to_xml(self):
+    # stuff that happens for multiple request objects which we don't want to mess up
+    def prep_attributes(self):
+        if hasattr(self, 'did') and self.did:
+            self.did = self.convert_phone_number(number=self.did)
+
+            if hasattr(self, 'sip_user_id') and not self.sip_user_id:
+                self.sip_user_id = self.derive_sip_user_id()
+
+        if hasattr(self, 'mac_address') and self.mac_address:
+            self.convert_mac_address()
+
+        if hasattr(self, 'line_port') and not self.line_port:
+            self.line_port = self.derive_sip_user_id(line_port=True)
+
+        if hasattr(self, 'clid_did') and self.clid_did:
+            self.clid_did = BroadsoftRequest.convert_phone_number(number=self.clid_did)
+
+    def prep_for_xml(self):
+        self.prep_attributes()
         self.convert_booleans()
 
+    def to_xml(self):
+        self.prep_for_xml()
         doc = ET.Element('BroadsoftDocument')
         doc.set('protocol', 'OCI')
         doc.set('xmlns', 'C')
@@ -316,7 +340,6 @@ class BroadsoftRequest(XmlDocument):
         # inject command XML
         commands = self.derive_commands()
         for cmd_object in commands:
-            cmd_object.convert_booleans()
             cmd = cmd_object.build_command_xml()
             doc.append(cmd)
 

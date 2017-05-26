@@ -11,6 +11,7 @@ class GroupGetListInServiceProviderRequest(SearchRequest):
         SearchRequest.__init__(self, **kwargs)
 
     def build_command_xml(self):
+        self.prep_for_xml()
         cmd = self.build_command_shell()
 
         sid = ET.SubElement(cmd, 'serviceProviderId')
