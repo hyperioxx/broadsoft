@@ -336,35 +336,6 @@ class TestBroadsoftRequest(unittest.TestCase):
         self.assertFalse(login_patch.called)
         login_patch.called = False
 
-    @unittest.mock.patch('nistcreds.NistCreds.NistCreds')
-    def test_derive_creds_respects_auto_derive_creds(
-            self,
-            creds_patch
-    ):
-        b = BroadsoftRequest(auto_derive_creds=True)
-        self.assertTrue(creds_patch.called)
-        creds_patch.called = False
-
-        b = BroadsoftRequest(auto_derive_creds=False)
-        self.assertFalse(creds_patch.called)
-
-    @unittest.mock.patch('nistcreds.NistCreds.NistCreds.__init__', side_effect=return_none)
-    def test_derive_creds(
-            self,
-            creds_patch
-    ):
-        # use_test True
-        b = BroadsoftRequest(use_test=True)
-        call = creds_patch.call_args_list[0]
-        args, kwargs = call
-        self.assertEqual('test', kwargs['member'])
-
-        # use_test False
-        b = BroadsoftRequest(use_test=False)
-        call = creds_patch.call_args_list[1]
-        args, kwargs = call
-        self.assertEqual('prod', kwargs['member'])
-
     def test_derive_domain_based_on_test_and_prod(self):
         b = BroadsoftRequest(use_test=False)
         self.assertEqual(b.prod_default_domain, b.default_domain)

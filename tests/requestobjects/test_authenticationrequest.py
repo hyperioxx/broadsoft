@@ -4,6 +4,10 @@ import xml.etree.ElementTree as ET
 from broadsoft.requestobjects.lib.BroadsoftRequest import AuthenticationRequest
 
 
+def return_none(*args, **kwargs):
+    return None
+
+
 def return_xml(*args, **kwargs):
     class Response:
         def __init__(self):
@@ -105,3 +109,22 @@ class TestBroadsoftAuthenticationRequest(unittest.TestCase):
         a = AuthenticationRequest.authenticate()
         self.assertIsNotNone(a.auth_cookie_jar)
         self.assertEqual('CookieJar', a.auth_cookie_jar.__class__.__name__)
+
+    @unittest.mock.patch('nistcreds.NistCreds.NistCreds.__init__', side_effect=return_none)
+    def test_derive_creds(
+            self,
+            creds_patch
+    ):
+        # use_test True
+        a = AuthenticationRequest(use_test=True)
+        a.build_command_xml()
+        call = creds_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertEqual('test', kwargs['member'])
+
+        # use_test False
+        a = AuthenticationRequest(use_test=False)
+        a.build_command_xml()
+        call = creds_patch.call_args_list[1]
+        args, kwargs = call
+        self.assertEqual('prod', kwargs['member'])

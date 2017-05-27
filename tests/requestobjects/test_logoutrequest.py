@@ -26,6 +26,7 @@ class TestBroadsoftLogoutRequest(unittest.TestCase):
 
     def test_to_xml(self):
         l = LogoutRequest()
+        l.api_user_id = 'userid'
 
         xml = l.to_xml()
         self.assertEqual(

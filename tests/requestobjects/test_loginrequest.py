@@ -3,6 +3,10 @@ from broadsoft.requestobjects.lib.BroadsoftRequest import LoginRequest
 import xml.etree.ElementTree as ET
 
 
+def return_none(*args, **kwargs):
+    return None
+
+
 def return_xml(*args, **kwargs):
     class Response:
         def __init__(self):
@@ -37,6 +41,7 @@ class TestBroadsoftLoginRequest(unittest.TestCase):
 
         a = FakeAuth()
         l = LoginRequest(auth_object=a)
+        l.api_password = 'password'
 
         from hashlib import sha1, md5
         nonce = a.nonce
@@ -62,6 +67,9 @@ class TestBroadsoftLoginRequest(unittest.TestCase):
 
         a = FakeAuth()
         l = LoginRequest(auth_object=a)
+        # want to override fetching of uid/pw via creds
+        l.api_user_id = 'userid'
+        l.api_password = 'password'
 
         from hashlib import sha1, md5
         nonce = a.nonce
@@ -75,6 +83,7 @@ class TestBroadsoftLoginRequest(unittest.TestCase):
         m.update(concat_pwd.encode())
         signed_pwd = m.hexdigest()
 
+        self.maxDiff = None
         xml = l.to_xml()
         self.assertEqual(
             '<BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
@@ -86,3 +95,30 @@ class TestBroadsoftLoginRequest(unittest.TestCase):
             '</BroadsoftDocument>',
             ET.tostring(xml).decode('utf-8')
         )
+
+    @unittest.mock.patch('nistcreds.NistCreds.NistCreds.__init__', side_effect=return_none)
+    def test_derive_creds(
+            self,
+            creds_patch
+    ):
+        # use_test True
+        l = LoginRequest(use_test=True)
+        # will throw error since mocking creds fetch
+        try:
+            l.build_command_xml()
+        except AttributeError:
+            pass
+        call = creds_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertEqual('test', kwargs['member'])
+
+        # use_test False
+        l = LoginRequest(use_test=False)
+        # will throw error since mocking creds fetch
+        try:
+            l.build_command_xml()
+        except AttributeError:
+            pass
+        call = creds_patch.call_args_list[1]
+        args, kwargs = call
+        self.assertEqual('prod', kwargs['member'])

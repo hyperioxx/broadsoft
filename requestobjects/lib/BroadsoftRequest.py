@@ -31,7 +31,7 @@ class BroadsoftRequest(XmlDocument):
     default_group_id = 'mit'
 
     def __init__(self, use_test=False, session_id=None, require_logging=True, auth_object=None,
-                 login_object=None, auto_derive_creds=True, group_id=None, auto_derive_group_id=True, timezone=None):
+                 login_object=None, group_id=None, auto_derive_group_id=True, timezone=None):
         self.api_password = None
         self.api_url = None
         self.api_user_id = None
@@ -51,9 +51,6 @@ class BroadsoftRequest(XmlDocument):
         self.derive_api_url()
         self.derive_default_domain()
         self.build_session_id()
-
-        if auto_derive_creds:
-            self.derive_creds()
 
         if not self.group_id and auto_derive_group_id:
             self.group_id = self.default_group_id
@@ -455,6 +452,9 @@ class AuthenticationRequest(BroadsoftRequest):
         BroadsoftRequest.__init__(self, use_test=use_test, **kwargs)
 
     def build_command_xml(self):
+        if not self.api_user_id or not self.api_password:
+            self.derive_creds()
+
         cmd = self.build_command_shell()
 
         uid = ET.SubElement(cmd, 'userId')
@@ -484,6 +484,9 @@ class LoginRequest(BroadsoftRequest):
         BroadsoftRequest.__init__(self, use_test=use_test, **kwargs)
 
     def build_command_xml(self):
+        if not self.api_user_id or not self.api_password:
+            self.derive_creds()
+
         cmd = self.build_command_shell()
 
         uid = ET.SubElement(cmd, 'userId')
