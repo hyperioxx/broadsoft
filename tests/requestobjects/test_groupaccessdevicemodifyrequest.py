@@ -6,7 +6,9 @@ from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 
 class TestBroadsoftGroupAccessDeviceModifyRequest(unittest.TestCase):
     def test_validation(self):
-        self.assertFalse("write this")
+        g = GroupAccessDeviceModifyRequest()
+        with self.assertRaises(ValueError):
+            g.validate()
 
     def test_group_id_inheritance(self):
         # defaults to default set in BroadsoftRequest
@@ -45,8 +47,7 @@ class TestBroadsoftGroupAccessDeviceModifyRequest(unittest.TestCase):
             self,
             convert_mac_address_patch
     ):
-        g = GroupAccessDeviceModifyRequest(device_name='dname',
-                                        device_type='dtype', description='desc', group_id='testgroup')
+        g = GroupAccessDeviceModifyRequest(device_name='dname', description='desc', group_id='testgroup')
 
         # expect convert not to be called yet
         self.assertFalse(convert_mac_address_patch.called)
@@ -58,19 +59,23 @@ class TestBroadsoftGroupAccessDeviceModifyRequest(unittest.TestCase):
         self.assertTrue(convert_mac_address_patch.called)
 
     def test_to_xml(self):
-        self.assertFalse("write this")
         # with a mac address
         g = GroupAccessDeviceModifyRequest(device_name='dname', mac_address='aabbcc112233',
-                                        device_type='dtype', description='desc', group_id='testgroup')
+                                        description='desc', group_id='testgroup', ip_address='18.18.18.18',
+                                           port='1054')
 
         target_xml = \
             '<command xmlns="" xsi:type="GroupAccessDeviceModifyRequest14">' + \
             '<serviceProviderId>ENT136</serviceProviderId>' + \
             '<groupId>testgroup</groupId>' + \
             '<deviceName>dname</deviceName>' + \
-            '<deviceType>dtype</deviceType>' + \
             '<macAddress>aabbcc112233</macAddress>' + \
             '<description>desc</description>' + \
+            '<protocol>SIP 2.0</protocol>' + \
+            '<netAddress>18.18.18.18</netAddress>' + \
+            '<port>1054</port>' + \
+            '<configurationMode>Default</configurationMode>' + \
+            '<transportProtocol>Unspecified</transportProtocol>' + \
             '</command>'
 
         cmd = g.build_command_xml()
@@ -79,15 +84,20 @@ class TestBroadsoftGroupAccessDeviceModifyRequest(unittest.TestCase):
 
         # without a mac address
         g = GroupAccessDeviceModifyRequest(device_name='dname',
-                                        device_type='dtype', description='desc', group_id='testgroup')
+                                        description='desc', group_id='testgroup', ip_address='18.18.18.18',
+                                           port='1054')
 
         target_xml = \
             '<command xmlns="" xsi:type="GroupAccessDeviceModifyRequest14">' + \
             '<serviceProviderId>ENT136</serviceProviderId>' + \
             '<groupId>testgroup</groupId>' + \
             '<deviceName>dname</deviceName>' + \
-            '<deviceType>dtype</deviceType>' + \
             '<description>desc</description>' + \
+            '<protocol>SIP 2.0</protocol>' + \
+            '<netAddress>18.18.18.18</netAddress>' + \
+            '<port>1054</port>' + \
+            '<configurationMode>Default</configurationMode>' + \
+            '<transportProtocol>Unspecified</transportProtocol>' + \
             '</command>'
 
         cmd = g.build_command_xml()

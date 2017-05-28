@@ -27,9 +27,10 @@ class UserGetRequest(BroadsoftRequest):
             raise ValueError("can't run UserGetRequest.build_command_xml() without a value for sip_user_id")
 
     @staticmethod
-    def get_user(**kwargs):
-        u = UserGetRequest(**kwargs)
+    def get_user(did=None, sip_user_id=None, **kwargs):
+        u = UserGetRequest(did=did, sip_user_id=sip_user_id, **kwargs)
         xml = u.post()
+        return xml
 
         # convert GroupTable to dict
         #if type(xml) is str:

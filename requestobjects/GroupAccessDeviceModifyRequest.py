@@ -7,7 +7,7 @@ class GroupAccessDeviceModifyRequest(BroadsoftRequest):
     command_name = 'GroupAccessDeviceModifyRequest14'
     check_success = True
 
-    def __init__(self, device_name=None, device_type=None, description=None,
+    def __init__(self, device_name=None, description=None,
                  protocol='SIP 2.0', transport_protocol='Unspecified', mac_address=None, ip_address=None, port=None,
                  **kwargs):
         # group_id will be inherited from BroadsoftRequest.default_group_id, but can be overridden by passing
@@ -121,4 +121,4 @@ class GroupAccessDeviceModifyRequest(BroadsoftRequest):
 
     def validate(self):
         if self.device_name is None:
-            raise ValueError("can't run broadsoft.GroupAccessDeviceAddRequest.to_xml() without a value for device_name")
+            raise ValueError("can't run broadsoft.GroupAccessDeviceModifyRequest.to_xml() without a value for device_name")

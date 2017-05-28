@@ -62,7 +62,7 @@ class TestBroadsoftUserGetRequest(unittest.TestCase):
         )
 
     def test_static_method(self):
-        self.assertFalse("develop below")
+        self.assertFalse("once we have a from_xml() for this, develop below")
 
     """
     def test_use_test_gets_passed_to_broadsoftdocument(self):
