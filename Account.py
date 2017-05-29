@@ -83,6 +83,9 @@ class Account(BroadsoftObject):
 
         return b
 
+    def from_xml(self):
+        BroadsoftObject.from_xml(self)
+
     def link_primary_device(self, req_object, device):
         u_mod = UserModifyRequest(did=self.did, sip_user_id=self.sip_user_id,
                                   device_name=device.name, use_test=self.use_test)

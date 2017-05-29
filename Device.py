@@ -3,7 +3,7 @@ from broadsoft.BroadsoftObject import BroadsoftObject
 
 
 class Device(BroadsoftObject):
-    def __init__(self, name, type, description, use_test=False, mac_address=None, protocol=None,
+    def __init__(self, name=None, type=None, description=None, use_test=False, mac_address=None, protocol=None,
                  transport_protocol=None, line_port=None, **kwargs):
         self.description = description
         self.name = name
@@ -29,3 +29,6 @@ class Device(BroadsoftObject):
         if self.transport_protocol:
             g.transport_protocol = self.transport_protocol
         return g
+
+    def from_xml(self):
+        BroadsoftObject.from_xml(self)
