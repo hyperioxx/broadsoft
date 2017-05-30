@@ -40,6 +40,9 @@ class Account(BroadsoftObject):
 
         BroadsoftObject.__init__(self, **kwargs)
 
+    def __repr__(self):
+        return "<Broadsoft Account did:%s, last_name:%s, first_name:%s, sip_user_id:%s>" % (self.did, self.last_name, self.first_name, self.sip_user_id)
+
     def add_devices(self, req_object):
         if len(self.devices) > 0:
             # first, all devices get added to system
