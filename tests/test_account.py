@@ -131,6 +131,10 @@ def get_sca_mock(**kwargs):
     return ET.fromstring(xml)
 
 
+def return_none(*args, **kwargs):
+    return None
+
+
 class TestBroadsoftAccount(unittest.TestCase):
     def test_account_attrs_get_passed_to_request_object(self):
         a = Account(did=6175551212, extension=51212, last_name='beaver', first_name='tim',
@@ -326,7 +330,8 @@ class TestBroadsoftAccount(unittest.TestCase):
 
         self.assertIsInstance(a.xml, Element)
 
-    def test_xml_converted_to_elementtree_at_from_xml(self):
+    @unittest.mock.patch.object(Account, 'load_devices')
+    def test_xml_converted_to_elementtree_at_from_xml(self, load_devices_patch):
         a = Account()
         a.xml = """
             <ns0:BroadsoftDocument xmlns:ns0="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" protocol="OCI">
@@ -363,15 +368,8 @@ class TestBroadsoftAccount(unittest.TestCase):
         a.from_xml()
         self.assertIsInstance(a.xml, Element)
 
-    def test_from_xml_hands_off_accessDeviceEndpoint_to_device_object(self):
-        # for each one, instantiate a Device object
-        self.assertFalse("write this")
-
-    def test_fetch_secondary_call_appearances(self):
-        # for each one, instantiate a Device object
-        self.assertFalse("write this")
-
-    def test_from_xml_blanks_out_devices(self):
+    @unittest.mock.patch.object(Account, 'load_devices')
+    def test_from_xml_blanks_out_devices(self, load_devices_patch):
         a = Account()
         a.devices = ('a')
         a.from_xml()
@@ -449,14 +447,105 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertEqual('beaverspa', d.name)
         self.assertFalse(d.is_primary)
 
-    def test_fetch(self):
-        self.assertFalse("write this")
+    @unittest.mock.patch('broadsoft.requestobjects.UserGetRequest.UserGetRequest.get_user')
+    @unittest.mock.patch.object(Account, 'from_xml')
+    def test_fetch(
+            self, load_devices_patch, get_user_patch
+    ):
+        a = Account(did=6175551212, sip_user_id='6175551212@mit.edu')
+        a.fetch()
+        call = get_user_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertEqual(a.did, kwargs['did'])
+        self.assertEqual(a.sip_user_id, kwargs['sip_user_id'])
 
-    def test_can_pass_use_test_to_child_objects(self):
-        self.assertFalse("write this")
+    @unittest.mock.patch('broadsoft.requestobjects.UserGetRequest.UserGetRequest.get_user')
+    @unittest.mock.patch.object(Account, 'from_xml')
+    def test_fetch_passes_use_test(
+            self, from_xml_patch, get_user_patch
+    ):
+        a = Account(did=6175551212, sip_user_id='6175551212@mit.edu', use_test=False)
+        a.fetch()
+        call = get_user_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertFalse(kwargs['use_test'])
 
-    def test_from_xml(self):
-        self.assertFalse("mock out calls in load_devices here and every call")
+        a = Account(did=6175551212, sip_user_id='6175551212@mit.edu', use_test=True)
+        a.fetch()
+        call = get_user_patch.call_args_list[1]
+        args, kwargs = call
+        self.assertTrue(kwargs['use_test'])
+
+    @unittest.mock.patch.object(Device, 'fetch')
+    @unittest.mock.patch('broadsoft.requestobjects.UserSharedCallAppearanceGetRequest.UserSharedCallAppearanceGetRequest.get_devices', side_effect=get_sca_mock)
+    def test_load_devices_passes_use_test_to_bootstrap_primary(
+            self, get_scas_patch, device_fetch_patch
+    ):
+        xml = """
+                    <ns0:BroadsoftDocument xmlns:ns0="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" protocol="OCI">
+                    <sessionId>dhcp-18-189-4-125.dyn.mit.edu,2017-05-26 15:33:32.605555,3222027341</sessionId>
+                    <command echo="" xsi:type="UserGetResponse21">
+                        <serviceProviderId>ENT136</serviceProviderId>
+                        <groupId>mit</groupId>
+                        <lastName>Beaver</lastName>
+                        <firstName>Tim</firstName>
+                        <callingLineIdLastName>Beaver</callingLineIdLastName>
+                        <callingLineIdFirstName>Tim</callingLineIdFirstName>
+                        <hiraganaLastName>Beaver</hiraganaLastName>
+                        <hiraganaFirstName>Tim</hiraganaFirstName>
+                        <phoneNumber>2212221101</phoneNumber>
+                        <extension>1101</extension>
+                        <language>English</language>
+                        <timeZone>America/New_York</timeZone>
+                        <timeZoneDisplayName>(GMT-04:00) (US) Eastern Time</timeZoneDisplayName>
+                        <defaultAlias>2212221101@broadsoft-dev.mit.edu</defaultAlias>
+                        <accessDeviceEndpoint>
+                            <accessDevice>
+                                <deviceLevel>Group</deviceLevel>
+                                <deviceName>beaver550</deviceName>
+                            </accessDevice>
+                            <linePort>2212221101_lp@broadsoft-dev.mit.edu</linePort>
+                            <staticRegistrationCapable>false</staticRegistrationCapable>
+                            <useDomain>true</useDomain>
+                            <supportVisualDeviceManagement>false</supportVisualDeviceManagement>
+                        </accessDeviceEndpoint>
+                        <countryCode>1</countryCode>
+                    </command>
+                    </ns0:BroadsoftDocument>
+                """
+        a = Account(xml=xml, use_test=False)
+        a.load_devices()
+        for d in a.devices:
+            self.assertFalse(d.use_test)
+
+        a = Account(xml=xml, use_test=True)
+        a.load_devices()
+        for d in a.devices:
+            self.assertTrue(d.use_test)
+
+    @unittest.mock.patch('broadsoft.requestobjects.UserSharedCallAppearanceGetRequest.UserSharedCallAppearanceGetRequest.get_devices')
+    def test_can_pass_use_test_when_fetching_shared_call_appearances(
+            self, get_devices_patch
+    ):
+        a = Account(use_test=False)
+        a.load_devices()
+        call = get_devices_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertFalse(kwargs['use_test'])
+
+        a = Account(use_test=True)
+        a.load_devices()
+        call = get_devices_patch.call_args_list[1]
+        args, kwargs = call
+        self.assertTrue(kwargs['use_test'])
+
+    @unittest.mock.patch.object(Device, 'fetch')
+    @unittest.mock.patch(
+        'broadsoft.requestobjects.UserSharedCallAppearanceGetRequest.UserSharedCallAppearanceGetRequest.get_devices',
+        side_effect=get_sca_mock)
+    def test_from_xml(
+            self, get_devices_patch, device_fetch_patch
+    ):
         a = Account()
         a.xml = """
                     <ns0:BroadsoftDocument xmlns:ns0="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" protocol="OCI">
@@ -496,4 +585,17 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertEqual('Beaver', a.last_name)
         self.assertEqual('1101', a.extension)
         self.assertEqual('2212221101@broadsoft-dev.mit.edu', a.sip_user_id)
-        self.assertEqual(1, len(a.devices))
+        # per what we've mocked, expect two devices: one primary, two shared call appearances
+        self.assertEqual(3, len(a.devices))
+
+        d = a.devices[0]
+        self.assertTrue(d.is_primary)
+        self.assertEqual('beaver550', d.name)
+
+        d = a.devices[1]
+        self.assertFalse(d.is_primary)
+        self.assertEqual('beavervvx', d.name)
+
+        d = a.devices[2]
+        self.assertFalse(d.is_primary)
+        self.assertEqual('beaverspa', d.name)
