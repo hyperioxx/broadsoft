@@ -4,6 +4,7 @@ from broadsoft.requestobjects.UserModifyRequest import UserModifyRequest
 from broadsoft.requestobjects.UserServiceAssignListRequest import UserServiceAssignListRequest
 from broadsoft.requestobjects.UserSharedCallAppearanceAddEndpointRequest import UserSharedCallAppearanceAddEndpointRequest
 from broadsoft.BroadsoftObject import BroadsoftObject
+from broadsoft.Device import Device
 
 
 class Account(BroadsoftObject):
@@ -85,6 +86,15 @@ class Account(BroadsoftObject):
 
     def from_xml(self):
         BroadsoftObject.from_xml(self)
+        self.devices = list()
+        if self.xml:
+            cmd = self.xml.findall('command')[0]
+            self.did = cmd.findall('phoneNumber')[0].text
+            self.first_name = cmd.findall('firstName')[0].text
+            self.last_name = cmd.findall('lastName')[0].text
+            self.extension = cmd.findall('extension')[0].text
+            self.sip_user_id = cmd.findall('defaultAlias')[0].text
+        self.load_devices()
 
     def link_primary_device(self, req_object, device):
         u_mod = UserModifyRequest(did=self.did, sip_user_id=self.sip_user_id,
@@ -99,3 +109,13 @@ class Account(BroadsoftObject):
                                                          device_name=device.name, line_port=line_port,
                                                          use_test=self.use_test)
         req_object.commands.append(sca)
+
+    def load_devices(self):
+        # first, any that were directly in xml
+        if self.xml:
+            for d_xml in self.xml.findall('./command/accessDeviceEndpoint'):
+                d = Device(xml=d_xml)
+                self.devices.append(d)
+
+        # now find any shared call appearances
+        raise RuntimeError("finish this")

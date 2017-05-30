@@ -242,9 +242,94 @@ class TestBroadsoftAccount(unittest.TestCase):
         a.from_xml()
         self.assertIsInstance(a.xml, Element)
 
+    def test_from_xml_hands_off_accessDeviceEndpoint_to_device_object(self):
+        # for each one, instantiate a Device object
+        self.assertFalse("write this")
+
     def test_fetch_secondary_call_appearances(self):
         # for each one, instantiate a Device object
         self.assertFalse("write this")
 
+    def test_from_xml_blanks_out_devices(self):
+        a = Account()
+        a.devices = ('a')
+        a.from_xml()
+        self.assertEqual([], a.devices)
+
+    def test_load_devices(self):
+        a = Account(xml = """
+                            <ns0:BroadsoftDocument xmlns:ns0="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" protocol="OCI">
+                            <sessionId>dhcp-18-189-4-125.dyn.mit.edu,2017-05-26 15:33:32.605555,3222027341</sessionId>
+                            <command echo="" xsi:type="UserGetResponse21">
+                                <serviceProviderId>ENT136</serviceProviderId>
+                                <groupId>mit</groupId>
+                                <lastName>Beaver</lastName>
+                                <firstName>Tim</firstName>
+                                <callingLineIdLastName>Beaver</callingLineIdLastName>
+                                <callingLineIdFirstName>Tim</callingLineIdFirstName>
+                                <hiraganaLastName>Beaver</hiraganaLastName>
+                                <hiraganaFirstName>Tim</hiraganaFirstName>
+                                <phoneNumber>2212221101</phoneNumber>
+                                <extension>1101</extension>
+                                <language>English</language>
+                                <timeZone>America/New_York</timeZone>
+                                <timeZoneDisplayName>(GMT-04:00) (US) Eastern Time</timeZoneDisplayName>
+                                <defaultAlias>2212221101@broadsoft-dev.mit.edu</defaultAlias>
+                                <accessDeviceEndpoint>
+                                    <accessDevice>
+                                        <deviceLevel>Group</deviceLevel>
+                                        <deviceName>beaver550</deviceName>
+                                    </accessDevice>
+                                    <linePort>2212221101_lp@broadsoft-dev.mit.edu</linePort>
+                                    <staticRegistrationCapable>false</staticRegistrationCapable>
+                                    <useDomain>true</useDomain>
+                                    <supportVisualDeviceManagement>false</supportVisualDeviceManagement>
+                                </accessDeviceEndpoint>
+                                <countryCode>1</countryCode>
+                            </command>
+                            </ns0:BroadsoftDocument>
+                        """)
+        a.load_devices()
+        self.assertFalse("finish this")
+
     def test_from_xml(self):
-        self.assertFalse("write this")
+        a = Account()
+        a.xml = """
+                    <ns0:BroadsoftDocument xmlns:ns0="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" protocol="OCI">
+                    <sessionId>dhcp-18-189-4-125.dyn.mit.edu,2017-05-26 15:33:32.605555,3222027341</sessionId>
+                    <command echo="" xsi:type="UserGetResponse21">
+                        <serviceProviderId>ENT136</serviceProviderId>
+                        <groupId>mit</groupId>
+                        <lastName>Beaver</lastName>
+                        <firstName>Tim</firstName>
+                        <callingLineIdLastName>Beaver</callingLineIdLastName>
+                        <callingLineIdFirstName>Tim</callingLineIdFirstName>
+                        <hiraganaLastName>Beaver</hiraganaLastName>
+                        <hiraganaFirstName>Tim</hiraganaFirstName>
+                        <phoneNumber>2212221101</phoneNumber>
+                        <extension>1101</extension>
+                        <language>English</language>
+                        <timeZone>America/New_York</timeZone>
+                        <timeZoneDisplayName>(GMT-04:00) (US) Eastern Time</timeZoneDisplayName>
+                        <defaultAlias>2212221101@broadsoft-dev.mit.edu</defaultAlias>
+                        <accessDeviceEndpoint>
+                            <accessDevice>
+                                <deviceLevel>Group</deviceLevel>
+                                <deviceName>beaver550</deviceName>
+                            </accessDevice>
+                            <linePort>2212221101_lp@broadsoft-dev.mit.edu</linePort>
+                            <staticRegistrationCapable>false</staticRegistrationCapable>
+                            <useDomain>true</useDomain>
+                            <supportVisualDeviceManagement>false</supportVisualDeviceManagement>
+                        </accessDeviceEndpoint>
+                        <countryCode>1</countryCode>
+                    </command>
+                    </ns0:BroadsoftDocument>
+                """
+        a.from_xml()
+        self.assertEqual('2212221101', a.did)
+        self.assertEqual('Tim', a.first_name)
+        self.assertEqual('Beaver', a.last_name)
+        self.assertEqual('1101', a.extension)
+        self.assertEqual('2212221101@broadsoft-dev.mit.edu', a.sip_user_id)
+        self.assertEqual(1, len(a.devices))
