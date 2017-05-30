@@ -23,9 +23,11 @@ class Device(BroadsoftObject):
 
         BroadsoftObject.__init__(self, **kwargs)
 
+    # expects <AccessDeviceEndpoint> coming from User xml
     def bootstrap_access_device_endpoint(self, ade):
         self.name = ade.findall('./accessDevice/deviceName')[0].text
         self.line_port = ade.findall('./linePort')[0].text
+        self.is_primary = True
 
     # expects to get a result row, from running a UserSharedCallAppearanceGetRequest, which was run through
     # BroadsoftRequest.convert_results_table
