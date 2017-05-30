@@ -328,7 +328,7 @@ class TestBroadsoftDevice(unittest.TestCase):
     def test_from_shared_call_appearance(self):
         row = {'Mac Address': 'aa:bb:cc:dd:ee:ff', 'Device Level': 'Group', 'Allow Termination': 'true', 'Allow Origination': 'true', 'Device Type': 'Polycom-VVX1500', 'Is Active': 'true', 'Port Number': None, 'Line/Port': 'beavervvx_lp@broadsoft-dev.mit.edu', 'Device Support Visual Device Management': 'false', 'Device Name': 'beavervvx', 'SIP Contact': 'sip:'}
         d = Device()
-        d.from_shared_call_appearance(sca=row)
+        d.bootstrap_shared_call_appearance(sca=row)
         self.assertEqual(d.mac_address, row['Mac Address'])
         self.assertEqual(d.type, row['Device Type'])
         self.assertEqual(d.line_port, row['Line/Port'])

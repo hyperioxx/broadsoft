@@ -122,7 +122,7 @@ class Account(BroadsoftObject):
             for ade in self.xml.findall('./command/accessDeviceEndpoint'):
                 d = Device(use_test=self.use_test)
                 # the <accessDeviceEndpoint> gives us enough info to actually fetch the device
-                d.unpack_access_device_endpoint(ade=ade)
+                d.bootstrap_access_device_endpoint(ade=ade)
                 d.fetch(target_name=d.name)
                 self.devices.append(d)
 
@@ -134,6 +134,6 @@ class Account(BroadsoftObject):
             d = Device(use_test=self.use_test)
             # the shared call appearance listings give us nearly everything about a device, but we run a fetch as well
             # to get everything
-            d.from_shared_call_appearance(sca=sca)
+            d.bootstrap_shared_call_appearance(sca=sca)
             d.fetch(target_name=d.name)
             self.devices.append(d)

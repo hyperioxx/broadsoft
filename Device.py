@@ -23,6 +23,19 @@ class Device(BroadsoftObject):
 
         BroadsoftObject.__init__(self, **kwargs)
 
+    def bootstrap_access_device_endpoint(self, ade):
+        self.name = ade.findall('./accessDevice/deviceName')[0].text
+        self.line_port = ade.findall('./linePort')[0].text
+
+    # expects to get a result row, from running a UserSharedCallAppearanceGetRequest, which was run through
+    # BroadsoftRequest.convert_results_table
+    def bootstrap_shared_call_appearance(self, sca):
+        self.mac_address = sca['Mac Address']
+        self.type = sca['Device Type']
+        self.line_port = sca['Line/Port']
+        self.name = sca['Device Name']
+        self.is_primary = False
+
     def build_request_object(self):
         g = GroupAccessDeviceAddRequest(use_test=self.use_test)
         g.description = self.description
@@ -48,17 +61,3 @@ class Device(BroadsoftObject):
         descs = self.xml.findall('./command/description')
         if len(descs) > 0:
             self.description = descs[0].text
-
-    # expects to get a result row, from running a UserSharedCallAppearanceGetRequest, which was run through
-    # BroadsoftRequest.convert_results_table
-    def from_shared_call_appearance(self, sca):
-        self.mac_address = sca['Mac Address']
-        self.type = sca['Device Type']
-        self.line_port = sca['Line/Port']
-        self.name = sca['Device Name']
-        self.is_primary = False
-
-    def unpack_access_device_endpoint(self, ade):
-        self.name = ade.findall('./accessDevice/deviceName')[0].text
-        self.line_port = ade.findall('./linePort')[0].text
-
