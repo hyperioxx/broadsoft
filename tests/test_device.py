@@ -264,13 +264,78 @@ class TestBroadsoftDevice(unittest.TestCase):
         self.assertEqual(d.type, 'Polycom SoundPoint IP 550')
         self.assertEqual(d.description, 'the 550 what tim uses')
 
-    def test_from_xml_shared_call_appearance(self):
-        # found in UserSharedCallAppearanceGetRequest, which is called by Account
+    @unittest.mock.patch('broadsoft.requestobjects.GroupAccessDeviceGetRequest.GroupAccessDeviceGetRequest.get_device',
+                         side_effect=fetch_device_mock)
+    def test_from_xml_shared_call_appearance(
+            self,
+            get_device_patch
+    ):
+        d = Device(xml="""<?xml version="1.0" encoding="ISO-8859-1"?>
+            <BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <sessionId xmlns="">192.168.1.151,1476473244,1496090738961</sessionId>
+            <command echo="" xsi:type="UserSharedCallAppearanceGetResponse16sp2" xmlns="">
+                <alertAllAppearancesForClickToDialCalls>false</alertAllAppearancesForClickToDialCalls>
+                <alertAllAppearancesForGroupPagingCalls>false</alertAllAppearancesForGroupPagingCalls>
+                <maxAppearances>10</maxAppearances>
+                <allowSCACallRetrieve>false</allowSCACallRetrieve>
+                <enableMultipleCallArrangement>false</enableMultipleCallArrangement>
+                <multipleCallArrangementIsActive>false</multipleCallArrangementIsActive>
+                <endpointTable>
+                    <colHeading>Device Level</colHeading>
+                    <colHeading>Device Name</colHeading>
+                    <colHeading>Device Type</colHeading>
+                    <colHeading>Line/Port</colHeading>
+                    <colHeading>SIP Contact</colHeading>
+                    <colHeading>Port Number</colHeading>
+                    <colHeading>Device Support Visual Device Management</colHeading>
+                    <colHeading>Is Active</colHeading>
+                    <colHeading>Allow Origination</colHeading>
+                    <colHeading>Allow Termination</colHeading>
+                    <colHeading>Mac Address</colHeading>
+                    <row>
+                        <col>Group</col>
+                        <col>beaverphone</col>
+                        <col>Polycom SoundPoint IP 550</col>
+                        <col>beavervvx_lp@broadsoft-dev.mit.edu</col>
+                        <col>sip:</col>
+                        <col/>
+                        <col>false</col>
+                        <col>true</col>
+                        <col>true</col>
+                        <col>false</col>
+                        <col>aa:bb:cc:11:22:33</col>
+                    </row>
+                </endpointTable>
+                <allowBridgingBetweenLocations>false</allowBridgingBetweenLocations>
+                <bridgeWarningTone>None</bridgeWarningTone>
+                <enableCallParkNotification>false</enableCallParkNotification>
+            </command>
+        </BroadsoftDocument>
+        """)
+        d.from_xml()
+        self.assertEqual('beavervvx_lp@broadsoft-dev.mit.edu', d.line_port)
+        self.assertEqual('aa:bb:cc:11:22:33', d.mac_address)
+        self.assertEqual('beaverphone', d.name)
+        self.assertEqual('Polycom SoundPoint IP 550', d.type)
+        self.assertEqual(d.description, 'the 550 what tim uses')
+
+    def test_derive_xml_type_when_is_single_sca(self):
+        self.assertFalse("figure out what multiple results wuold look like and write this")
+
+    def test_when_call_fetch_discovers_lineport(self):
         self.assertFalse("write this")
 
-    def test_when_fetch_can_discover_lineport(self):
-        self.assertFalse("write this")
+    def test_from_shared_call_appearance(self):
+        row = {'Mac Address': 'aa:bb:cc:dd:ee:ff', 'Device Level': 'Group', 'Allow Termination': 'true', 'Allow Origination': 'true', 'Device Type': 'Polycom-VVX1500', 'Is Active': 'true', 'Port Number': None, 'Line/Port': 'beavervvx_lp@broadsoft-dev.mit.edu', 'Device Support Visual Device Management': 'false', 'Device Name': 'beavervvx', 'SIP Contact': 'sip:'}
+        d = Device()
+        d.from_shared_call_appearance(sca=row)
+        self.assertEqual(d.mac_address, row['Mac Address'])
+        self.assertEqual(d.type, row['Device Type'])
+        self.assertEqual(d.line_port, row['Line/Port'])
+        self.assertEqual(d.name, row['Device Name'])
+        self.assertFalse(d.is_primary)
+        self.assertFalse("also need to fetch and mock that fetch")
 
     def test_fetch(self):
-        # can pass use_test, etc
+        # can pass use_test, override name, etc
         self.assertFalse("write this; based on name")

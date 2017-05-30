@@ -3,6 +3,8 @@ from broadsoft.requestobjects.UserAddRequest import UserAddRequest
 from broadsoft.requestobjects.UserModifyRequest import UserModifyRequest
 from broadsoft.requestobjects.UserServiceAssignListRequest import UserServiceAssignListRequest
 from broadsoft.requestobjects.UserSharedCallAppearanceAddEndpointRequest import UserSharedCallAppearanceAddEndpointRequest
+from broadsoft.requestobjects.UserSharedCallAppearanceGetRequest import UserSharedCallAppearanceGetRequest
+from broadsoft.requestobjects.UserGetRequest import UserGetRequest
 from broadsoft.BroadsoftObject import BroadsoftObject
 from broadsoft.Device import Device
 
@@ -84,6 +86,10 @@ class Account(BroadsoftObject):
 
         return b
 
+    def fetch(self):
+        self.xml = UserGetRequest.get_user(did=self.did, sip_user_id=self.sip_user_id, use_test=self.use_test)
+        self.from_xml()
+
     def from_xml(self):
         BroadsoftObject.from_xml(self)
         self.devices = list()
@@ -113,9 +119,21 @@ class Account(BroadsoftObject):
     def load_devices(self):
         # first, any that were directly in xml
         if self.xml:
-            for d_xml in self.xml.findall('./command/accessDeviceEndpoint'):
-                d = Device(xml=d_xml)
+            for ade in self.xml.findall('./command/accessDeviceEndpoint'):
+                d = Device(use_test=self.use_test)
+                # the <accessDeviceEndpoint> gives us enough info to actually fetch the device
+                d.unpack_access_device_endpoint(ade=ade)
+                d.fetch(target_name=d.name)
                 self.devices.append(d)
 
         # now find any shared call appearances
-        raise RuntimeError("finish this")
+        sca_xml = UserSharedCallAppearanceGetRequest.get_devices(sip_user_id=self.sip_user_id, did=self.did,
+                                                         use_test=self.use_test)
+        scas = BroadsoftRequest.convert_results_table(xml=sca_xml)
+        for sca in scas:
+            d = Device(use_test=self.use_test)
+            # the shared call appearance listings give us nearly everything about a device, but we run a fetch as well
+            # to get everything
+            d.from_shared_call_appearance(sca=sca)
+            d.fetch(target_name=d.name)
+            self.devices.append(d)

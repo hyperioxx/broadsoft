@@ -1,5 +1,6 @@
 from broadsoft.requestobjects.GroupAccessDeviceAddRequest import GroupAccessDeviceAddRequest
 from broadsoft.requestobjects.GroupAccessDeviceGetRequest import GroupAccessDeviceGetRequest
+from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 from broadsoft.BroadsoftObject import BroadsoftObject
 import xml.etree.ElementTree as ET
 import re
@@ -34,54 +35,30 @@ class Device(BroadsoftObject):
             g.transport_protocol = self.transport_protocol
         return g
 
-    def fetch(self, name):
-        self.name = name
-        d = GroupAccessDeviceGetRequest.get_device(name=self.name, use_test=self.use_test)
-        self.unpack_group_access_device(device=d)
+    def fetch(self, target_name=None):
+        if not target_name:
+            target_name = self.name
+        self.xml = GroupAccessDeviceGetRequest.get_device(name=target_name, use_test=self.use_test)
+        self.from_xml()
 
     def from_xml(self):
         BroadsoftObject.from_xml(self)
 
-        # may have received a primary device from a user object,
-        # a raw primary device not embedded in a larger object,
-        # or a secondary device from a shared call appearance.
-        # each one has a different structure.
-        if self.xml:
-            cmd = None
-            cmds = self.xml.findall('./command')
-            if len(cmds) > 0:
-                cmd = cmds[0]
+        self.type = self.xml.findall('./command/deviceType')[0].text
+        descs = self.xml.findall('./command/description')
+        if len(descs) > 0:
+            self.description = descs[0].text
 
-            # check to see if there's an accessDeviceEndpoint within a command in the xml
-            ades = self.xml.findall('./command/accessDeviceEndpoint')
-            if len(ades) > 0:
-                ade = ades[0]
-                self.is_primary = True
-                self.unpack_access_device_endpoint(ade)
-
-            # check to see if the xml is itself an accessDeviceEndpoint
-            if self.xml.tag == 'accessDeviceEndpoint':
-                ade = self.xml
-                self.is_primary = True
-                self.unpack_access_device_endpoint(ade)
-
-            # check to see if sharedCallAppearance
-            # can tell if command has xsi:type UserSharedCallAppearanceGetResponse
-            if cmd and re.match(r'^UserSharedCallAppearanceGetResponse', cmd.get('{http://www.w3.org/2001/XMLSchema-instance}type')):
-                self.is_primary = False
-                self.unpack_shared_call_appearance(cmd)
+    # expects to get a result row, from running a UserSharedCallAppearanceGetRequest, which was run through
+    # BroadsoftRequest.convert_results_table
+    def from_shared_call_appearance(self, sca):
+        self.mac_address = sca['Mac Address']
+        self.type = sca['Device Type']
+        self.line_port = sca['Line/Port']
+        self.name = sca['Device Name']
+        self.is_primary = False
 
     def unpack_access_device_endpoint(self, ade):
         self.name = ade.findall('./accessDevice/deviceName')[0].text
         self.line_port = ade.findall('./linePort')[0].text
 
-        # don't get a full version of the device from what's embedded in the User record...
-        # fetch full version from system
-        self.fetch(name=self.name)
-
-    def unpack_group_access_device(self, device):
-        self.type = device.findall('./command/deviceType')[0].text
-        self.description = device.findall('./command/description')[0].text
-
-    def unpack_shared_call_appearance(self, sca):
-        pass

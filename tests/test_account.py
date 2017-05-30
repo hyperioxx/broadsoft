@@ -8,6 +8,127 @@ from broadsoft.requestobjects.UserServiceAssignListRequest import UserServiceAss
 from broadsoft.requestobjects.GroupAccessDeviceAddRequest import GroupAccessDeviceAddRequest
 from broadsoft.requestobjects.UserSharedCallAppearanceAddEndpointRequest import UserSharedCallAppearanceAddEndpointRequest
 from xml.etree.ElementTree import Element
+import xml.etree.ElementTree as ET
+
+
+def get_device_mock(name, **kwargs):
+    if name == 'beaver550':
+        xml = """<?xml version="1.0" encoding="ISO-8859-1"?>
+            <BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <sessionId xmlns="">192.168.0.100,1743299062,1496154334750</sessionId>
+            <command echo="" xsi:type="GroupAccessDeviceGetResponse18sp1" xmlns="">
+                <deviceType>Polycom SoundPoint IP 550</deviceType>
+                <protocol>SIP 2.0</protocol>
+                <description>the 550 what tim uses</description>
+                <numberOfPorts>
+                    <quantity>4</quantity>
+                </numberOfPorts>
+                <numberOfAssignedPorts>1</numberOfAssignedPorts>
+                <status>Online</status>
+                <configurationMode>Default</configurationMode>
+                <transportProtocol>Unspecified</transportProtocol>
+                <useCustomUserNamePassword>false</useCustomUserNamePassword>
+            </command>
+            </BroadsoftDocument>"""
+        return ET.fromstring(xml)
+
+    if name == 'beavervvx':
+        xml = """<?xml version="1.0" encoding="ISO-8859-1"?>
+            <BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <sessionId xmlns="">192.168.0.100,1743299062,1496154334750</sessionId>
+            <command echo="" xsi:type="GroupAccessDeviceGetResponse18sp1" xmlns="">
+                <deviceType>Polycom-VVX1500</deviceType>
+                <protocol>SIP 2.0</protocol>
+                <description>cool vvx</description>
+                <numberOfPorts>
+                    <quantity>4</quantity>
+                </numberOfPorts>
+                <numberOfAssignedPorts>1</numberOfAssignedPorts>
+                <status>Online</status>
+                <configurationMode>Default</configurationMode>
+                <transportProtocol>Unspecified</transportProtocol>
+                <useCustomUserNamePassword>false</useCustomUserNamePassword>
+            </command>
+            </BroadsoftDocument>"""
+        return ET.fromstring(xml)
+
+    if name == 'beaverspa':
+        xml = """<?xml version="1.0" encoding="ISO-8859-1"?>
+            <BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <sessionId xmlns="">192.168.0.100,1743299062,1496154334750</sessionId>
+            <command echo="" xsi:type="GroupAccessDeviceGetResponse18sp1" xmlns="">
+                <deviceType>Cisco SPA8000</deviceType>
+                <protocol>SIP 2.0</protocol>
+                <description>cool spa</description>
+                <numberOfPorts>
+                    <quantity>4</quantity>
+                </numberOfPorts>
+                <numberOfAssignedPorts>1</numberOfAssignedPorts>
+                <status>Online</status>
+                <configurationMode>Default</configurationMode>
+                <transportProtocol>Unspecified</transportProtocol>
+                <useCustomUserNamePassword>false</useCustomUserNamePassword>
+            </command>
+            </BroadsoftDocument>"""
+        return ET.fromstring(xml)
+
+
+def get_sca_mock(**kwargs):
+    xml = """<?xml version="1.0" encoding="ISO-8859-1"?>
+        <BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <sessionId xmlns="">192.168.0.100,1507939013,1496153955612</sessionId>
+        <command echo="" xsi:type="UserSharedCallAppearanceGetResponse16sp2" xmlns="">
+            <alertAllAppearancesForClickToDialCalls>false</alertAllAppearancesForClickToDialCalls>
+            <alertAllAppearancesForGroupPagingCalls>false</alertAllAppearancesForGroupPagingCalls>
+            <maxAppearances>10</maxAppearances>
+            <allowSCACallRetrieve>false</allowSCACallRetrieve>
+            <enableMultipleCallArrangement>false</enableMultipleCallArrangement>
+            <multipleCallArrangementIsActive>false</multipleCallArrangementIsActive>
+            <endpointTable>
+                <colHeading>Device Level</colHeading>
+                <colHeading>Device Name</colHeading>
+                <colHeading>Device Type</colHeading>
+                <colHeading>Line/Port</colHeading>
+                <colHeading>SIP Contact</colHeading>
+                <colHeading>Port Number</colHeading>
+                <colHeading>Device Support Visual Device Management</colHeading>
+                <colHeading>Is Active</colHeading>
+                <colHeading>Allow Origination</colHeading>
+                <colHeading>Allow Termination</colHeading>
+                <colHeading>Mac Address</colHeading>
+                <row>
+                    <col>Group</col>
+                    <col>beavervvx</col>
+                    <col>Polycom-VVX1500</col>
+                    <col>beavervvx_lp@broadsoft-dev.mit.edu</col>
+                    <col>sip:</col>
+                    <col/>
+                    <col>false</col>
+                    <col>true</col>
+                    <col>true</col>
+                    <col>true</col>
+                    <col/>
+                </row>
+                <row>
+                    <col>Group</col>
+                    <col>beaverspa</col>
+                    <col>Cisco SPA8000</col>
+                    <col>beaverspa_lp@broadsoft-dev.mit.edu</col>
+                    <col>sip:</col>
+                    <col/>
+                    <col>false</col>
+                    <col>true</col>
+                    <col>true</col>
+                    <col>true</col>
+                    <col/>
+                </row>
+            </endpointTable>
+            <allowBridgingBetweenLocations>false</allowBridgingBetweenLocations>
+            <bridgeWarningTone>None</bridgeWarningTone>
+            <enableCallParkNotification>false</enableCallParkNotification>
+        </command>
+        </BroadsoftDocument>"""
+    return ET.fromstring(xml)
 
 
 class TestBroadsoftAccount(unittest.TestCase):
@@ -256,7 +377,13 @@ class TestBroadsoftAccount(unittest.TestCase):
         a.from_xml()
         self.assertEqual([], a.devices)
 
-    def test_load_devices(self):
+    @unittest.mock.patch('broadsoft.requestobjects.UserSharedCallAppearanceGetRequest.UserSharedCallAppearanceGetRequest.get_devices', side_effect=get_sca_mock)
+    @unittest.mock.patch('broadsoft.requestobjects.GroupAccessDeviceGetRequest.GroupAccessDeviceGetRequest.get_device', side_effect=get_device_mock)
+    def test_load_devices(
+            self,
+            get_device_patch,
+            get_scas_patch
+    ):
         a = Account(xml = """
                             <ns0:BroadsoftDocument xmlns:ns0="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" protocol="OCI">
                             <sessionId>dhcp-18-189-4-125.dyn.mit.edu,2017-05-26 15:33:32.605555,3222027341</sessionId>
@@ -289,10 +416,47 @@ class TestBroadsoftAccount(unittest.TestCase):
                             </command>
                             </ns0:BroadsoftDocument>
                         """)
+        a.did = '2212221101'
+        a.sip_user_id = '2212221101@broadsoft-dev.mit.edu'
         a.load_devices()
-        self.assertFalse("finish this")
+
+        # should be a call to GroupAccessDeviceGetRequest.get_device for the primary device in the user xml
+        call = get_device_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertEqual('beaver550', kwargs['name'])
+
+        # should be a call to GroupAccessDeviceGetRequest.get_device for the two scas
+        call = get_device_patch.call_args_list[1]
+        args, kwargs = call
+        self.assertEqual('beavervvx', kwargs['name'])
+
+        call = get_device_patch.call_args_list[2]
+        args, kwargs = call
+        self.assertEqual('beaverspa', kwargs['name'])
+
+        # should be three devices
+        self.assertEqual(3, len(a.devices))
+
+        d = a.devices[0]
+        self.assertEqual('beaver550', d.name)
+        self.assertTrue(d.is_primary)
+
+        d = a.devices[1]
+        self.assertEqual('beavervvx', d.name)
+        self.assertFalse(d.is_primary)
+
+        d = a.devices[2]
+        self.assertEqual('beaverspa', d.name)
+        self.assertFalse(d.is_primary)
+
+    def test_fetch(self):
+        self.assertFalse("write this")
+
+    def test_can_pass_use_test_to_child_objects(self):
+        self.assertFalse("write this")
 
     def test_from_xml(self):
+        self.assertFalse("mock out calls in load_devices here and every call")
         a = Account()
         a.xml = """
                     <ns0:BroadsoftDocument xmlns:ns0="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" protocol="OCI">
