@@ -23,6 +23,9 @@ class Device(BroadsoftObject):
 
         BroadsoftObject.__init__(self, **kwargs)
 
+    def __repr__(self):
+        return "<Broadsoft Device name:%s, type:%s, line_port:%s>" % (self.name, self.type, self.line_port)
+
     # expects <AccessDeviceEndpoint> coming from User xml
     def bootstrap_access_device_endpoint(self, ade):
         self.name = ade.findall('./accessDevice/deviceName')[0].text
