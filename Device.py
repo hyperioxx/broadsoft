@@ -1,4 +1,5 @@
 from broadsoft.requestobjects.GroupAccessDeviceAddRequest import GroupAccessDeviceAddRequest
+from broadsoft.requestobjects.GroupAccessDeviceGetRequest import GroupAccessDeviceGetRequest
 from broadsoft.BroadsoftObject import BroadsoftObject
 import xml.etree.ElementTree as ET
 import re
@@ -33,6 +34,11 @@ class Device(BroadsoftObject):
             g.transport_protocol = self.transport_protocol
         return g
 
+    def fetch(self, name):
+        self.name = name
+        d = GroupAccessDeviceGetRequest.get_device(name=self.name, use_test=self.use_test)
+        self.unpack_group_access_device(device=d)
+
     def from_xml(self):
         BroadsoftObject.from_xml(self)
 
@@ -66,7 +72,16 @@ class Device(BroadsoftObject):
                 self.unpack_shared_call_appearance(cmd)
 
     def unpack_access_device_endpoint(self, ade):
-        pass
+        self.name = ade.findall('./accessDevice/deviceName')[0].text
+        self.line_port = ade.findall('./linePort')[0].text
+
+        # don't get a full version of the device from what's embedded in the User record...
+        # fetch full version from system
+        self.fetch(name=self.name)
+
+    def unpack_group_access_device(self, device):
+        self.type = device.findall('./command/deviceType')[0].text
+        self.description = device.findall('./command/description')[0].text
 
     def unpack_shared_call_appearance(self, sca):
         pass
