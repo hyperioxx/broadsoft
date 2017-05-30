@@ -140,7 +140,7 @@ class TestBroadsoftAccount(unittest.TestCase):
         a = Account(did=6175551212, extension=51212, last_name='beaver', first_name='tim',
                     sip_user_id='beaver@broadsoft.mit.edu', kname='beaver', email='beaver@mit.edu',
                     use_test=True)
-        ro = a.build_request_object()
+        ro = a.build_provision_request()
         uadd = ro.commands[0]
         self.assertEqual(a.did, uadd.did)
         self.assertEqual(a.last_name, uadd.last_name)
@@ -154,7 +154,7 @@ class TestBroadsoftAccount(unittest.TestCase):
         a = Account(did=6175551212, extension=51212, last_name='beaver', first_name='tim',
                     sip_user_id='beaver@broadsoft.mit.edu', kname='beaver', email='beaver@mit.edu',
                     use_test=False)
-        ro = a.build_request_object()
+        ro = a.build_provision_request()
         uadd = ro.commands[0]
         self.assertEqual(a.did, uadd.did)
         self.assertEqual(a.last_name, uadd.last_name)
@@ -171,7 +171,7 @@ class TestBroadsoftAccount(unittest.TestCase):
                     sip_user_id='beaver@broadsoft.mit.edu', kname='beaver', email='beaver@mit.edu',
                     use_test=True, services=['a'])
         a.devices = [d1, d2]
-        ro = a.build_request_object()
+        ro = a.build_provision_request()
 
         # expect to see 6 commands in the request object...
         self.assertEqual(6, len(ro.commands))
@@ -211,7 +211,7 @@ class TestBroadsoftAccount(unittest.TestCase):
                     sip_user_id='beaver@broadsoft.mit.edu', kname='beaver', email='beaver@mit.edu',
                     use_test=True)
         a.devices = [d1]
-        ro = a.build_request_object()
+        ro = a.build_provision_request()
         for cmd in ro.commands:
             self.assertTrue(cmd.use_test)
 

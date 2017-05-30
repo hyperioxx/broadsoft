@@ -44,7 +44,7 @@ class Account(BroadsoftObject):
         if len(self.devices) > 0:
             # first, all devices get added to system
             for d in self.devices:
-                d_ro = d.build_request_object()
+                d_ro = d.build_provision_request()
                 d_ro.use_test = self.use_test
                 req_object.commands.append(d_ro)
 
@@ -63,7 +63,7 @@ class Account(BroadsoftObject):
             s.services = self.services
             req_object.commands.append(s)
 
-    def build_request_object(self):
+    def build_provision_request(self):
         # going to do this as a compound request so that it's pseudo-atomic...if one fails, the rest should
         # fail, regardless of where in the process that failure occurs
         b = BroadsoftRequest(use_test=self.use_test)

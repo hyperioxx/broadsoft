@@ -38,7 +38,7 @@ class Device(BroadsoftObject):
         self.name = sca['Device Name']
         self.is_primary = False
 
-    def build_request_object(self):
+    def build_provision_request(self):
         g = GroupAccessDeviceAddRequest(use_test=self.use_test)
         g.description = self.description
         g.device_name = self.name

@@ -30,7 +30,7 @@ class TestBroadsoftDevice(unittest.TestCase):
         d = Device(name='beaverphone', description="Tim Beaver's Phone", type='iphone',
                    use_test=True, mac_address='aabbcc112233', protocol='gopher',
                    transport_protocol='ftp')
-        ro = d.build_request_object()
+        ro = d.build_provision_request()
         self.assertEqual(d.name, ro.device_name)
         self.assertEqual(d.type, ro.device_type)
         self.assertEqual(d.mac_address, ro.mac_address)
@@ -41,7 +41,7 @@ class TestBroadsoftDevice(unittest.TestCase):
         d = Device(name='beaverphone', description="Tim Beaver's Phone", type='iphone',
                    use_test=False, mac_address='aabbcc112233', protocol='gopher',
                    transport_protocol='ftp')
-        ro = d.build_request_object()
+        ro = d.build_provision_request()
         self.assertEqual(d.name, ro.device_name)
         self.assertEqual(d.type, ro.device_type)
         self.assertEqual(d.mac_address, ro.mac_address)
@@ -51,7 +51,7 @@ class TestBroadsoftDevice(unittest.TestCase):
     def test_device_default_protocols_respected(self):
         d = Device(name='beaverphone', description="Tim Beaver's Phone", type='iphone',
                    mac_address='aabbcc112233', protocol=None, transport_protocol=None)
-        ro = d.build_request_object()
+        ro = d.build_provision_request()
 
         g = GroupAccessDeviceAddRequest()
 
