@@ -1,6 +1,7 @@
 import unittest.mock
 import xml.etree.ElementTree as ET
 from broadsoft.requestobjects.UserSharedCallAppearanceGetRequest import UserSharedCallAppearanceGetRequest
+from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 
 
 class TestBroadsoftUserSharedCallAppearanceGetRequest(unittest.TestCase):
@@ -61,25 +62,52 @@ class TestBroadsoftUserSharedCallAppearanceGetRequest(unittest.TestCase):
             ET.tostring(x).decode('utf-8')
         )
 
-    def test_static_method(self):
-        self.assertFalse("once we have a from_xml() for this, develop below")
+    @unittest.mock.patch.object(BroadsoftRequest, 'extract_payload')
+    @unittest.mock.patch('broadsoft.requestobjects.lib.BroadsoftRequest.LogoutRequest.logout')
+    @unittest.mock.patch.object(BroadsoftRequest, 'check_error')
+    @unittest.mock.patch('requests.post')
+    @unittest.mock.patch('broadsoft.requestobjects.lib.SoapEnvelope.SoapEnvelope.to_string')
+    @unittest.mock.patch.object(BroadsoftRequest, 'to_string')
+    @unittest.mock.patch.object(BroadsoftRequest, 'authenticate_and_login')
+    def test_use_test_gets_passed_to_get_device(
+            self, login_patch, ro_to_string_patch, envelop_to_string_patch, requests_post_patch, check_error_patch,
+            logout_patch, extract_payload_patch
+    ):
+        g = UserSharedCallAppearanceGetRequest.get_devices(did=6175551212, use_test=False)
+        call = requests_post_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertEqual(kwargs['url'], BroadsoftRequest.prod_api_url)
 
-    """
-    def test_use_test_gets_passed_to_broadsoftdocument(self):
-        g = UserSharedCallAppearanceGetRequest()
-        self.assertEqual(g.prod_api_url, g.api_url)
+        g = UserSharedCallAppearanceGetRequest.get_devices(did=6175551212, use_test=True)
+        call = requests_post_patch.call_args_list[1]
+        args, kwargs = call
+        self.assertEqual(kwargs['url'], BroadsoftRequest.test_api_url)
 
-        g = UserSharedCallAppearanceGetRequest(use_test=False)
-        self.assertEqual(g.prod_api_url, g.api_url)
-
-        g = UserSharedCallAppearanceGetRequest(use_test=True)
-        self.assertEqual(g.test_api_url, g.api_url)
-
-    def test_can_pass_session_id(self):
+    @unittest.mock.patch.object(BroadsoftRequest, 'extract_payload')
+    @unittest.mock.patch('broadsoft.requestobjects.lib.BroadsoftRequest.LogoutRequest.logout')
+    @unittest.mock.patch.object(BroadsoftRequest, 'check_error')
+    @unittest.mock.patch('requests.post')
+    @unittest.mock.patch('broadsoft.requestobjects.lib.SoapEnvelope.SoapEnvelope.to_string')
+    @unittest.mock.patch.object(BroadsoftRequest, 'to_string')
+    @unittest.mock.patch.object(BroadsoftRequest, 'authenticate_and_login')
+    def test_can_pass_session_id(
+            self, login_patch, ro_to_string_patch, envelop_to_string_patch, requests_post_patch, check_error_patch,
+            logout_patch, extract_payload_patch
+    ):
         g = UserSharedCallAppearanceGetRequest(session_id='sesh')
         self.assertEqual('sesh', g.session_id)
 
-    def test_can_pass_auth_object(self):
+    @unittest.mock.patch.object(BroadsoftRequest, 'extract_payload')
+    @unittest.mock.patch('broadsoft.requestobjects.lib.BroadsoftRequest.LogoutRequest.logout')
+    @unittest.mock.patch.object(BroadsoftRequest, 'check_error')
+    @unittest.mock.patch('requests.post')
+    @unittest.mock.patch('broadsoft.requestobjects.lib.SoapEnvelope.SoapEnvelope.to_string')
+    @unittest.mock.patch.object(BroadsoftRequest, 'to_string')
+    @unittest.mock.patch.object(BroadsoftRequest, 'authenticate_and_login')
+    def test_can_pass_auth_object(
+            self, login_patch, ro_to_string_patch, envelop_to_string_patch, requests_post_patch, check_error_patch,
+            logout_patch, extract_payload_patch
+    ):
         class FakeAuthObject:
             def __init__(self):
                 self.foo = 'var'
@@ -88,7 +116,17 @@ class TestBroadsoftUserSharedCallAppearanceGetRequest(unittest.TestCase):
         g = UserSharedCallAppearanceGetRequest(auth_object=f)
         self.assertEqual(f, g.auth_object)
 
-    def test_can_pass_login_object(self):
+    @unittest.mock.patch.object(BroadsoftRequest, 'extract_payload')
+    @unittest.mock.patch('broadsoft.requestobjects.lib.BroadsoftRequest.LogoutRequest.logout')
+    @unittest.mock.patch.object(BroadsoftRequest, 'check_error')
+    @unittest.mock.patch('requests.post')
+    @unittest.mock.patch('broadsoft.requestobjects.lib.SoapEnvelope.SoapEnvelope.to_string')
+    @unittest.mock.patch.object(BroadsoftRequest, 'to_string')
+    @unittest.mock.patch.object(BroadsoftRequest, 'authenticate_and_login')
+    def test_can_pass_login_object(
+            self, login_patch, ro_to_string_patch, envelop_to_string_patch, requests_post_patch, check_error_patch,
+            logout_patch, extract_payload_patch
+    ):
         class FakeLoginObject:
             def __init__(self):
                 self.foo = 'var'
@@ -96,20 +134,3 @@ class TestBroadsoftUserSharedCallAppearanceGetRequest(unittest.TestCase):
         f = FakeLoginObject()
         g = UserSharedCallAppearanceGetRequest(login_object=f)
         self.assertEqual(f, g.login_object)
-
-    @unittest.mock.patch('broadsoft.requestobjects.lib.BroadsoftRequest.AuthenticationRequest.authenticate')
-    @unittest.mock.patch('broadsoft.requestobjects.lib.BroadsoftRequest.LoginRequest.login')
-    @unittest.mock.patch.object(UserSharedCallAppearanceGetRequest, 'post', side_effect=return_groups_list)
-    def test_list_groups_convert_to_list(
-        self,
-        post_patch,
-        login_patch,
-        auth_patch
-    ):
-        data = UserSharedCallAppearanceGetRequest.list_groups()
-        self.assertEqual(
-            [{'Group Name': 'Another Test Group', 'User Limit': '25', 'Group Id': 'anothertestgroup'},
-             {'Group Name': None, 'User Limit': '25', 'Group Id': 'sandbox'}],
-            data
-        )
-    """

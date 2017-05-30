@@ -31,9 +31,3 @@ class UserSharedCallAppearanceGetRequest(BroadsoftRequest):
         u = UserSharedCallAppearanceGetRequest(did=did, sip_user_id=sip_user_id, **kwargs)
         xml = u.post()
         return xml
-
-        # convert GroupTable to dict
-        #if type(xml) is str:
-        #    xml = ET.fromstring(xml)
-        #group_table = xml.findall('./command/groupTable')[0]
-        #return BroadsoftRequest.convert_results_table(xml=group_table)
