@@ -585,7 +585,7 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertEqual('Beaver', a.last_name)
         self.assertEqual('1101', a.extension)
         self.assertEqual('2212221101@broadsoft-dev.mit.edu', a.sip_user_id)
-        # per what we've mocked, expect two devices: one primary, two shared call appearances
+        # per what we've mocked, expect three devices: one primary, two shared call appearances
         self.assertEqual(3, len(a.devices))
 
         d = a.devices[0]
