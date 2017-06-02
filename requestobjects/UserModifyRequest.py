@@ -113,8 +113,6 @@ class UserModifyRequest(BroadsoftRequest):
             raise ValueError("the value for extension you provided to UserModifyRequest is not valid")
 
     @staticmethod
-    def modify(**kwargs):
-        #u = UserModifyRequest(first_name=first_name, last_name=last_name, did=did, sip_user_id=sip_user_id, kname=kname, sip_password=sip_password, email=email, **kwargs)
-        #u.post()
-        pass
-
+    def set_password(new_password, did=None, sip_user_id=None, **kwargs):
+        u = UserModifyRequest(did=did, sip_user_id=sip_user_id, new_password=new_password, **kwargs)
+        u.post()

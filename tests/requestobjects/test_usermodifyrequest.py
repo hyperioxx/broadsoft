@@ -234,3 +234,39 @@ class TestBroadsoftUserModifyRequest(unittest.TestCase):
         u.to_xml()
         self.assertEqual('6175551212@' + u.default_domain, u.sip_user_id)
         self.assertEqual('6175551212_lp@' + u.default_domain, u.line_port)
+
+    @unittest.mock.patch.object(BroadsoftRequest, 'extract_payload')
+    @unittest.mock.patch('broadsoft.requestobjects.lib.BroadsoftRequest.LogoutRequest.logout')
+    @unittest.mock.patch.object(BroadsoftRequest, 'check_error')
+    @unittest.mock.patch('requests.post')
+    @unittest.mock.patch('broadsoft.requestobjects.lib.SoapEnvelope.SoapEnvelope.to_string')
+    @unittest.mock.patch.object(BroadsoftRequest, 'to_string')
+    @unittest.mock.patch.object(BroadsoftRequest, 'authenticate_and_login')
+    def test_use_test_gets_passed_from_set_password(
+            self, login_patch, ro_to_string_patch, envelop_to_string_patch, requests_post_patch, check_error_patch,
+            logout_patch, extract_payload_patch
+    ):
+        g = UserModifyRequest.set_password(did=6175551212, new_password='password', use_test=False)
+        call = requests_post_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertEqual(kwargs['url'], BroadsoftRequest.prod_api_url)
+
+        g = UserModifyRequest.set_password(did=6175551212, new_password='password', use_test=True)
+        call = requests_post_patch.call_args_list[1]
+        args, kwargs = call
+        self.assertEqual(kwargs['url'], BroadsoftRequest.test_api_url)
+
+    @unittest.mock.patch.object(BroadsoftRequest, 'extract_payload')
+    @unittest.mock.patch('broadsoft.requestobjects.lib.BroadsoftRequest.LogoutRequest.logout')
+    @unittest.mock.patch.object(BroadsoftRequest, 'check_error')
+    @unittest.mock.patch('requests.post')
+    @unittest.mock.patch('broadsoft.requestobjects.lib.SoapEnvelope.SoapEnvelope.to_string')
+    @unittest.mock.patch.object(BroadsoftRequest, 'to_string')
+    @unittest.mock.patch.object(BroadsoftRequest, 'authenticate_and_login')
+    def test_set_password_passes_auth_object(
+            self, login_patch, ro_to_string_patch, envelop_to_string_patch, requests_post_patch, check_error_patch,
+            logout_patch, extract_payload_patch
+    ):
+        g = UserModifyRequest.set_password(did=6175551212, new_password='password', auth_object='a', login_object='b')
+        # passed auth and login object, so authenticate_and_login patch should not have been called
+        self.assertFalse(login_patch.called)
