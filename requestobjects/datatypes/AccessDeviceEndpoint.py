@@ -20,7 +20,8 @@ class AccessDeviceEndpoint:
             lp = ET.SubElement(ade, 'linePort')
             lp.text = self.line_port
 
-        c = ET.SubElement(ade, 'contact')
-        c.set('xsi:nil', 'true')
+        if self.contact:
+            c = ET.SubElement(ade, 'contact')
+            c.text = self.contact
 
         return ade
