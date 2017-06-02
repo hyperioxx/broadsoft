@@ -18,7 +18,7 @@ class Account(BroadsoftObject):
 
     def __init__(self, did=None, extension=None, last_name=None, first_name=None,
                  sip_user_id=None, kname=None, email=None, use_test=False, services=None,
-                 **kwargs):
+                 sip_password=None, **kwargs):
         self.did = did
         self.email = email
         self.first_name = first_name
@@ -35,8 +35,9 @@ class Account(BroadsoftObject):
         self.extension = extension
         self.sip_user_id = sip_user_id
 
-        # fully optional; Devices associated with this Account (should be broadsoft.Device objects)
-        self.devices = []
+        # fully optional
+        self.devices = []   # Devices associated with this Account (should be broadsoft.Device objects)
+        self.sip_password = sip_password
 
         BroadsoftObject.__init__(self, **kwargs)
 
@@ -140,3 +141,19 @@ class Account(BroadsoftObject):
             d.bootstrap_shared_call_appearance(sca=sca)
             d.fetch(target_name=d.name)
             self.devices.append(d)
+
+    def set_password(self, sip_password=None):
+        new_password = sip_password
+        if not sip_password:
+            new_password = self.sip_password
+        else:
+            self.sip_password = new_password
+
+        if not self.did and not self.sip_user_id:
+            raise AttributeError("can't reset Account sip_password without a did or sip_user_did set")
+
+        if not new_password:
+            raise AttributeError("can't reset Account sip_password without a value for sip_password")
+
+        UserModifyRequest.set_password(did=self.did, sip_user_id=self.sip_user_id, new_password=new_password,
+                                       use_test=self.use_test)

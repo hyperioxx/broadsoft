@@ -599,3 +599,57 @@ class TestBroadsoftAccount(unittest.TestCase):
         d = a.devices[2]
         self.assertFalse(d.is_primary)
         self.assertEqual('beaverspa', d.name)
+
+    def test_set_password_requires_did_or_sip_user_id(self):
+        a = Account()
+        a.sip_password = 'password'
+        with self.assertRaises(AttributeError):
+            a.set_password()
+
+    @unittest.mock.patch.object(UserModifyRequest, 'set_password')
+    def test_set_password_pass_in_value(
+            self, umr_set_password_patch
+    ):
+        # passed in init args, not passed in set_password call
+        a = Account(did=6175551212, sip_password='password1')
+        a.set_password()
+        call = umr_set_password_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertEqual('password1', kwargs['new_password'])
+
+        # not passed in init args, passed in set_password call
+        a = Account(did=6175551212)
+        a.set_password(sip_password='password2')
+        call = umr_set_password_patch.call_args_list[1]
+        args, kwargs = call
+        self.assertEqual('password2', kwargs['new_password'])
+
+        # passed in init args, also passed in set_password call
+        # expect password passed in set_password to win AND overwrite a.sip_password
+        a = Account(did=6175551212, sip_password='password1')
+        a.set_password(sip_password='password2')
+        call = umr_set_password_patch.call_args_list[2]
+        args, kwargs = call
+        self.assertEqual('password2', kwargs['new_password'])
+        self.assertEqual('password2', a.sip_password)
+
+        # never passed
+        a = Account(did=6175551212)
+        with self.assertRaises(AttributeError):
+            a.set_password()
+
+    @unittest.mock.patch.object(UserModifyRequest, 'set_password')
+    def test_sip_password_passes_use_test(
+            self, umr_set_password_patch
+    ):
+        a = Account(did=6175551212, use_test=False, sip_password='password')
+        a.set_password()
+        call = umr_set_password_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertFalse(kwargs['use_test'])
+
+        a = Account(did=6175551212, use_test=True, sip_password='password')
+        a.set_password()
+        call = umr_set_password_patch.call_args_list[1]
+        args, kwargs = call
+        self.assertTrue(kwargs['use_test'])
