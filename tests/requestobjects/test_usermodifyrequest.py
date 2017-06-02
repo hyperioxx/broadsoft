@@ -135,7 +135,6 @@ class TestBroadsoftUserModifyRequest(unittest.TestCase):
                             '<deviceName>beaverphone</deviceName>' + \
                         '</accessDevice>' + \
                         '<linePort>6175551212_lp@broadsoft-dev.mit.edu</linePort>' + \
-                        '<contact xsi:nil="true" />' + \
                     '</accessDeviceEndpoint>' + \
                 '</endpoint>' + \
             '</command>'
@@ -165,7 +164,6 @@ class TestBroadsoftUserModifyRequest(unittest.TestCase):
                             '<deviceLevel>Group</deviceLevel>' + \
                             '<deviceName>beaverphone</deviceName>' + \
                         '</accessDevice>' + \
-                        '<contact xsi:nil="true" />' + \
                     '</accessDeviceEndpoint>' + \
                 '</endpoint>' + \
             '</command>'

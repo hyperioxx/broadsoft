@@ -24,7 +24,6 @@ class TestAccessDeviceEndpoint(unittest.TestCase):
                     '<deviceName>beaverphone</deviceName>' + \
                 '</accessDevice>' + \
                 '<linePort>6175551212_lp@broadsoft-dev.mit.edu</linePort>' + \
-                '<contact xsi:nil="true" />' + \
             '</accessDeviceEndpoint>'
 
         self.assertEqual(
@@ -39,7 +38,6 @@ class TestAccessDeviceEndpoint(unittest.TestCase):
         target_xml = \
             '<accessDeviceEndpoint>' + \
             '<linePort>6175551212_lp@broadsoft-dev.mit.edu</linePort>' + \
-            '<contact xsi:nil="true" />' + \
             '</accessDeviceEndpoint>'
 
         self.assertEqual(
@@ -57,7 +55,6 @@ class TestAccessDeviceEndpoint(unittest.TestCase):
             '<deviceLevel>Group</deviceLevel>' + \
             '<deviceName>beaverphone</deviceName>' + \
             '</accessDevice>' + \
-            '<contact xsi:nil="true" />' + \
             '</accessDeviceEndpoint>'
 
         self.assertEqual(

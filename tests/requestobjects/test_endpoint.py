@@ -45,7 +45,6 @@ class TestEndpoint(unittest.TestCase):
                         '<deviceName>beaverphone</deviceName>' + \
                     '</accessDevice>' + \
                     '<linePort>6175551212_lp@broadsoft-dev.mit.edu</linePort>' + \
-                    '<contact xsi:nil="true" />' + \
                 '</accessDeviceEndpoint>' + \
             '</endpoint>'
 
@@ -62,7 +61,6 @@ class TestEndpoint(unittest.TestCase):
             '<endpoint>' + \
             '<accessDeviceEndpoint>' + \
             '<linePort>6175551212_lp@broadsoft-dev.mit.edu</linePort>' + \
-            '<contact xsi:nil="true" />' + \
             '</accessDeviceEndpoint>' + \
             '</endpoint>'
 
@@ -82,7 +80,6 @@ class TestEndpoint(unittest.TestCase):
             '<deviceLevel>Group</deviceLevel>' + \
             '<deviceName>beaverphone</deviceName>' + \
             '</accessDevice>' + \
-            '<contact xsi:nil="true" />' + \
             '</accessDeviceEndpoint>' + \
             '</endpoint>'
 
