@@ -1,5 +1,6 @@
 from broadsoft.requestobjects.GroupAccessDeviceAddRequest import GroupAccessDeviceAddRequest
 from broadsoft.requestobjects.GroupAccessDeviceGetRequest import GroupAccessDeviceGetRequest
+from broadsoft.requestobjects.GroupAccessDeviceModifyRequest import GroupAccessDeviceModifyRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 from broadsoft.BroadsoftObject import BroadsoftObject
 import xml.etree.ElementTree as ET
@@ -66,3 +67,21 @@ class Device(BroadsoftObject):
         descs = self.xml.findall('./command/description')
         if len(descs) > 0:
             self.description = descs[0].text
+
+    def set_password(self, did=None, sip_user_name=None, sip_password=None, **kwargs):
+        if not did and not sip_user_name:
+            raise ValueError("can't call Device.set_password without a value for did or sip_user_name")
+
+        if not sip_password:
+            raise ValueError("can't call Device.set_password without a value for password")
+
+        if not self.name:
+            raise ValueError("can't call Device.set_password without a value for device name")
+
+        if not sip_user_name and did:
+            b = BroadsoftRequest()
+            sip_user_name = b.derive_sip_user_id(did=did)
+
+        g = GroupAccessDeviceModifyRequest(device_name=self.name, sip_user_name=sip_user_name,
+                                           sip_password=sip_password, use_test=self.use_test, **kwargs)
+        g.post()

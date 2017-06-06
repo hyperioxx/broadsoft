@@ -1,8 +1,13 @@
 import unittest.mock
 from broadsoft.Device import Device
 from broadsoft.requestobjects.GroupAccessDeviceAddRequest import GroupAccessDeviceAddRequest
+from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 from xml.etree.ElementTree import Element
 import xml.etree.ElementTree as ET
+
+
+def return_none(**kwargs):
+    return None
 
 
 def fetch_device_mock(**kwargs):
@@ -163,5 +168,98 @@ class TestBroadsoftDevice(unittest.TestCase):
         d = Device(name='beaverphone', use_test=False)
         d.fetch()
         call = get_device_patch.call_args_list[4]
+        args, kwargs = call
+        self.assertFalse(kwargs['use_test'])
+
+    @unittest.mock.patch(
+        'broadsoft.requestobjects.lib.BroadsoftRequest.BroadsoftRequest.post')
+    @unittest.mock.patch(
+        'broadsoft.requestobjects.GroupAccessDeviceModifyRequest.GroupAccessDeviceModifyRequest.__init__',
+        side_effect=return_none)
+    def test_set_password_deriving_sip_user_name(
+            self, device_mod_patch, post_patch
+    ):
+        b = BroadsoftRequest()
+
+        # just a did
+        d = Device(name='devicename')
+        d.set_password(did=6175551212, sip_password='password')
+
+        call = device_mod_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertEqual('6175551212@' + b.default_domain, kwargs['sip_user_name'])
+
+        # just a sip_user_name
+        d = Device(name='devicename')
+        d.set_password(sip_user_name='6175552323@mit.edu', sip_password='password')
+
+        call = device_mod_patch.call_args_list[1]
+        args, kwargs = call
+        self.assertEqual('6175552323@mit.edu', kwargs['sip_user_name'])
+
+        # both; sip_user_name should win
+        d = Device(name='devicename')
+        d.set_password(did=6175551212, sip_user_name='6175552323@mit.edu', sip_password='password')
+
+        call = device_mod_patch.call_args_list[2]
+        args, kwargs = call
+        self.assertEqual('6175552323@mit.edu', kwargs['sip_user_name'])
+
+    # patching just in case the validation fails to trip
+    @unittest.mock.patch(
+        'broadsoft.requestobjects.lib.BroadsoftRequest.BroadsoftRequest.post')
+    @unittest.mock.patch(
+        'broadsoft.requestobjects.GroupAccessDeviceModifyRequest.GroupAccessDeviceModifyRequest.__init__',
+        side_effect=return_none)
+    def test_set_password_requirements(
+            self, device_mod_patch, post_patch
+    ):
+        # requires device name
+        with self.assertRaises(ValueError):
+            d = Device()
+            d.set_password(sip_user_name='6175551212@mit.edu', sip_password='password')
+
+        # requires did or sip_user_name
+        with self.assertRaises(ValueError):
+            d = Device(name='dname')
+            d.set_password(sip_password='password')
+
+        # requires password
+        with self.assertRaises(ValueError):
+            d = Device(name='dname')
+            d.set_password(sip_user_name='6175551212@mit.edu')
+
+    @unittest.mock.patch(
+        'broadsoft.requestobjects.lib.BroadsoftRequest.BroadsoftRequest.post')
+    @unittest.mock.patch(
+        'broadsoft.requestobjects.GroupAccessDeviceModifyRequest.GroupAccessDeviceModifyRequest.__init__',
+        side_effect=return_none)
+    def test_set_password_pass_auth_and_login_object(
+            self, device_mod_patch, post_patch
+    ):
+        d = Device(name='dname')
+        d.set_password(auth_object='a', login_object='b', did=6175551212, sip_password='password')
+        call = device_mod_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertEqual('a', kwargs['auth_object'])
+        self.assertEqual('b', kwargs['login_object'])
+
+    @unittest.mock.patch(
+        'broadsoft.requestobjects.lib.BroadsoftRequest.BroadsoftRequest.post')
+    @unittest.mock.patch(
+        'broadsoft.requestobjects.GroupAccessDeviceModifyRequest.GroupAccessDeviceModifyRequest.__init__',
+        side_effect=return_none)
+    def test_set_password_pass_use_test(
+            self, device_mod_patch, post_patch
+    ):
+        d = Device(name='dname', use_test=True)
+        d.set_password(did=6175551212, sip_password='password')
+        call = device_mod_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertTrue(kwargs['use_test'])
+
+        d = Device(name='dname', use_test=False)
+        d.set_password(did=6175551212, sip_password='password')
+        call = device_mod_patch.call_args_list[1]
         args, kwargs = call
         self.assertFalse(kwargs['use_test'])
