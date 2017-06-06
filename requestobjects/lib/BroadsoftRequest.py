@@ -192,9 +192,12 @@ class BroadsoftRequest(XmlDocument):
         if self.use_test:
             self.default_domain = self.test_default_domain
 
-    def derive_sip_user_id(self, line_port=False):
-        if self.did:
-            uname = BroadsoftRequest.convert_phone_number(number=str(self.did))
+    def derive_sip_user_id(self, line_port=False, did=None):
+        if not did:
+            did = self.did
+
+        if did:
+            uname = BroadsoftRequest.convert_phone_number(number=str(did))
             if line_port:
                 if hasattr(self, 'device_name') and self.device_name:
                     uname = self.device_name

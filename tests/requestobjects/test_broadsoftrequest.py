@@ -102,6 +102,15 @@ class TestBroadsoftRequest(unittest.TestCase):
         g.device_name = 'beaverphone'
         self.assertEqual('beaverphone_lp@' + g.default_domain, g.derive_sip_user_id(line_port=True))
 
+        # passing did when no did attr
+        u = UserAddRequest()
+        self.assertEqual('6175551212@' + u.default_domain, u.derive_sip_user_id(did=6175551212))
+
+        # passing did when did attr is present, one passed should win
+        u = UserAddRequest()
+        u.did = 6175553333
+        self.assertEqual('6175551212@' + u.default_domain, u.derive_sip_user_id(did=6175551212))
+
     def test_extract_payload(self):
         # sending string
         response = '<?xml version="1.0" encoding="UTF-8"?><soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><soapenv:Body><processOCIMessageResponse xmlns=""><ns1:processOCIMessageReturn xmlns:ns1="urn:com:broadsoft:webservice">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;\n&lt;BroadsoftDocument protocol=&quot;OCI&quot; xmlns=&quot;C&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;&gt;&lt;sessionId xmlns=&quot;&quot;&gt;sesh&lt;/sessionId&gt;&lt;command echo=&quot;&quot; xsi:type=&quot;AuthenticationResponse&quot; xmlns=&quot;&quot;&gt;&lt;userId&gt;admMITapi&lt;/userId&gt;&lt;nonce&gt;1493647455426&lt;/nonce&gt;&lt;passwordAlgorithm&gt;MD5&lt;/passwordAlgorithm&gt;&lt;/command&gt;&lt;/BroadsoftDocument&gt;</ns1:processOCIMessageReturn></processOCIMessageResponse></soapenv:Body></soapenv:Envelope>'
