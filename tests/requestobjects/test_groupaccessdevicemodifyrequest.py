@@ -62,7 +62,7 @@ class TestBroadsoftGroupAccessDeviceModifyRequest(unittest.TestCase):
         # with a mac address
         g = GroupAccessDeviceModifyRequest(device_name='dname', mac_address='aabbcc112233',
                                         description='desc', group_id='testgroup', ip_address='18.18.18.18',
-                                           port='1054')
+                                        port='1054')
 
         target_xml = \
             '<command xmlns="" xsi:type="GroupAccessDeviceModifyRequest14">' + \
@@ -85,7 +85,7 @@ class TestBroadsoftGroupAccessDeviceModifyRequest(unittest.TestCase):
         # without a mac address
         g = GroupAccessDeviceModifyRequest(device_name='dname',
                                         description='desc', group_id='testgroup', ip_address='18.18.18.18',
-                                           port='1054')
+                                        port='1054')
 
         target_xml = \
             '<command xmlns="" xsi:type="GroupAccessDeviceModifyRequest14">' + \
@@ -98,6 +98,28 @@ class TestBroadsoftGroupAccessDeviceModifyRequest(unittest.TestCase):
             '<port>1054</port>' + \
             '<configurationMode>Default</configurationMode>' + \
             '<transportProtocol>Unspecified</transportProtocol>' + \
+            '</command>'
+
+        cmd = g.build_command_xml()
+        self.maxDiff = None
+        self.assertEqual(target_xml, ET.tostring(cmd).decode('utf-8'))
+
+        # with just sip_user_name and sip_password
+        g = GroupAccessDeviceModifyRequest(device_name='dname', sip_user_name='6175551212@mit.edu',
+                                           sip_password='password')
+
+        target_xml = \
+            '<command xmlns="" xsi:type="GroupAccessDeviceModifyRequest14">' + \
+            '<serviceProviderId>ENT136</serviceProviderId>' + \
+            '<groupId>mit</groupId>' + \
+            '<deviceName>dname</deviceName>' + \
+            '<protocol>SIP 2.0</protocol>' + \
+            '<configurationMode>Default</configurationMode>' + \
+            '<transportProtocol>Unspecified</transportProtocol>' + \
+            '<accessDeviceCredentials>' + \
+            '<userName>' + g.sip_user_name + '</userName>' + \
+            '<password>' + g.sip_password+ '</password>' + \
+            '</accessDeviceCredentials>' + \
             '</command>'
 
         cmd = g.build_command_xml()

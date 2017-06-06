@@ -9,13 +9,13 @@ class TestAccessDeviceCredentials(unittest.TestCase):
         self.maxDiff = None
 
         adc = AccessDeviceCredentials()
-        adc.user_name = '6175551212@mit.edu'
-        adc.password = 'pw'
+        adc.sip_user_name = '6175551212@mit.edu'
+        adc.sip_password = 'pw'
 
         target_xml = \
             '<accessDeviceCredentials>' + \
-                '<userName>' + adc.user_name + '</userName>' + \
-                '<password>' + adc.password + '</password>' + \
+                '<userName>' + adc.sip_user_name + '</userName>' + \
+                '<password>' + adc.sip_password + '</password>' + \
             '</accessDeviceCredentials>'
 
         self.assertEqual(

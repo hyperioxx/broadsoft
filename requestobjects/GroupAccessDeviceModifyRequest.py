@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
+from broadsoft.requestobjects.datatypes.AccessDeviceCredentials import AccessDeviceCredentials
 from nettools.MACtools import MAC
 
 
@@ -9,6 +10,7 @@ class GroupAccessDeviceModifyRequest(BroadsoftRequest):
 
     def __init__(self, device_name=None, description=None,
                  protocol='SIP 2.0', transport_protocol='Unspecified', mac_address=None, ip_address=None, port=None,
+                 sip_user_name=None, sip_password=None,
                  **kwargs):
         # group_id will be inherited from BroadsoftRequest.default_group_id, but can be overridden by passing
         # group_id (will get picked up in **kwargs)
@@ -18,6 +20,8 @@ class GroupAccessDeviceModifyRequest(BroadsoftRequest):
         self.mac_address = mac_address
         self.port = port
         self.protocol = protocol
+        self.sip_user_name = sip_user_name
+        self.sip_password = sip_password
         self.transport_protocol = transport_protocol
 
         # these I don't expect to ever feed, so not in __init__args, but available to be modified just in case
@@ -54,8 +58,9 @@ class GroupAccessDeviceModifyRequest(BroadsoftRequest):
             ma = ET.SubElement(cmd, 'macAddress')
             ma.text = self.mac_address
 
-        d = ET.SubElement(cmd, 'description')
-        d.text = self.description
+        if self.description:
+            d = ET.SubElement(cmd, 'description')
+            d.text = self.description
 
         if self.protocol:
             e = ET.SubElement(cmd, 'protocol')
@@ -116,6 +121,10 @@ class GroupAccessDeviceModifyRequest(BroadsoftRequest):
         if self.mobility_manager_default_terminating_service_key:
             e = ET.SubElement(cmd, 'mobilityManagerDefaultTerminatingServiceKey')
             e.text = self.mobility_manager_default_terminating_service_key
+
+        if self.sip_user_name or self.sip_password:
+            adc = AccessDeviceCredentials(sip_user_name=self.sip_user_name, sip_password=self.sip_password)
+            cmd.append(adc.to_xml())
 
         return cmd
 
