@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
 
+
 class BroadsoftObject:
     def __init__(self, xml=None, **kwargs):
         self.xml = xml

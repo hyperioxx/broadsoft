@@ -653,3 +653,147 @@ class TestBroadsoftAccount(unittest.TestCase):
         call = umr_set_password_patch.call_args_list[1]
         args, kwargs = call
         self.assertTrue(kwargs['use_test'])
+
+    @unittest.mock.patch.object(Device, 'set_password')
+    def test_set_device_passwords_requires_sip_user_password(
+            self, set_device_password_patch
+    ):
+        a = Account(did=6175551212)
+        with self.assertRaises(ValueError):
+            a.set_device_passwords()
+
+    @unittest.mock.patch.object(Device, 'set_password')
+    def test_set_device_passwords_passing_password(
+            self, set_device_password_patch
+    ):
+        d1 = Device()
+        d2 = Device()
+
+        # passing via set_devices_passwords
+        a = Account(did=6175551212)
+        a.devices = [d1, d2]
+        a.set_device_passwords(new_sip_password='newpassword')
+        call = set_device_password_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertEqual('newpassword', kwargs['sip_password'])
+
+        # passing via __init__
+        a = Account(did=6175551212, sip_password='oldpassword')
+        a.devices = [d1, d2]
+        a.set_device_passwords()
+        call = set_device_password_patch.call_args_list[2]
+        args, kwargs = call
+        self.assertEqual('oldpassword', kwargs['sip_password'])
+
+        # passing via both, set_devices_password one should win
+        a = Account(did=6175551212, sip_password='oldpassword')
+        a.devices = [d1, d2]
+        a.set_device_passwords(new_sip_password='newpassword')
+        call = set_device_password_patch.call_args_list[4]
+        args, kwargs = call
+        self.assertEqual('newpassword', kwargs['sip_password'])
+
+    @unittest.mock.patch.object(Device, 'set_password')
+    def test_set_device_passwords_calls_set_password_for_each_device(
+            self, set_device_password_patch
+    ):
+
+        d1 = Device()
+        d2 = Device()
+
+        # one device
+        a = Account(did=6175551212)
+        a.devices = [d1]
+        a.set_device_passwords(new_sip_password='newpassword')
+        self.assertEqual(1, len(set_device_password_patch.call_args_list))
+
+        # two devices (call count should have increased by 2)
+        a = Account(did=6175551212)
+        a.devices = [d1, d2]
+        a.set_device_passwords(new_sip_password='newpassword')
+        self.assertEqual(3, len(set_device_password_patch.call_args_list))
+
+    @unittest.mock.patch.object(Account, 'load_devices')
+    @unittest.mock.patch.object(Device, 'set_password')
+    def test_set_device_passwords_calls_load_devices_when_none_present(
+            self, set_device_password_patch, load_devices_patch
+    ):
+        d1 = Device()
+
+        # no devices, should call load_devices
+        a = Account(did=6175551212)
+        a.set_device_passwords(new_sip_password='newpassword')
+        self.assertTrue(load_devices_patch.called)
+        load_devices_patch.called = False
+
+        # devices present, should not call load_devices
+        a = Account(did=6175551212)
+        a.devices = [d1]
+        a.set_device_passwords(new_sip_password='newpassword')
+        self.assertFalse(load_devices_patch.called)
+
+    @unittest.mock.patch.object(Device, 'set_password')
+    def test_set_device_passwords_pass_auth_and_login_object(
+            self, set_password_patch
+    ):
+        d1 = Device(name='dname')
+
+        # one device
+        a = Account(did=6175551212)
+        a.devices = [d1]
+        a.set_device_passwords(new_sip_password='newpassword', auth_object='a', login_object='b')
+        call = set_password_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertEqual('a', kwargs['auth_object'])
+        self.assertEqual('b', kwargs['login_object'])
+
+    @unittest.mock.patch.object(Device, 'set_password')
+    def test_set_device_passwords_pass_use_test(
+            self, set_password_patch
+    ):
+        d1 = Device(name='dname')
+
+        # in init
+        a = Account(did=6175551212, use_test=True)
+        a.devices = [d1]
+        a.set_device_passwords(new_sip_password='newpassword')
+        call = set_password_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertTrue(kwargs['use_test'])
+
+        a = Account(did=6175551212, use_test=False)
+        a.devices = [d1]
+        a.set_device_passwords(new_sip_password='newpassword')
+        call = set_password_patch.call_args_list[1]
+        args, kwargs = call
+        self.assertFalse(kwargs['use_test'])
+
+        # in set_device_passwords call
+        a = Account(did=6175551212)
+        a.devices = [d1]
+        a.set_device_passwords(new_sip_password='newpassword', use_test=True)
+        call = set_password_patch.call_args_list[2]
+        args, kwargs = call
+        self.assertTrue(kwargs['use_test'])
+
+        a = Account(did=6175551212)
+        a.devices = [d1]
+        a.set_device_passwords(new_sip_password='newpassword', use_test=False)
+        call = set_password_patch.call_args_list[3]
+        args, kwargs = call
+        self.assertFalse(kwargs['use_test'])
+
+        # in both; explicit call in set_device_passwords should win
+        a = Account(did=6175551212, use_test=False)
+        a.devices = [d1]
+        a.set_device_passwords(new_sip_password='newpassword', use_test=True)
+        call = set_password_patch.call_args_list[4]
+        args, kwargs = call
+        self.assertTrue(kwargs['use_test'])
+
+        a = Account(did=6175551212, use_test=True)
+        a.devices = [d1]
+        a.set_device_passwords(new_sip_password='newpassword', use_test=False)
+        call = set_password_patch.call_args_list[5]
+        args, kwargs = call
+        self.assertFalse(kwargs['use_test'])

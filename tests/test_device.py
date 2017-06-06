@@ -263,3 +263,18 @@ class TestBroadsoftDevice(unittest.TestCase):
         call = device_mod_patch.call_args_list[1]
         args, kwargs = call
         self.assertFalse(kwargs['use_test'])
+
+    @unittest.mock.patch(
+        'broadsoft.requestobjects.lib.BroadsoftRequest.BroadsoftRequest.post')
+    @unittest.mock.patch(
+        'broadsoft.requestobjects.GroupAccessDeviceModifyRequest.GroupAccessDeviceModifyRequest.__init__',
+        side_effect=return_none)
+    def test_set_password_with_use_test_in_parent_and_kwargs(
+            self, device_mod_patch, post_patch
+    ):
+        # want last one explicitly called to win
+        d = Device(name='dname', use_test=True)
+        d.set_password(did=6175551212, sip_password='password', use_test=False)
+        call = device_mod_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertFalse(kwargs['use_test'])
