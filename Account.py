@@ -142,7 +142,7 @@ class Account(BroadsoftObject):
             d.fetch(target_name=d.name)
             self.devices.append(d)
 
-    def set_password(self, sip_password=None):
+    def set_portal_password(self, sip_password=None):
         new_password = sip_password
         if not sip_password:
             new_password = self.sip_password
