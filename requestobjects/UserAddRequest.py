@@ -50,9 +50,8 @@ class UserAddRequest(BroadsoftRequest):
         pn = ET.SubElement(cmd, 'phoneNumber')
         pn.text = self.did
 
-        if self.sip_password:
-            pw = ET.SubElement(cmd, 'password')
-            pw.text = self.sip_password
+        pw = ET.SubElement(cmd, 'password')
+        pw.text = self.sip_password
 
         if self.email:
             e = ET.SubElement(cmd, 'emailAddress')
@@ -83,6 +82,9 @@ class UserAddRequest(BroadsoftRequest):
 
         if self.did is None or not re.match(r'^\d{10}$', str(self.did)):
             raise ValueError("can't run broadsoft.UserAddRequest.to_xml() without a valid value for did")
+
+        if self.sip_password is None:
+            raise ValueError("can't run broadsoft.UserAddRequest.to_xml() without a value for sip_password")
 
     @staticmethod
     def add(first_name, last_name, did, sip_user_id=None, kname=None, sip_password=None, email=None, **kwargs):

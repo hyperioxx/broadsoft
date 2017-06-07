@@ -570,7 +570,7 @@ class TestBroadsoftRequest(unittest.TestCase):
     ):
         b = BroadsoftRequest(use_test=True)
         g = GroupGetListInServiceProviderRequest()
-        u = UserAddRequest(did=6175551212, first_name='tim', last_name='beaver')
+        u = UserAddRequest(did=6175551212, first_name='tim', last_name='beaver', sip_password='password')
         b.commands = [g,u]
         b.to_xml()
 
