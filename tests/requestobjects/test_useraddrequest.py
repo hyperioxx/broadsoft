@@ -5,26 +5,6 @@ from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 
 
 class TestBroadsoftUserAddRequest(unittest.TestCase):
-    def test_build_user_id_from_did_and_domain(self):
-        did = '6175551212'
-        int_did = 6175551212
-        sip_user_id = 'timebeaver@mit.edu'
-
-        u = UserAddRequest(did=did)
-        self.assertEqual(did + '@' + u.default_domain, u.sip_user_id)
-
-        u = UserAddRequest(did=int_did)
-        self.assertEqual(str(did) + '@' + u.default_domain, u.sip_user_id)
-
-        u = UserAddRequest(sip_user_id=sip_user_id)
-        self.assertEqual(sip_user_id, u.sip_user_id)
-
-        u = UserAddRequest(sip_user_id=sip_user_id, did=did)
-        self.assertEqual(sip_user_id, u.sip_user_id)
-
-        u = UserAddRequest()
-        self.assertIsNone(u.sip_user_id)
-
     @unittest.mock.patch.object(BroadsoftRequest, 'convert_phone_number')
     @unittest.mock.patch.object(UserAddRequest, 'validate')
     def test_did_gets_converted(
@@ -119,14 +99,14 @@ class TestBroadsoftUserAddRequest(unittest.TestCase):
     def test_to_xml(self):
         # with sip_password
         u = UserAddRequest(group_id='testgroup', session_id='sesh', kname='beaver', last_name='Beaver',
-                           first_name='Tim', email='beaver@mit.edu',
+                           first_name='Tim', email='beaver@mit.edu', sip_user_id='6175551212@broadsoft.mit.edu',
                            did='617 555 1212', sip_password='123456789')
 
         target_xml = \
             '<command xmlns="" xsi:type="UserAddRequest17sp4">' + \
             '<serviceProviderId>ENT136</serviceProviderId>' + \
             '<groupId>testgroup</groupId>' + \
-            '<userId>6175551212@' + u.default_domain + '</userId>' + \
+            '<userId>6175551212@broadsoft.mit.edu</userId>' + \
             '<lastName>Beaver</lastName>' + \
             '<firstName>Tim</firstName>' + \
             '<callingLineIdLastName>Beaver</callingLineIdLastName>' + \
@@ -148,32 +128,3 @@ class TestBroadsoftUserAddRequest(unittest.TestCase):
                                first_name='Tim', email='beaver@mit.edu',
                                did=6175551212, sip_password='123456789')
             xml = u.to_xml()
-
-    @unittest.mock.patch.object(BroadsoftRequest, 'derive_sip_user_id')
-    def test_derive_sip_user_id_gets_called_on_init(
-            self,
-            derive_sip_user_id_patch
-    ):
-        # shouldn't be called, since there is a sip_user_id
-        u = UserAddRequest(sip_user_id='blah@mit.edu')
-        self.assertFalse(derive_sip_user_id_patch.called)
-        u = UserAddRequest(sip_user_id='blah@mit.edu', did=6175551212)
-        self.assertFalse(derive_sip_user_id_patch.called)
-
-        # should be called, since no sip_user_id
-        u = UserAddRequest(did=6175551212)
-        self.assertTrue(derive_sip_user_id_patch.called)
-        derive_sip_user_id_patch.called = False
-
-        # should be called, since there is a did and no sip_user_id
-        u = UserAddRequest(did=6175551212)
-        self.assertTrue(derive_sip_user_id_patch.called)
-
-    def test_build_command_xml_derives_sip_user_id(self):
-        u = UserAddRequest(sip_password='password')
-        u.did = 6175551212
-        u.first_name = 'tim'
-        u.last_name = 'beaver'
-        self.assertIsNone(u.sip_user_id)
-        u.build_command_xml()
-        self.assertEqual('6175551212@' + u.default_domain, u.sip_user_id)

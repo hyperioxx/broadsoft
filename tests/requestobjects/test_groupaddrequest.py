@@ -71,6 +71,7 @@ class TestBroadsoftGroupAddRequest(unittest.TestCase):
         gar.contact_email = 'beaver@mit.edu'
         gar.contact_name = 'Tim Beaver'
         gar.contact_number = '617 555 1212'
+        gar.default_domain = 'broadsoft.mit.edu'
         gar.group_id = 'testgroup'
         gar.group_name = 'test group'
         gar.user_limit = 100

@@ -8,13 +8,12 @@ import re
 
 
 class Device(BroadsoftObject):
-    def __init__(self, name=None, type=None, description=None, use_test=False, mac_address=None, protocol=None,
+    def __init__(self, name=None, type=None, description=None, mac_address=None, protocol=None,
                  transport_protocol=None, line_port=None, is_primary=None, **kwargs):
         self.description = description
         self.is_primary = is_primary
         self.name = name
         self.type = type
-        self.use_test = use_test
 
         # optional
         self.line_port = line_port
@@ -80,7 +79,7 @@ class Device(BroadsoftObject):
 
         if not sip_user_name and did:
             b = BroadsoftRequest()
-            sip_user_name = b.derive_sip_user_id(did=did)
+            sip_user_name = self.derive_sip_user_id(did=did)
 
         if kwargs and 'use_test' in kwargs:
             self.use_test = kwargs['use_test']

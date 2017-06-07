@@ -5,50 +5,13 @@ from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 
 
 class TestBroadsoftUserGetRequest(unittest.TestCase):
-    def test_did_gets_converted_at_init(self):
-        u = UserGetRequest(did=6175551212)
-        self.assertEqual('6175551212', u.did)
-
-        u = UserGetRequest(did='617-555-1212')
-        self.assertEqual('6175551212', u.did)
-
-    def test_did_gets_converted_at_build_command_xml(self):
-        u = UserGetRequest()
-        u.did = 6175551212
-        u.build_command_xml()
-        self.assertEqual('6175551212', u.did)
-
-        u = UserGetRequest()
-        u.did = '617-555-1212'
-        u.build_command_xml()
-        self.assertEqual('6175551212', u.did)
-
-    def test_sip_user_id_derived_at_init(self):
-        u = UserGetRequest(did=6175551212)
-        self.assertEqual('6175551212@' + u.default_domain, u.sip_user_id)
-
-        u = UserGetRequest(did=6175551212, sip_user_id='beaver@mit.edu')
-        self.assertEqual('beaver@mit.edu', u.sip_user_id)
-
-    def test_sip_user_id_derived_at_build_command_xml(self):
-        u = UserGetRequest()
-        u.did = 6175551212
-        u.build_command_xml()
-        self.assertEqual('6175551212@' + u.default_domain, u.sip_user_id)
-
-        u = UserGetRequest()
-        u.did = 6175551212
-        u.sip_user_id = 'beaver@mit.edu'
-        u.build_command_xml()
-        self.assertEqual('beaver@mit.edu', u.sip_user_id)
-
     def test_validate(self):
         u = UserGetRequest()
         with self.assertRaises(ValueError):
             u.validate()
 
     def test_to_xml(self):
-        u = UserGetRequest(did=6175551212)
+        u = UserGetRequest(sip_user_id='6175551212@broadsoft.mit.edu')
 
         x = u.to_xml()
         self.maxDiff = None
@@ -73,12 +36,12 @@ class TestBroadsoftUserGetRequest(unittest.TestCase):
             self, login_patch, ro_to_string_patch, envelop_to_string_patch, requests_post_patch, check_error_patch,
             logout_patch, extract_payload_patch
     ):
-        g = UserGetRequest.get_user(did=6175551212, use_test=False)
+        g = UserGetRequest.get_user(sip_user_id='6175551212@broadsoft.mit.edu', use_test=False)
         call = requests_post_patch.call_args_list[0]
         args, kwargs = call
         self.assertEqual(kwargs['url'], BroadsoftRequest.prod_api_url)
 
-        g = UserGetRequest.get_user(did=6175551212, use_test=True)
+        g = UserGetRequest.get_user(sip_user_id='6175551212@broadsoft.mit.edu', use_test=True)
         call = requests_post_patch.call_args_list[1]
         args, kwargs = call
         self.assertEqual(kwargs['url'], BroadsoftRequest.test_api_url)

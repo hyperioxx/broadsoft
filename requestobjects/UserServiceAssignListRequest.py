@@ -6,8 +6,7 @@ class UserServiceAssignListRequest(BroadsoftRequest):
     command_name = 'UserServiceAssignListRequest'
     check_success = True
 
-    def __init__(self, sip_user_id=None, did=None, services=None, **kwargs):
-        self.did = did
+    def __init__(self, sip_user_id=None, services=None, **kwargs):
         self.services = []
         if services:
             if type(services) is str():

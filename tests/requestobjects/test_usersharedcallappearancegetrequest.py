@@ -5,50 +5,13 @@ from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 
 
 class TestBroadsoftUserSharedCallAppearanceGetRequest(unittest.TestCase):
-    def test_did_gets_converted_at_init(self):
-        u = UserSharedCallAppearanceGetRequest(did=6175551212)
-        self.assertEqual('6175551212', u.did)
-
-        u = UserSharedCallAppearanceGetRequest(did='617-555-1212')
-        self.assertEqual('6175551212', u.did)
-
-    def test_did_gets_converted_at_build_command_xml(self):
-        u = UserSharedCallAppearanceGetRequest()
-        u.did = 6175551212
-        u.build_command_xml()
-        self.assertEqual('6175551212', u.did)
-
-        u = UserSharedCallAppearanceGetRequest()
-        u.did = '617-555-1212'
-        u.build_command_xml()
-        self.assertEqual('6175551212', u.did)
-
-    def test_sip_user_id_derived_at_init(self):
-        u = UserSharedCallAppearanceGetRequest(did=6175551212)
-        self.assertEqual('6175551212@' + u.default_domain, u.sip_user_id)
-
-        u = UserSharedCallAppearanceGetRequest(did=6175551212, sip_user_id='beaver@mit.edu')
-        self.assertEqual('beaver@mit.edu', u.sip_user_id)
-
-    def test_sip_user_id_derived_at_build_command_xml(self):
-        u = UserSharedCallAppearanceGetRequest()
-        u.did = 6175551212
-        u.build_command_xml()
-        self.assertEqual('6175551212@' + u.default_domain, u.sip_user_id)
-
-        u = UserSharedCallAppearanceGetRequest()
-        u.did = 6175551212
-        u.sip_user_id = 'beaver@mit.edu'
-        u.build_command_xml()
-        self.assertEqual('beaver@mit.edu', u.sip_user_id)
-
     def test_validate(self):
         u = UserSharedCallAppearanceGetRequest()
         with self.assertRaises(ValueError):
             u.validate()
 
     def test_to_xml(self):
-        u = UserSharedCallAppearanceGetRequest(did=6175551212)
+        u = UserSharedCallAppearanceGetRequest(sip_user_id='6175551212@broadsoft.mit.edu')
 
         x = u.to_xml()
         self.maxDiff = None
@@ -73,12 +36,12 @@ class TestBroadsoftUserSharedCallAppearanceGetRequest(unittest.TestCase):
             self, login_patch, ro_to_string_patch, envelop_to_string_patch, requests_post_patch, check_error_patch,
             logout_patch, extract_payload_patch
     ):
-        g = UserSharedCallAppearanceGetRequest.get_devices(did=6175551212, use_test=False)
+        g = UserSharedCallAppearanceGetRequest.get_devices(sip_user_id='6175551212@broadsoft.mit.edu', use_test=False)
         call = requests_post_patch.call_args_list[0]
         args, kwargs = call
         self.assertEqual(kwargs['url'], BroadsoftRequest.prod_api_url)
 
-        g = UserSharedCallAppearanceGetRequest.get_devices(did=6175551212, use_test=True)
+        g = UserSharedCallAppearanceGetRequest.get_devices(sip_user_id='6175551212@broadsoft.mit.edu', use_test=True)
         call = requests_post_patch.call_args_list[1]
         args, kwargs = call
         self.assertEqual(kwargs['url'], BroadsoftRequest.test_api_url)

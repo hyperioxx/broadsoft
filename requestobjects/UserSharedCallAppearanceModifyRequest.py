@@ -18,9 +18,8 @@ class UserSharedCallAppearanceModifyRequest(BroadsoftRequest):
     def __init__(self, sip_user_id=None, alert_all_appearances_for_click_to_dial_calls=True,
                  alert_all_appearances_for_group_paging_calls=False, allow_sca_call_retrieve=True,
                  multiple_call_arrangement_is_active=True, allow_bridging_between_locations=False,
-                 bridge_warning_tone='None', enable_call_park_notification=False, did=None,
+                 bridge_warning_tone='None', enable_call_park_notification=False,
                  **kwargs):
-        self.did=did
         self.sip_user_id = sip_user_id
         self.alert_all_appearances_for_click_to_dial_calls = alert_all_appearances_for_click_to_dial_calls
         self.alert_all_appearances_for_group_paging_calls = alert_all_appearances_for_group_paging_calls

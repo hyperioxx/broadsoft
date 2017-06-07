@@ -74,43 +74,6 @@ class TestBroadsoftRequest(unittest.TestCase):
             s
         )
 
-    def test_derive_sip_user_id(self):
-        # BroadsoftRequest doesn't have did property, so we'll use UserAddRequest
-
-        # standard call with unformatted did
-        u = UserAddRequest()
-        u.did = '617-555-1212'
-        self.assertEqual('6175551212@' + u.default_domain, u.derive_sip_user_id())
-
-        # standard call with formatted did
-        u = UserAddRequest()
-        u.did = '6175551212'
-        self.assertEqual('6175551212@' + u.default_domain, u.derive_sip_user_id())
-
-        # no did
-        u = UserAddRequest()
-        self.assertIsNone(u.derive_sip_user_id())
-
-        # lineport is true, no device_name
-        u = UserAddRequest()
-        u.did = '617-555-1212'
-        self.assertEqual('6175551212_lp@' + u.default_domain, u.derive_sip_user_id(line_port=True))
-
-        # lineport is true, device_name is set
-        g = GroupAccessDeviceAddRequest()
-        g.did = '617-555-1212'
-        g.device_name = 'beaverphone'
-        self.assertEqual('beaverphone_lp@' + g.default_domain, g.derive_sip_user_id(line_port=True))
-
-        # passing did when no did attr
-        u = UserAddRequest()
-        self.assertEqual('6175551212@' + u.default_domain, u.derive_sip_user_id(did=6175551212))
-
-        # passing did when did attr is present, one passed should win
-        u = UserAddRequest()
-        u.did = 6175553333
-        self.assertEqual('6175551212@' + u.default_domain, u.derive_sip_user_id(did=6175551212))
-
     def test_extract_payload(self):
         # sending string
         response = '<?xml version="1.0" encoding="UTF-8"?><soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><soapenv:Body><processOCIMessageResponse xmlns=""><ns1:processOCIMessageReturn xmlns:ns1="urn:com:broadsoft:webservice">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;\n&lt;BroadsoftDocument protocol=&quot;OCI&quot; xmlns=&quot;C&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;&gt;&lt;sessionId xmlns=&quot;&quot;&gt;sesh&lt;/sessionId&gt;&lt;command echo=&quot;&quot; xsi:type=&quot;AuthenticationResponse&quot; xmlns=&quot;&quot;&gt;&lt;userId&gt;admMITapi&lt;/userId&gt;&lt;nonce&gt;1493647455426&lt;/nonce&gt;&lt;passwordAlgorithm&gt;MD5&lt;/passwordAlgorithm&gt;&lt;/command&gt;&lt;/BroadsoftDocument&gt;</ns1:processOCIMessageReturn></processOCIMessageResponse></soapenv:Body></soapenv:Envelope>'
@@ -345,13 +308,6 @@ class TestBroadsoftRequest(unittest.TestCase):
         self.assertFalse(login_patch.called)
         login_patch.called = False
 
-    def test_derive_domain_based_on_test_and_prod(self):
-        b = BroadsoftRequest(use_test=False)
-        self.assertEqual(b.prod_default_domain, b.default_domain)
-
-        b = BroadsoftRequest(use_test=True)
-        self.assertEqual(b.test_default_domain, b.default_domain)
-
     def test_add_and_edit_functions_should_test_for_success(self):
         success_response = '<?xml version="1.0" encoding="UTF-8"?><soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><soapenv:Body><processOCIMessageResponse xmlns=""><ns1:processOCIMessageReturn xmlns:ns1="urn:com:broadsoft:webservice">&lt;?xml version=&quot;1.0&quot; encoding=&quot;ISO-8859-1&quot;?&gt;&lt;BroadsoftDocument protocol=&quot;OCI&quot; xmlns=&quot;C&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;&gt;&lt;sessionId xmlns=&quot;&quot;&gt;Chriss-MacBook-Pro-4.local,2017-05-03 19:23:06.900733,6698568134&lt;/sessionId&gt;&lt;command echo=&quot;&quot; xsi:type=&quot;c:SuccessResponse&quot; xmlns:c=&quot;C&quot; xmlns=&quot;&quot;/&gt;&lt;/BroadsoftDocument&gt;</ns1:processOCIMessageReturn></processOCIMessageResponse></soapenv:Body></soapenv:Envelope>'
         regular_response = '<?xml version="1.0" encoding="UTF-8"?><soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><soapenv:Body><processOCIMessageResponse xmlns=""><ns1:processOCIMessageReturn xmlns:ns1="urn:com:broadsoft:webservice">&lt;?xml version=&quot;1.0&quot; encoding=&quot;ISO-8859-1&quot;?&gt;&lt;BroadsoftDocument protocol=&quot;OCI&quot; xmlns=&quot;C&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;&gt;&lt;sessionId xmlns=&quot;&quot;&gt;Chriss-MacBook-Pro-4.local,2017-05-03 19:23:06.900733,6698568134&lt;/sessionId&gt;&lt;command echo=&quot;&quot; xsi:type=&quot;c:whatever&quot; xmlns:c=&quot;C&quot; xmlns=&quot;&quot;/&gt;&lt;/BroadsoftDocument&gt;</ns1:processOCIMessageReturn></processOCIMessageResponse></soapenv:Body></soapenv:Envelope>'
@@ -421,6 +377,7 @@ class TestBroadsoftRequest(unittest.TestCase):
     def test_to_xml_with_attached_commands(self):
         gg = GroupGetListInServiceProviderRequest()
         ga = GroupAddRequest()
+        ga.default_domain = 'broadsoft.mit.edu'
         ga.group_id = 'newgroup'
 
         b = BroadsoftRequest()
@@ -570,7 +527,7 @@ class TestBroadsoftRequest(unittest.TestCase):
     ):
         b = BroadsoftRequest(use_test=True)
         g = GroupGetListInServiceProviderRequest()
-        u = UserAddRequest(did=6175551212, first_name='tim', last_name='beaver', sip_password='password')
+        u = UserAddRequest(did=6175551212, sip_user_id='6175551212@broadsoft.mit.edu', first_name='tim', last_name='beaver', sip_password='password')
         b.commands = [g,u]
         b.to_xml()
 

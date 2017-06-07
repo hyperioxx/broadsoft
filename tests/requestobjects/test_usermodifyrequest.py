@@ -5,46 +5,6 @@ from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 
 
 class TestBroadsoftUserModifyRequest(unittest.TestCase):
-    def test_build_user_id_from_did_and_domain(self):
-        did = '6175551212'
-        int_did = 6175551212
-        sip_user_id = 'timebeaver@mit.edu'
-
-        u = UserModifyRequest(did=did)
-        self.assertEqual(did + '@' + u.default_domain, u.sip_user_id)
-
-        u = UserModifyRequest(did=int_did)
-        self.assertEqual(str(did) + '@' + u.default_domain, u.sip_user_id)
-
-        u = UserModifyRequest(sip_user_id=sip_user_id)
-        self.assertEqual(sip_user_id, u.sip_user_id)
-
-        u = UserModifyRequest(sip_user_id=sip_user_id, did=did)
-        self.assertEqual(sip_user_id, u.sip_user_id)
-
-        u = UserModifyRequest()
-        self.assertIsNone(u.sip_user_id)
-
-    def test_lineport_from_did_and_domain(self):
-        did = '6175551212'
-        int_did = 6175551212
-        line_port = 'timebeaver@mit.edu'
-
-        u = UserModifyRequest(did=did)
-        self.assertEqual(did + '_lp@' + u.default_domain, u.line_port)
-
-        u = UserModifyRequest(did=int_did)
-        self.assertEqual(str(did) + '_lp@' + u.default_domain, u.line_port)
-
-        u = UserModifyRequest(line_port=line_port)
-        self.assertEqual(line_port, u.line_port)
-
-        u = UserModifyRequest(line_port=line_port, did=did)
-        self.assertEqual(line_port, u.line_port)
-
-        u = UserModifyRequest()
-        self.assertIsNone(u.line_port)
-
     @unittest.mock.patch.object(BroadsoftRequest, 'convert_phone_number')
     @unittest.mock.patch.object(UserModifyRequest, 'validate')
     def test_did_gets_converted_on_build_xml(self,
@@ -226,13 +186,6 @@ class TestBroadsoftUserModifyRequest(unittest.TestCase):
         u = UserModifyRequest()
         self.assertTrue(derive_extension_patch.called)
 
-    def test_build_command_xml_derives_lineport_and_user_id(self):
-        u = UserModifyRequest()
-        u.did = 6175551212
-        u.to_xml()
-        self.assertEqual('6175551212@' + u.default_domain, u.sip_user_id)
-        self.assertEqual('6175551212_lp@' + u.default_domain, u.line_port)
-
     @unittest.mock.patch.object(BroadsoftRequest, 'extract_payload')
     @unittest.mock.patch('broadsoft.requestobjects.lib.BroadsoftRequest.LogoutRequest.logout')
     @unittest.mock.patch.object(BroadsoftRequest, 'check_error')
@@ -244,12 +197,12 @@ class TestBroadsoftUserModifyRequest(unittest.TestCase):
             self, login_patch, ro_to_string_patch, envelop_to_string_patch, requests_post_patch, check_error_patch,
             logout_patch, extract_payload_patch
     ):
-        g = UserModifyRequest.set_password(did=6175551212, new_password='password', use_test=False)
+        g = UserModifyRequest.set_password(sip_user_id='6175551212@broadsoft.mit.edu', did=6175551212, new_password='password', use_test=False)
         call = requests_post_patch.call_args_list[0]
         args, kwargs = call
         self.assertEqual(kwargs['url'], BroadsoftRequest.prod_api_url)
 
-        g = UserModifyRequest.set_password(did=6175551212, new_password='password', use_test=True)
+        g = UserModifyRequest.set_password(sip_user_id='6175551212@broadsoft.mit.edu', did=6175551212, new_password='password', use_test=True)
         call = requests_post_patch.call_args_list[1]
         args, kwargs = call
         self.assertEqual(kwargs['url'], BroadsoftRequest.test_api_url)
@@ -265,6 +218,6 @@ class TestBroadsoftUserModifyRequest(unittest.TestCase):
             self, login_patch, ro_to_string_patch, envelop_to_string_patch, requests_post_patch, check_error_patch,
             logout_patch, extract_payload_patch
     ):
-        g = UserModifyRequest.set_password(did=6175551212, new_password='password', auth_object='a', login_object='b')
+        g = UserModifyRequest.set_password(sip_user_id='6175551212@broadsoft.mit.edu', did=6175551212, new_password='password', auth_object='a', login_object='b')
         # passed auth and login object, so authenticate_and_login patch should not have been called
         self.assertFalse(login_patch.called)

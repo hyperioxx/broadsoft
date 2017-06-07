@@ -5,8 +5,7 @@ from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 class UserGetRequest(BroadsoftRequest):
     command_name = 'UserGetRequest21'
 
-    def __init__(self, did=None, sip_user_id=None, **kwargs):
-        self.did = did
+    def __init__(self, sip_user_id=None, **kwargs):
         self.sip_user_id = sip_user_id
 
         BroadsoftRequest.__init__(self, **kwargs)
@@ -24,11 +23,11 @@ class UserGetRequest(BroadsoftRequest):
 
     def validate(self):
         if not self.sip_user_id:
-            raise ValueError("can't run UserGetRequest.build_command_xml() without a value for sip_user_id or did")
+            raise ValueError("can't run UserGetRequest.build_command_xml() without a value for sip_user_id")
 
     @staticmethod
-    def get_user(did=None, sip_user_id=None, **kwargs):
-        u = UserGetRequest(did=did, sip_user_id=sip_user_id, **kwargs)
+    def get_user(sip_user_id=None, **kwargs):
+        u = UserGetRequest(sip_user_id=sip_user_id, **kwargs)
         xml = u.post()
         return xml
 

@@ -71,8 +71,11 @@ class UserAddRequest(BroadsoftRequest):
         if self.group_id is None:
             raise ValueError("can't run broadsoft.UserAddRequest.to_xml() without a value for group_id")
 
+        if self.did is None:
+            raise ValueError("can't run broadsoft.UserAddRequest.to_xml() without a value for did.")
+
         if self.sip_user_id is None:
-            raise ValueError("can't run broadsoft.UserAddRequest.to_xml() without a value for sip_user_id. you can also add a did and run derive_user_id()")
+            raise ValueError("can't run broadsoft.UserAddRequest.to_xml() without a value for sip_user_id.")
 
         if self.first_name is None:
             raise ValueError("can't run broadsoft.UserAddRequest.to_xml() without a value for first_name")
@@ -80,13 +83,10 @@ class UserAddRequest(BroadsoftRequest):
         if self.last_name is None:
             raise ValueError("can't run broadsoft.UserAddRequest.to_xml() without a value for last_name")
 
-        if self.did is None or not re.match(r'^\d{10}$', str(self.did)):
-            raise ValueError("can't run broadsoft.UserAddRequest.to_xml() without a valid value for did")
-
         if self.sip_password is None:
             raise ValueError("can't run broadsoft.UserAddRequest.to_xml() without a value for sip_password")
 
     @staticmethod
-    def add(first_name, last_name, did, sip_user_id=None, kname=None, sip_password=None, email=None, **kwargs):
+    def add(first_name, last_name, did, sip_user_id, kname=None, sip_password=None, email=None, **kwargs):
         u = UserAddRequest(first_name=first_name, last_name=last_name, did=did, sip_user_id=sip_user_id, kname=kname, sip_password=sip_password, email=email, **kwargs)
         u.post()

@@ -187,7 +187,7 @@ class TestBroadsoftDevice(unittest.TestCase):
 
         call = device_mod_patch.call_args_list[0]
         args, kwargs = call
-        self.assertEqual('6175551212@' + b.default_domain, kwargs['sip_user_name'])
+        self.assertEqual('6175551212@' + d.default_domain, kwargs['sip_user_name'])
 
         # just a sip_user_name
         d = Device(name='devicename')
@@ -297,3 +297,6 @@ class TestBroadsoftDevice(unittest.TestCase):
         call = device_mod_patch.call_args_list[3]
         args, kwargs = call
         self.assertTrue(kwargs['use_test'])
+
+    def test_passes_default_domain_as_needed(self):
+        self.assertFalse("write this")

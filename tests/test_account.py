@@ -244,15 +244,15 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertEqual(['a','b'], s.services)
 
     def test_link_primary_device(self):
-        a = Account(did=6175551212)
         b = BroadsoftRequest()
+        a = Account(did=6175551212)
         d1 = Device(description='beaver phone 1', name='beaverphone1', type='iphone', use_test=False)
         a.link_primary_device(req_object=b, device=d1)
         self.assertEqual(1, len(b.commands))
         cmd = b.commands[0]
         self.assertIsInstance(cmd, UserModifyRequest)
         self.assertEqual(cmd.did, str(a.did))
-        self.assertEqual(cmd.sip_user_id, str(a.did) + '@' + b.default_domain)
+        self.assertEqual(cmd.sip_user_id, str(a.did) + '@' + a.default_domain)
         self.assertEqual(cmd.device_name, d1.name)
 
     def test_link_sca_device(self):
@@ -263,10 +263,9 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertEqual(1, len(b.commands))
         cmd = b.commands[0]
         self.assertIsInstance(cmd, UserSharedCallAppearanceAddEndpointRequest)
-        self.assertEqual(cmd.did, str(a.did))
-        self.assertEqual(cmd.sip_user_id, str(a.did) + '@' + b.default_domain)
+        self.assertEqual(cmd.sip_user_id, str(a.did) + '@' + a.default_domain)
         self.assertEqual(cmd.device_name, d1.name)
-        self.assertEqual(cmd.line_port, d1.name + '_lp@' + b.default_domain)
+        self.assertEqual(cmd.line_port, d1.name + '_lp@' + a.default_domain)
 
     def test_add_devices(self):
         a = Account(did=6175551212)
@@ -805,3 +804,47 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertEqual(2, len(Account.default_services))
         self.assertIn('Shared Call Appearance 10', Account.default_services)
         self.assertIn('Third-Party Voice Mail Support', Account.default_services)
+
+    def test_account_converts_did_at_init(self):
+        a = Account(did=6175551212)
+        self.assertEqual('6175551212', a.did)
+
+        a = Account(did='617 555 1212')
+        self.assertEqual('6175551212', a.did)
+
+    @unittest.mock.patch.object(Account, 'set_device_passwords')
+    @unittest.mock.patch.object(BroadsoftObject, 'provision')
+    def test_account_converts_did_at_provision(
+            self, provision_patch, set_device_passwords_patch
+    ):
+        a = Account()
+        a.did = 6175551212
+        a.provision()
+        self.assertEqual('6175551212', a.did)
+
+        a = Account()
+        a.did = '617 555 1212'
+        a.provision()
+        self.assertEqual('6175551212', a.did)
+
+    def test_account_derives_sip_user_id_at_init(self):
+        a = Account(did=6175551212)
+        self.assertEqual('6175551212@' + a.default_domain, a.sip_user_id)
+
+    @unittest.mock.patch.object(Account, 'set_device_passwords')
+    @unittest.mock.patch.object(BroadsoftObject, 'provision')
+    def test_account_derives_sip_user_id_at_provision(
+            self, provision_patch, set_device_passwords_patch
+    ):
+        a = Account()
+        a.did = 6175551212
+        a.provision()
+        self.assertEqual('6175551212@' + a.default_domain, a.sip_user_id)
+
+        a = Account()
+        a.did = '617 555 1212'
+        a.provision()
+        self.assertEqual('6175551212@' + a.default_domain, a.sip_user_id)
+
+    def test_passes_default_domain_as_needed(self):
+        self.assertFalse("write this")

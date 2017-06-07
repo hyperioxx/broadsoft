@@ -12,9 +12,8 @@ class UserSharedCallAppearanceAddEndpointRequest(BroadsoftRequest):
         'allow_termination'
     ]
 
-    def __init__(self, did=None, sip_user_id=None, device_name=None, line_port=None, **kwargs):
+    def __init__(self, sip_user_id=None, device_name=None, line_port=None, **kwargs):
         self.device_name = device_name
-        self.did = did
         self.line_port = line_port
         self.sip_user_id = sip_user_id
 

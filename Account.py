@@ -18,7 +18,7 @@ class Account(BroadsoftObject):
     ]
 
     def __init__(self, did=None, extension=None, last_name=None, first_name=None,
-                 sip_user_id=None, kname=None, email=None, use_test=False, services=None,
+                 sip_user_id=None, kname=None, email=None, services=None,
                  sip_password=None, **kwargs):
         self.did = did
         self.email = email
@@ -30,7 +30,6 @@ class Account(BroadsoftObject):
             if type(services) == str:
                 services = [services]
             self.services = services
-        self.use_test = use_test
 
         # these are optional; will be derived by broadsoft.RequestObjects as needed
         self.extension = extension
@@ -121,8 +120,8 @@ class Account(BroadsoftObject):
     def link_sca_device(self, req_object, device):
         line_port = device.line_port
         if not line_port:
-            line_port = device.name + '_lp@' + req_object.default_domain
-        sca = UserSharedCallAppearanceAddEndpointRequest(did=self.did, sip_user_id=self.sip_user_id,
+            line_port = device.name + '_lp@' + self.default_domain
+        sca = UserSharedCallAppearanceAddEndpointRequest(sip_user_id=self.sip_user_id,
                                                          device_name=device.name, line_port=line_port,
                                                          use_test=self.use_test)
         req_object.commands.append(sca)
@@ -138,8 +137,7 @@ class Account(BroadsoftObject):
                 self.devices.append(d)
 
         # now find any shared call appearances
-        sca_xml = UserSharedCallAppearanceGetRequest.get_devices(sip_user_id=self.sip_user_id, did=self.did,
-                                                         use_test=self.use_test)
+        sca_xml = UserSharedCallAppearanceGetRequest.get_devices(sip_user_id=self.sip_user_id, use_test=self.use_test)
         scas = BroadsoftRequest.convert_results_table(xml=sca_xml)
         for sca in scas:
             d = Device(use_test=self.use_test)
@@ -150,6 +148,8 @@ class Account(BroadsoftObject):
             self.devices.append(d)
 
     def provision(self):
+        BroadsoftObject.prep_attributes(self)
+
         if not self.sip_password:
             self.generate_sip_password()
 

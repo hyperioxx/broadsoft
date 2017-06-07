@@ -6,11 +6,12 @@ class GroupAddRequest(BroadsoftRequest):
     command_name = 'GroupAddRequest'
     check_success = True
 
-    def __init__(self, group_id=None, group_name=None, **kwargs):
+    def __init__(self, group_id=None, group_name=None, default_domain=None, **kwargs):
         self.calling_line_id_name = None
         self.contact_email = None
         self.contact_name = None
         self.contact_number = None
+        self.default_domain = default_domain
         self.group_id = group_id
         self.group_name = group_name
         self.user_limit = 100000

@@ -101,7 +101,7 @@ class UserModifyRequest(BroadsoftRequest):
     def validate(self):
         import re
         if self.sip_user_id is None:
-            raise ValueError("can't run broadsoft.UserModifyRequest.to_xml() without a value for sip_user_id. you can also add a kname and run derive_user_id()")
+            raise ValueError("can't run broadsoft.UserModifyRequest.to_xml() without a value for sip_user_id.")
 
         if self.did and not re.match(r'^\d{10}$', str(self.did)):
             raise ValueError("the value for did you provided to UserModifyRequest is not valid")
@@ -113,6 +113,6 @@ class UserModifyRequest(BroadsoftRequest):
             raise ValueError("the value for extension you provided to UserModifyRequest is not valid")
 
     @staticmethod
-    def set_password(new_password, did=None, sip_user_id=None, **kwargs):
+    def set_password(new_password, did, sip_user_id, **kwargs):
         u = UserModifyRequest(did=did, sip_user_id=sip_user_id, new_password=new_password, **kwargs)
         u.post()

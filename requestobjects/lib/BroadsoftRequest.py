@@ -21,8 +21,6 @@ class BroadsoftRequest(XmlDocument):
     auth_exceptions = ['AuthenticationRequest', 'LoginRequest14sp4', 'LogoutRequest']
     prod_api_url = '[unknown]'
     test_api_url = 'https://web1.voiplogic.net/webservice/services/ProvisioningService'
-    prod_default_domain = 'broadsoft.mit.edu'
-    test_default_domain = 'broadsoft-dev.mit.edu'
     logging_dir = '/var/log/broadsoft'
     logging_fname = 'api.log'
     service_provider = 'ENT136'
@@ -37,7 +35,6 @@ class BroadsoftRequest(XmlDocument):
         self.api_user_id = None
         self.auth_object = auth_object
         self.commands = []
-        self.default_domain = None
         self.group_id = group_id
         self.last_response = None
         self.login_object = login_object
@@ -49,7 +46,6 @@ class BroadsoftRequest(XmlDocument):
             self.timezone = self.default_timezone
 
         self.derive_api_url()
-        self.derive_default_domain()
         self.build_session_id()
 
         if not self.group_id and auto_derive_group_id:
@@ -187,24 +183,6 @@ class BroadsoftRequest(XmlDocument):
         self.api_user_id = creds.username
         self.api_password = creds.password
 
-    def derive_default_domain(self):
-        self.default_domain = self.prod_default_domain
-        if self.use_test:
-            self.default_domain = self.test_default_domain
-
-    def derive_sip_user_id(self, line_port=False, did=None):
-        if not did:
-            did = self.did
-
-        if did:
-            uname = BroadsoftRequest.convert_phone_number(number=str(did))
-            if line_port:
-                if hasattr(self, 'device_name') and self.device_name:
-                    uname = self.device_name
-                uname += '_lp'
-            return uname + '@' + self.default_domain
-        return None
-
     def is_auth_suite(self):
         # commands that are part of the login/logout suite don't ever need login
         is_auth_suite = False
@@ -308,16 +286,10 @@ class BroadsoftRequest(XmlDocument):
     # stuff that happens for multiple request objects which we don't want to mess up
     def prep_attributes(self):
         if hasattr(self, 'did') and self.did:
-            self.did = self.convert_phone_number(number=self.did)
-
-            if hasattr(self, 'sip_user_id') and not self.sip_user_id:
-                self.sip_user_id = self.derive_sip_user_id()
+            self.did = BroadsoftRequest.convert_phone_number(number=self.did)
 
         if hasattr(self, 'mac_address') and self.mac_address:
             self.convert_mac_address()
-
-        if hasattr(self, 'line_port') and not self.line_port:
-            self.line_port = self.derive_sip_user_id(line_port=True)
 
         if hasattr(self, 'clid_did') and self.clid_did:
             self.clid_did = BroadsoftRequest.convert_phone_number(number=self.clid_did)
