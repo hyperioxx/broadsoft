@@ -140,7 +140,7 @@ class TestBroadsoftAccount(unittest.TestCase):
     def test_account_attrs_get_passed_to_request_object(self):
         a = Account(did=6175551212, extension=51212, last_name='beaver', first_name='tim',
                     sip_user_id='beaver@broadsoft.mit.edu', kname='beaver', email='beaver@mit.edu',
-                    use_test=True)
+                    use_test=True, sip_password='password')
         ro = a.build_provision_request()
         uadd = ro.commands[0]
         self.assertEqual(a.did, uadd.did)
@@ -150,11 +150,12 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertEqual(a.kname, uadd.kname)
         self.assertEqual(a.email, uadd.email)
         self.assertEqual(a.use_test, uadd.use_test)
+        self.assertEqual(a.sip_password, uadd.sip_password)
 
         # try again, flip-flopping use test
         a = Account(did=6175551212, extension=51212, last_name='beaver', first_name='tim',
                     sip_user_id='beaver@broadsoft.mit.edu', kname='beaver', email='beaver@mit.edu',
-                    use_test=False)
+                    use_test=False, sip_password='password')
         ro = a.build_provision_request()
         uadd = ro.commands[0]
         self.assertEqual(a.did, uadd.did)
@@ -164,6 +165,7 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertEqual(a.kname, uadd.kname)
         self.assertEqual(a.email, uadd.email)
         self.assertEqual(a.use_test, uadd.use_test)
+        self.assertEqual(a.sip_password, uadd.sip_password)
 
     def test_devices_added_get_built_into_request_object(self):
         d1 = Device(description='beaver phone 1', name='beaverphone1', type='iphone')
