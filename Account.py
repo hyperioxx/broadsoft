@@ -142,6 +142,14 @@ class Account(BroadsoftObject):
             d.fetch(target_name=d.name)
             self.devices.append(d)
 
+    def provision(self):
+        BroadsoftObject.provision(self)
+
+        # Not making this part atomic since I want to leverage set_device_passwords(), so it gets called outside of
+        # build_provision_request. Seems reasonable to not make the entire request fail if this part does anyway.
+        if self.sip_password:
+            self.set_device_passwords(new_sip_password=self.sip_password)
+
     def set_device_passwords(self, new_sip_password=None, **kwargs):
         if not self.sip_user_id and not self.did:
             raise ValueError("can't run Account.set_device_passwords without a value for sip_user_id or did")

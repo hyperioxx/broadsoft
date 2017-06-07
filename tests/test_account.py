@@ -1,6 +1,7 @@
 import unittest.mock
 from broadsoft.Device import Device
 from broadsoft.Account import Account
+from broadsoft.BroadsoftObject import BroadsoftObject
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 from broadsoft.requestobjects.UserAddRequest import UserAddRequest
 from broadsoft.requestobjects.UserModifyRequest import UserModifyRequest
@@ -767,3 +768,25 @@ class TestBroadsoftAccount(unittest.TestCase):
         call = set_password_patch.call_args_list[1]
         args, kwargs = call
         self.assertFalse(kwargs['use_test'])
+
+    @unittest.mock.patch.object(Account, 'set_device_passwords')
+    @unittest.mock.patch.object(BroadsoftObject, 'provision')
+    def test_provision_handles_sip_password(
+            self, provision_patch, set_device_passwords_patch
+    ):
+        d1 = Device(name='d1name')
+        d2 = Device(name='d2name')
+
+        # when no sip_password, don't call set_device_passwords
+        a = Account(did=6175551212, last_name='beaver', first_name='tim')
+        a.provision()
+        self.assertFalse(set_device_passwords_patch.called)
+
+        # when there is sip_password, do
+        a = Account(did=6175551212, last_name='beaver', first_name='tim', sip_password='password')
+        a.devices = [d1, d2]
+        a.provision()
+        self.assertTrue(set_device_passwords_patch.called)
+
+    def test_sets_password_implicitly_on_provision_when_required(self):
+        self.assertFalse("write this")
