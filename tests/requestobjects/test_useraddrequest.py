@@ -57,17 +57,6 @@ class TestBroadsoftUserAddRequest(unittest.TestCase):
         with self.assertRaises(ValueError):
             u.validate()
 
-    def test_auto_password_generation(self):
-        u = UserAddRequest(group_id='testgroup', session_id='sesh', kname='beaver', last_name='Beaver',
-                           first_name='Tim', email='beaver@mit.edu',
-                           did='617555121x', sip_password='123456789')
-        self.assertEqual('123456789', u.sip_password)
-
-        u = UserAddRequest(session_id='sesh', kname='beaver', last_name='Beaver',
-                           first_name='Tim', email='beaver@mit.edu',
-                           did='617555121x')
-        self.assertIsNotNone(u.sip_password)
-
     def test_validation(self):
         """
         u = UserAddRequest(group_id='testgroup', session_id='sesh', last_name='Beaver',
@@ -120,6 +109,7 @@ class TestBroadsoftUserAddRequest(unittest.TestCase):
         self.assertEqual('blah', u.timezone)
 
     def test_to_xml(self):
+        # with sip_password
         u = UserAddRequest(group_id='testgroup', session_id='sesh', kname='beaver', last_name='Beaver',
                            first_name='Tim', email='beaver@mit.edu',
                            did='617 555 1212', sip_password='123456789')
@@ -135,6 +125,30 @@ class TestBroadsoftUserAddRequest(unittest.TestCase):
             '<callingLineIdFirstName>Tim</callingLineIdFirstName>' + \
             '<phoneNumber>6175551212</phoneNumber>' + \
             '<password>123456789</password>' + \
+            '<emailAddress>beaver@mit.edu</emailAddress>' + \
+            '<timeZone>' + u.timezone + '</timeZone>' + \
+            '</command>'
+
+        xml = u.to_xml()
+        command = xml.findall('.//command')[0]
+        self.maxDiff = None
+        self.assertEqual(target_xml, ET.tostring(command).decode('utf-8'))
+
+        # without sip_password
+        u = UserAddRequest(group_id='testgroup', session_id='sesh', kname='beaver', last_name='Beaver',
+                           first_name='Tim', email='beaver@mit.edu',
+                           did='617 555 1212')
+
+        target_xml = \
+            '<command xmlns="" xsi:type="UserAddRequest17sp4">' + \
+            '<serviceProviderId>ENT136</serviceProviderId>' + \
+            '<groupId>testgroup</groupId>' + \
+            '<userId>6175551212@' + u.default_domain + '</userId>' + \
+            '<lastName>Beaver</lastName>' + \
+            '<firstName>Tim</firstName>' + \
+            '<callingLineIdLastName>Beaver</callingLineIdLastName>' + \
+            '<callingLineIdFirstName>Tim</callingLineIdFirstName>' + \
+            '<phoneNumber>6175551212</phoneNumber>' + \
             '<emailAddress>beaver@mit.edu</emailAddress>' + \
             '<timeZone>' + u.timezone + '</timeZone>' + \
             '</command>'

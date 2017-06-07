@@ -18,7 +18,6 @@ class UserAddRequest(BroadsoftRequest):
         self.sip_user_id = sip_user_id
         self.email = email
         self.derive_email()
-        self.derive_sip_password()
         BroadsoftRequest.__init__(self, **kwargs)
 
     def build_command_xml(self):
@@ -51,8 +50,9 @@ class UserAddRequest(BroadsoftRequest):
         pn = ET.SubElement(cmd, 'phoneNumber')
         pn.text = self.did
 
-        pw = ET.SubElement(cmd, 'password')
-        pw.text = self.sip_password
+        if self.sip_password:
+            pw = ET.SubElement(cmd, 'password')
+            pw.text = self.sip_password
 
         if self.email:
             e = ET.SubElement(cmd, 'emailAddress')
@@ -66,11 +66,6 @@ class UserAddRequest(BroadsoftRequest):
     def derive_email(self):
         if not self.email and self.kname:
             self.email = str(self.kname) + '@mit.edu'
-
-    def derive_sip_password(self):
-        if self.sip_password is None:
-            import random
-            self.sip_password = str(random.randint(1000000000, 9999999999))
 
     def validate(self):
         import re
@@ -88,9 +83,6 @@ class UserAddRequest(BroadsoftRequest):
 
         if self.did is None or not re.match(r'^\d{10}$', str(self.did)):
             raise ValueError("can't run broadsoft.UserAddRequest.to_xml() without a valid value for did")
-
-        if self.sip_password is None:
-            raise ValueError("can't run broadsoft.UserAddRequest.to_xml() without a value for sip_password")
 
     @staticmethod
     def add(first_name, last_name, did, sip_user_id=None, kname=None, sip_password=None, email=None, **kwargs):
