@@ -82,6 +82,10 @@ class Device(BroadsoftObject):
             b = BroadsoftRequest()
             sip_user_name = b.derive_sip_user_id(did=did)
 
+        if kwargs and 'use_test' in kwargs:
+            self.use_test = kwargs['use_test']
+            kwargs.pop('use_test', None)
+
         g = GroupAccessDeviceModifyRequest(device_name=self.name, sip_user_name=sip_user_name,
                                            sip_password=sip_password, use_test=self.use_test, **kwargs)
         g.post()

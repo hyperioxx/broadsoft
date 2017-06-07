@@ -263,3 +263,37 @@ class TestBroadsoftDevice(unittest.TestCase):
         call = device_mod_patch.call_args_list[1]
         args, kwargs = call
         self.assertFalse(kwargs['use_test'])
+
+    @unittest.mock.patch(
+        'broadsoft.requestobjects.lib.BroadsoftRequest.BroadsoftRequest.post')
+    @unittest.mock.patch(
+        'broadsoft.requestobjects.GroupAccessDeviceModifyRequest.GroupAccessDeviceModifyRequest.__init__',
+        side_effect=return_none)
+    def test_set_password_wont_barf_with_multiple_use_tests(
+            self, device_mod_patch, post_patch
+    ):
+        # when not in kwargs, accept what's in init
+        d = Device(name='dname', use_test=True)
+        d.set_password(did=6175551212, sip_password='password')
+        call = device_mod_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertTrue(kwargs['use_test'])
+
+        d = Device(name='dname', use_test=False)
+        d.set_password(did=6175551212, sip_password='password')
+        call = device_mod_patch.call_args_list[1]
+        args, kwargs = call
+        self.assertFalse(kwargs['use_test'])
+
+        # when in kwargs always want version in kwargs to win
+        d = Device(name='dname', use_test=True)
+        d.set_password(did=6175551212, sip_password='password', use_test=False)
+        call = device_mod_patch.call_args_list[2]
+        args, kwargs = call
+        self.assertFalse(kwargs['use_test'])
+
+        d = Device(name='dname', use_test=False)
+        d.set_password(did=6175551212, sip_password='password', use_test=True)
+        call = device_mod_patch.call_args_list[3]
+        args, kwargs = call
+        self.assertTrue(kwargs['use_test'])
