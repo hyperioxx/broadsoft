@@ -750,27 +750,6 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertEqual('a', kwargs['auth_object'])
         self.assertEqual('b', kwargs['login_object'])
 
-    @unittest.mock.patch.object(Device, 'set_password')
-    def test_set_device_passwords_pass_use_test(
-            self, set_password_patch
-    ):
-        d1 = Device(name='dname')
-
-        # in init
-        a = Account(did=6175551212, use_test=True)
-        a.devices = [d1]
-        a.set_device_passwords(new_sip_password='newpassword')
-        call = set_password_patch.call_args_list[0]
-        args, kwargs = call
-        self.assertTrue(kwargs['use_test'])
-
-        a = Account(did=6175551212, use_test=False)
-        a.devices = [d1]
-        a.set_device_passwords(new_sip_password='newpassword')
-        call = set_password_patch.call_args_list[1]
-        args, kwargs = call
-        self.assertFalse(kwargs['use_test'])
-
     @unittest.mock.patch.object(Account, 'set_device_passwords')
     @unittest.mock.patch.object(BroadsoftObject, 'provision')
     def test_provision_handles_sip_password(
