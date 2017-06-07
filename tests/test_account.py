@@ -777,9 +777,9 @@ class TestBroadsoftAccount(unittest.TestCase):
         d1 = Device(name='d1name')
         d2 = Device(name='d2name')
 
-        # when no sip_password, don't call set_device_passwords
+        # when no sip_password, don't call set_device_passwords (have to turn off auto_password)
         a = Account(did=6175551212, last_name='beaver', first_name='tim')
-        a.provision()
+        a.provision(auto_password=False)
         self.assertFalse(set_device_passwords_patch.called)
 
         # when there is sip_password, do
