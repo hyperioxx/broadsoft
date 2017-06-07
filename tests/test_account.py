@@ -800,3 +800,8 @@ class TestBroadsoftAccount(unittest.TestCase):
         a = Account(did=6175551212, last_name='beaver', first_name='tim', sip_password='password')
         a.provision()
         self.assertEqual('password', a.sip_password)
+
+    def test_default_services(self):
+        self.assertEqual(2, len(Account.default_services))
+        self.assertIn('Shared Call Appearance 10', Account.default_services)
+        self.assertIn('Third-Party Voice Mail Support', Account.default_services)

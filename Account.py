@@ -13,7 +13,8 @@ class Account(BroadsoftObject):
     # these are optional broadsoft services that will get applied by default to every new
     # account
     default_services = [
-        'Shared Call Appearance 10'
+        'Shared Call Appearance 10',
+        'Third-Party Voice Mail Support'
     ]
 
     def __init__(self, did=None, extension=None, last_name=None, first_name=None,
