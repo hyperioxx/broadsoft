@@ -777,12 +777,8 @@ class TestBroadsoftAccount(unittest.TestCase):
         d1 = Device(name='d1name')
         d2 = Device(name='d2name')
 
-        # when no sip_password, don't call set_device_passwords (have to turn off auto_password)
-        a = Account(did=6175551212, last_name='beaver', first_name='tim')
-        a.provision(auto_password=False)
-        self.assertFalse(set_device_passwords_patch.called)
-
-        # when there is sip_password, do
+        # when there is a sip_password, should call set_device_passwords
+        # not testing alternate case, because right now ALWAYS a sip_password when provisioning
         a = Account(did=6175551212, last_name='beaver', first_name='tim', sip_password='password')
         a.devices = [d1, d2]
         a.provision()
@@ -793,22 +789,12 @@ class TestBroadsoftAccount(unittest.TestCase):
     def test_sets_password_implicitly_on_provision_when_required(
             self, provision_patch, set_device_passwords_patch
     ):
-        # when no sip_password and auto_password is False
+        # when no sip_password
         a = Account(did=6175551212, last_name='beaver', first_name='tim')
-        a.provision(auto_password=False)
-        self.assertIsNone(a.sip_password)
-
-        # when no sip_password and auto_password is True
-        a = Account(did=6175551212, last_name='beaver', first_name='tim')
-        a.provision(auto_password=True)
+        a.provision()
         self.assertIsNotNone(a.sip_password)
 
-        # when no sip_password and auto_password is False
+        # when is sip_password
         a = Account(did=6175551212, last_name='beaver', first_name='tim', sip_password='password')
-        a.provision(auto_password=False)
-        self.assertEqual('password', a.sip_password)
-
-        # when no sip_password and auto_password is True
-        a = Account(did=6175551212, last_name='beaver', first_name='tim', sip_password='password')
-        a.provision(auto_password=True)
+        a.provision()
         self.assertEqual('password', a.sip_password)

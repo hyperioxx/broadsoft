@@ -147,8 +147,8 @@ class Account(BroadsoftObject):
             d.fetch(target_name=d.name)
             self.devices.append(d)
 
-    def provision(self, auto_password=True):
-        if not self.sip_password and auto_password:
+    def provision(self):
+        if not self.sip_password:
             self.generate_sip_password()
 
         BroadsoftObject.provision(self)
