@@ -171,7 +171,7 @@ class Account(BroadsoftObject):
 
         for d in self.devices:
             d.set_password(sip_user_name=self.sip_user_id, did=self.did, sip_password=new_sip_password,
-                           **kwargs)
+                           use_test=self.use_test, **kwargs)
 
     def set_portal_password(self, sip_password=None, **kwargs):
         new_password = sip_password
