@@ -82,10 +82,6 @@ class Device(BroadsoftObject):
             b = BroadsoftRequest()
             sip_user_name = b.derive_sip_user_id(did=did)
 
-        # harmonize the use_test found in the parent object and kwargs for this method
-        if self.use_test is not None and ('use_test' not in kwargs or kwargs['use_test'] is None):
-            kwargs['use_test'] = self.use_test
-
         g = GroupAccessDeviceModifyRequest(device_name=self.name, sip_user_name=sip_user_name,
-                                           sip_password=sip_password, **kwargs)
+                                           sip_password=sip_password, use_test=self.use_test, **kwargs)
         g.post()

@@ -152,12 +152,9 @@ class Account(BroadsoftObject):
         if not self.devices or len(self.devices) == 0:
             self.load_devices()
 
-        # harmonize the use_test found in the parent object and kwargs for this method
-        if self.use_test is not None and ('use_test' not in kwargs or kwargs['use_test'] is None):
-            kwargs['use_test'] = self.use_test
-
         for d in self.devices:
-            d.set_password(sip_user_name=self.sip_user_id, did=self.did, sip_password=new_sip_password, **kwargs)
+            d.set_password(sip_user_name=self.sip_user_id, did=self.did, sip_password=new_sip_password,
+                           use_test=self.use_test, **kwargs)
 
     def set_portal_password(self, sip_password=None, **kwargs):
         new_password = sip_password
@@ -172,8 +169,5 @@ class Account(BroadsoftObject):
         if not new_password:
             raise AttributeError("can't reset Account sip_password without a value for sip_password")
 
-        # harmonize the use_test found in the parent object and kwargs for this method
-        if self.use_test is not None and ('use_test' not in kwargs or kwargs['use_test'] is None):
-            kwargs['use_test'] = self.use_test
-
-        UserModifyRequest.set_password(did=self.did, sip_user_id=self.sip_user_id, new_password=new_password, **kwargs)
+        UserModifyRequest.set_password(did=self.did, sip_user_id=self.sip_user_id, new_password=new_password,
+                                       use_test=self.use_test, **kwargs)

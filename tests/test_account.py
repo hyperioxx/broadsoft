@@ -767,33 +767,3 @@ class TestBroadsoftAccount(unittest.TestCase):
         call = set_password_patch.call_args_list[1]
         args, kwargs = call
         self.assertFalse(kwargs['use_test'])
-
-        # in set_device_passwords call
-        a = Account(did=6175551212)
-        a.devices = [d1]
-        a.set_device_passwords(new_sip_password='newpassword', use_test=True)
-        call = set_password_patch.call_args_list[2]
-        args, kwargs = call
-        self.assertTrue(kwargs['use_test'])
-
-        a = Account(did=6175551212)
-        a.devices = [d1]
-        a.set_device_passwords(new_sip_password='newpassword', use_test=False)
-        call = set_password_patch.call_args_list[3]
-        args, kwargs = call
-        self.assertFalse(kwargs['use_test'])
-
-        # in both; explicit call in set_device_passwords should win
-        a = Account(did=6175551212, use_test=False)
-        a.devices = [d1]
-        a.set_device_passwords(new_sip_password='newpassword', use_test=True)
-        call = set_password_patch.call_args_list[4]
-        args, kwargs = call
-        self.assertTrue(kwargs['use_test'])
-
-        a = Account(did=6175551212, use_test=True)
-        a.devices = [d1]
-        a.set_device_passwords(new_sip_password='newpassword', use_test=False)
-        call = set_password_patch.call_args_list[5]
-        args, kwargs = call
-        self.assertFalse(kwargs['use_test'])
