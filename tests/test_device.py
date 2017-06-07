@@ -297,6 +297,3 @@ class TestBroadsoftDevice(unittest.TestCase):
         call = device_mod_patch.call_args_list[3]
         args, kwargs = call
         self.assertTrue(kwargs['use_test'])
-
-    def test_passes_default_domain_as_needed(self):
-        self.assertFalse("write this")

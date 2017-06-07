@@ -845,6 +845,3 @@ class TestBroadsoftAccount(unittest.TestCase):
         a.did = '617 555 1212'
         a.provision()
         self.assertEqual('6175551212@' + a.default_domain, a.sip_user_id)
-
-    def test_passes_default_domain_as_needed(self):
-        self.assertFalse("write this")
