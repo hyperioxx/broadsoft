@@ -123,6 +123,9 @@ class GroupAccessDeviceModifyRequest(BroadsoftRequest):
             e.text = self.mobility_manager_default_terminating_service_key
 
         if self.sip_user_name or self.sip_password:
+            e = ET.SubElement(cmd, 'useCustomUserNamePassword')
+            e.text = 'true'
+
             adc = AccessDeviceCredentials(sip_user_name=self.sip_user_name, sip_password=self.sip_password)
             cmd.append(adc.to_xml())
 

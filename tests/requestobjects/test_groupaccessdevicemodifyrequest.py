@@ -116,6 +116,7 @@ class TestBroadsoftGroupAccessDeviceModifyRequest(unittest.TestCase):
             '<protocol>SIP 2.0</protocol>' + \
             '<configurationMode>Default</configurationMode>' + \
             '<transportProtocol>Unspecified</transportProtocol>' + \
+            '<useCustomUserNamePassword>true</useCustomUserNamePassword>' + \
             '<accessDeviceCredentials>' + \
             '<userName>' + g.sip_user_name + '</userName>' + \
             '<password>' + g.sip_password+ '</password>' + \
