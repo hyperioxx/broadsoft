@@ -534,3 +534,6 @@ class TestBroadsoftRequest(unittest.TestCase):
         # expect to see 3 calls to convert_booleans: one for BroadsoftRequest, and one for each of the
         # two nested commands
         self.assertEqual(3, len(convert_booleans_patch.call_args_list))
+
+    def test_usage_of_broadsoftinstance(self):
+        self.assertFalse("write this")

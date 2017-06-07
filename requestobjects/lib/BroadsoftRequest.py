@@ -19,37 +19,26 @@ defines what a request to the Broadsoft OCI server looks like, how to post to it
 
 class BroadsoftRequest(XmlDocument):
     auth_exceptions = ['AuthenticationRequest', 'LoginRequest14sp4', 'LogoutRequest']
-    prod_api_url = '[unknown]'
-    test_api_url = 'https://web1.voiplogic.net/webservice/services/ProvisioningService'
     logging_dir = '/var/log/broadsoft'
     logging_fname = 'api.log'
-    service_provider = 'ENT136'
     default_timezone = 'America/New_York'
     check_success = False
-    default_group_id = 'mit'
 
-    def __init__(self, use_test=False, session_id=None, require_logging=True, auth_object=None,
-                 login_object=None, group_id=None, auto_derive_group_id=True, timezone=None):
-        self.api_password = None
-        self.api_url = None
-        self.api_user_id = None
+    def __init__(self, broadsoft_instance=None, session_id=None, require_logging=True, auth_object=None,
+                 login_object=None, timezone=None):
         self.auth_object = auth_object
+        self.broadsoft_instance = broadsoft_instance
         self.commands = []
-        self.group_id = group_id
         self.last_response = None
         self.login_object = login_object
         self.session_id = session_id
-        self.use_test = use_test
+
         if timezone:
             self.timezone = timezone
         else:
             self.timezone = self.default_timezone
 
-        self.derive_api_url()
         self.build_session_id()
-
-        if not self.group_id and auto_derive_group_id:
-            self.group_id = self.default_group_id
 
         self.prep_attributes()
 
@@ -155,11 +144,6 @@ class BroadsoftRequest(XmlDocument):
                                            backupCount=12)
         logger.addHandler(handler)
 
-    def derive_api_url(self):
-        self.api_url = self.prod_api_url
-        if self.use_test:
-            self.api_url = self.test_api_url
-
     def derive_commands(self):
         # determine source of commands we'll be injecting into the master XML document
 
@@ -176,10 +160,7 @@ class BroadsoftRequest(XmlDocument):
 
     def derive_creds(self):
         from nistcreds.NistCreds import NistCreds
-        creds_member = 'prod'
-        if self.use_test:
-            creds_member = 'test'
-        creds = NistCreds(group='broadsoft', member=creds_member)
+        creds = NistCreds(group='broadsoft', member=self.broadsoft_instance.creds_member)
         self.api_user_id = creds.username
         self.api_password = creds.password
 
