@@ -106,6 +106,11 @@ class Account(BroadsoftObject):
             self.sip_user_id = cmd.findall('defaultAlias')[0].text
         self.load_devices()
 
+    def generate_sip_password(self):
+        if self.sip_password is None:
+            import random
+            self.sip_password = str(random.randint(1000000000, 9999999999))
+
     def link_primary_device(self, req_object, device):
         u_mod = UserModifyRequest(did=self.did, sip_user_id=self.sip_user_id,
                                   device_name=device.name, use_test=self.use_test)
@@ -142,7 +147,10 @@ class Account(BroadsoftObject):
             d.fetch(target_name=d.name)
             self.devices.append(d)
 
-    def provision(self):
+    def provision(self, auto_password=True):
+        if not self.sip_password and auto_password:
+            self.generate_sip_password()
+
         BroadsoftObject.provision(self)
 
         # Not making this part atomic since I want to leverage set_device_passwords(), so it gets called outside of

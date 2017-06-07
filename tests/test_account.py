@@ -788,5 +788,27 @@ class TestBroadsoftAccount(unittest.TestCase):
         a.provision()
         self.assertTrue(set_device_passwords_patch.called)
 
-    def test_sets_password_implicitly_on_provision_when_required(self):
-        self.assertFalse("write this")
+    @unittest.mock.patch.object(Account, 'set_device_passwords')
+    @unittest.mock.patch.object(BroadsoftObject, 'provision')
+    def test_sets_password_implicitly_on_provision_when_required(
+            self, provision_patch, set_device_passwords_patch
+    ):
+        # when no sip_password and auto_password is False
+        a = Account(did=6175551212, last_name='beaver', first_name='tim')
+        a.provision(auto_password=False)
+        self.assertIsNone(a.sip_password)
+
+        # when no sip_password and auto_password is True
+        a = Account(did=6175551212, last_name='beaver', first_name='tim')
+        a.provision(auto_password=True)
+        self.assertIsNotNone(a.sip_password)
+
+        # when no sip_password and auto_password is False
+        a = Account(did=6175551212, last_name='beaver', first_name='tim', sip_password='password')
+        a.provision(auto_password=False)
+        self.assertEqual('password', a.sip_password)
+
+        # when no sip_password and auto_password is True
+        a = Account(did=6175551212, last_name='beaver', first_name='tim', sip_password='password')
+        a.provision(auto_password=True)
+        self.assertEqual('password', a.sip_password)
