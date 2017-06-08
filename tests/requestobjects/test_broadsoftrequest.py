@@ -556,6 +556,15 @@ class TestBroadsoftRequest(unittest.TestCase):
         self.assertEqual(b.service_provider, '3')
         self.assertEqual(b.group_id, '4')
 
+        # when forced should overwrite
+        bi = BroadsoftInstance.BroadsoftInstance()
+        b = BroadsoftRequest(broadsoftinstance=bi, api_url='1', creds_member='2', service_provider='3', group_id='4')
+        b.apply_broadsoftinstance(force=True)
+        self.assertEqual(b.api_url, bi.api_url)
+        self.assertEqual(b.creds_member, bi.creds_member)
+        self.assertEqual(b.service_provider, bi.service_provider)
+        self.assertEqual(b.group_id, bi.group_id)
+
     @unittest.mock.patch.object(BroadsoftRequest, 'apply_broadsoftinstance')
     def test_apply_broadsoft_instance_in_prep_attributes(
             self, apply_broadsoftinstance_patch):

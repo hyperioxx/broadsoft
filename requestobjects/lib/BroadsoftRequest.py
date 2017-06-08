@@ -46,21 +46,20 @@ class BroadsoftRequest(XmlDocument):
             self.timezone = self.default_timezone
 
         self.build_session_id()
-
         self.prep_attributes()
 
         # now that we're done setting up shop, start the logging
         self.default_logging(require_logging)
 
-    def apply_broadsoftinstance(self):
+    def apply_broadsoftinstance(self, force=False):
         for p in self.broadsoftinstance_properties:
-            if getattr(self, p) is None:
+            if getattr(self, p) is None or force:
                 bi_attr = getattr(self.broadsoftinstance, p)
                 setattr(self, p, bi_attr)
 
         occasional_properties = ['service_provider']
         for p in occasional_properties:
-            if hasattr(self, p) and getattr(self, p) is None:
+            if hasattr(self, p) and (getattr(self, p) is None or force):
                 bi_attr = getattr(self.broadsoftinstance, p)
                 setattr(self, p, bi_attr)
 

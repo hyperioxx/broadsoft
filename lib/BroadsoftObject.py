@@ -37,6 +37,10 @@ class BroadsoftObject:
     def inject_broadsoftinstance(self, child):
         if self.broadsoftinstance:
             child.broadsoftinstance = self.broadsoftinstance
+            try:
+                child.apply_broadsoftinstance(force=True)
+            except AttributeError:
+                pass
 
     def prep_attributes(self):
         self.derive_default_domain()
