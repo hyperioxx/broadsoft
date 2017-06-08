@@ -261,24 +261,24 @@ class TestBroadsoftDevice(unittest.TestCase):
     def test_derive_line_port(self):
         # implicit broadsoftinstance
         d = Device(did=6175551212, mac_address='aa:bb:cc:11:22:33')
-        self.assertEqual('6175551212_aabbcc112233_1@' + d.default_domain, d.line_port)
+        self.assertEqual('6175551212_aabbcc112233_' + str(d.index) + '@' + d.default_domain, d.line_port)
 
         # not test broadsoftinstance
         i = BroadsoftInstance.factory(use_test=False)
         d = Device(did=6175551212, mac_address='aa:bb:cc:11:22:33', broadsoftinstance=i)
-        self.assertEqual('6175551212_aabbcc112233_1@' + i.default_domain, d.line_port)
+        self.assertEqual('6175551212_aabbcc112233_' + str(d.index) + '@' + i.default_domain, d.line_port)
 
         # test broadsoftinstance
         i = BroadsoftInstance.factory(use_test=True)
         d = Device(did=6175551212, mac_address='aa:bb:cc:11:22:33', broadsoftinstance=i)
-        self.assertEqual('6175551212_aabbcc112233_1@' + i.default_domain, d.line_port)
+        self.assertEqual('6175551212_aabbcc112233_' + str(d.index) + '@' + i.default_domain, d.line_port)
 
         # use_test arg True
         i = BroadsoftInstance.factory(use_test=True)
         d = Device(did=6175551212, mac_address='aa:bb:cc:11:22:33', use_test=True)
-        self.assertEqual('6175551212_aabbcc112233_1@' + d.default_domain, d.line_port)
+        self.assertEqual('6175551212_aabbcc112233_' + str(d.index) + '@' + d.default_domain, d.line_port)
 
         # use_test arg False
         i = BroadsoftInstance.factory(use_test=False)
         d = Device(did=6175551212, mac_address='aa:bb:cc:11:22:33', use_test=False)
-        self.assertEqual('6175551212_aabbcc112233_1@' + d.default_domain, d.line_port)
+        self.assertEqual('6175551212_aabbcc112233_' + str(d.index) + '@' + d.default_domain, d.line_port)
