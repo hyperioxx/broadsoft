@@ -1,7 +1,8 @@
 import unittest.mock
 import xml.etree.ElementTree as ET
+
+from broadsoft.lib import BroadsoftInstance
 from broadsoft.requestobjects.GroupAccessDeviceModifyRequest import GroupAccessDeviceModifyRequest
-from broadsoft import BroadsoftInstance
 
 
 class TestBroadsoftGroupAccessDeviceModifyRequest(unittest.TestCase):
@@ -63,8 +64,8 @@ class TestBroadsoftGroupAccessDeviceModifyRequest(unittest.TestCase):
     def test_to_xml(self):
         # with a mac address
         g = GroupAccessDeviceModifyRequest(device_name='dname', mac_address='aabbcc112233',
-                                        description='desc', group_id='testgroup', ip_address='18.18.18.18',
-                                        port='1054', broadsoftinstance=BroadsoftInstance.factory())
+                                           description='desc', group_id='testgroup', ip_address='18.18.18.18',
+                                           port='1054', broadsoftinstance=BroadsoftInstance.factory())
 
         target_xml = \
             '<command xmlns="" xsi:type="GroupAccessDeviceModifyRequest14">' + \
@@ -86,8 +87,8 @@ class TestBroadsoftGroupAccessDeviceModifyRequest(unittest.TestCase):
 
         # without a mac address
         g = GroupAccessDeviceModifyRequest(device_name='dname',
-                                        description='desc', group_id='testgroup', ip_address='18.18.18.18',
-                                        port='1054', broadsoftinstance=BroadsoftInstance.factory())
+                                           description='desc', group_id='testgroup', ip_address='18.18.18.18',
+                                           port='1054', broadsoftinstance=BroadsoftInstance.factory())
 
         target_xml = \
             '<command xmlns="" xsi:type="GroupAccessDeviceModifyRequest14">' + \

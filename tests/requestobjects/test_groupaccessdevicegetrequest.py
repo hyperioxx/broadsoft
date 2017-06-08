@@ -1,8 +1,9 @@
 import unittest.mock
 import xml.etree.ElementTree as ET
+
+from broadsoft.lib import BroadsoftInstance
 from broadsoft.requestobjects.GroupAccessDeviceGetRequest import GroupAccessDeviceGetRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
-from broadsoft import BroadsoftInstance
 
 
 def return_none(**kwargs):

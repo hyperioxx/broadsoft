@@ -1,10 +1,8 @@
+from broadsoft.lib.BroadsoftObject import BroadsoftObject
 from broadsoft.requestobjects.GroupAccessDeviceAddRequest import GroupAccessDeviceAddRequest
 from broadsoft.requestobjects.GroupAccessDeviceGetRequest import GroupAccessDeviceGetRequest
 from broadsoft.requestobjects.GroupAccessDeviceModifyRequest import GroupAccessDeviceModifyRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
-from broadsoft.BroadsoftObject import BroadsoftObject
-import xml.etree.ElementTree as ET
-import re
 
 
 class Device(BroadsoftObject):

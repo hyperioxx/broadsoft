@@ -1,8 +1,8 @@
 import unittest.mock
 import xml.etree.ElementTree as ET
+from broadsoft.lib import BroadsoftInstance
 from broadsoft.requestobjects.UserAddRequest import UserAddRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
-from broadsoft import BroadsoftInstance
 
 
 class TestBroadsoftUserAddRequest(unittest.TestCase):

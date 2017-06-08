@@ -1,5 +1,6 @@
 import unittest
-from broadsoft import BroadsoftInstance
+
+from broadsoft.lib import BroadsoftInstance
 
 
 class TestBroadsoftInstance(unittest.TestCase):

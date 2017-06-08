@@ -1,8 +1,9 @@
 import http.cookiejar
 import unittest.mock
 import xml.etree.ElementTree as ET
+
+from broadsoft.lib import BroadsoftInstance
 from broadsoft.requestobjects.lib.BroadsoftRequest import AuthenticationRequest
-from broadsoft import BroadsoftInstance
 
 
 def return_none(*args, **kwargs):

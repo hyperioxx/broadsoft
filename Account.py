@@ -1,12 +1,13 @@
-from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
+from broadsoft.Device import Device
+from broadsoft.lib.BroadsoftObject import BroadsoftObject
 from broadsoft.requestobjects.UserAddRequest import UserAddRequest
+from broadsoft.requestobjects.UserGetRequest import UserGetRequest
 from broadsoft.requestobjects.UserModifyRequest import UserModifyRequest
 from broadsoft.requestobjects.UserServiceAssignListRequest import UserServiceAssignListRequest
-from broadsoft.requestobjects.UserSharedCallAppearanceAddEndpointRequest import UserSharedCallAppearanceAddEndpointRequest
+from broadsoft.requestobjects.UserSharedCallAppearanceAddEndpointRequest import \
+    UserSharedCallAppearanceAddEndpointRequest
 from broadsoft.requestobjects.UserSharedCallAppearanceGetRequest import UserSharedCallAppearanceGetRequest
-from broadsoft.requestobjects.UserGetRequest import UserGetRequest
-from broadsoft.BroadsoftObject import BroadsoftObject
-from broadsoft.Device import Device
+from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 
 
 class Account(BroadsoftObject):

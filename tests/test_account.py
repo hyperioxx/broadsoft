@@ -1,16 +1,17 @@
 import unittest.mock
-from broadsoft.Device import Device
+import xml.etree.ElementTree as ET
+from xml.etree.ElementTree import Element
+from broadsoft.lib import BroadsoftInstance
 from broadsoft.Account import Account
-from broadsoft.BroadsoftObject import BroadsoftObject
-from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
+from broadsoft.Device import Device
+from broadsoft.lib.BroadsoftObject import BroadsoftObject
+from broadsoft.requestobjects.GroupAccessDeviceAddRequest import GroupAccessDeviceAddRequest
 from broadsoft.requestobjects.UserAddRequest import UserAddRequest
 from broadsoft.requestobjects.UserModifyRequest import UserModifyRequest
 from broadsoft.requestobjects.UserServiceAssignListRequest import UserServiceAssignListRequest
-from broadsoft.requestobjects.GroupAccessDeviceAddRequest import GroupAccessDeviceAddRequest
-from broadsoft.requestobjects.UserSharedCallAppearanceAddEndpointRequest import UserSharedCallAppearanceAddEndpointRequest
-from xml.etree.ElementTree import Element
-import xml.etree.ElementTree as ET
-from broadsoft import BroadsoftInstance
+from broadsoft.requestobjects.UserSharedCallAppearanceAddEndpointRequest import \
+    UserSharedCallAppearanceAddEndpointRequest
+from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 
 
 def get_device_mock(name, **kwargs):

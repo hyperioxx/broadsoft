@@ -1,8 +1,8 @@
 import unittest
 import unittest.mock
-from broadsoft.BroadsoftObject import BroadsoftObject
-from broadsoft import BroadsoftInstance
-from broadsoft.Account import Account
+from broadsoft.lib import BroadsoftInstance
+from broadsoft.lib.BroadsoftObject import BroadsoftObject
+
 
 class TestBroadsoftObject(unittest.TestCase):
     def test_derive_domain_based_on_test_and_prod(self):

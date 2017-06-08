@@ -1,6 +1,7 @@
 import xml.etree.ElementTree as ET
+
+from broadsoft.lib import BroadsoftInstance
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
-from broadsoft import BroadsoftInstance
 
 
 class BroadsoftObject:

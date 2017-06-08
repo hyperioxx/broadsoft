@@ -1,7 +1,8 @@
 import unittest.mock
 import xml.etree.ElementTree as ET
+
+from broadsoft.lib import BroadsoftInstance
 from broadsoft.requestobjects.GroupAddRequest import GroupAddRequest
-from broadsoft import BroadsoftInstance
 
 
 class TestBroadsoftGroupAddRequest(unittest.TestCase):

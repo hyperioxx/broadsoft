@@ -1,7 +1,9 @@
 import unittest.mock
 import xml.etree.ElementTree as ET
+
+from broadsoft.lib import BroadsoftInstance
 from broadsoft.requestobjects.GroupGetListInServiceProviderRequest import GroupGetListInServiceProviderRequest
-from broadsoft import BroadsoftInstance
+
 
 def return_groups_list(**kwargs):
     return '<ns0:BroadsoftDocument xmlns:ns0="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" protocol="OCI"><sessionId>Chriss-MacBook-Pro-4.local,2017-05-02 17:31:34.373071,3810609302</sessionId><command echo="" xsi:type="GroupGetListInServiceProviderResponse"><groupTable><colHeading>Group Id</colHeading><colHeading>Group Name</colHeading><colHeading>User Limit</colHeading><row><col>anothertestgroup</col><col>Another Test Group</col><col>25</col></row><row><col>sandbox</col><col /><col>25</col></row></groupTable></command></ns0:BroadsoftDocument>'

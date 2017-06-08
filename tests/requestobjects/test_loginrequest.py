@@ -1,7 +1,8 @@
 import unittest.mock
-from broadsoft.requestobjects.lib.BroadsoftRequest import LoginRequest
 import xml.etree.ElementTree as ET
-from broadsoft import BroadsoftInstance
+
+from broadsoft.lib import BroadsoftInstance
+from broadsoft.requestobjects.lib.BroadsoftRequest import LoginRequest
 
 
 def return_none(*args, **kwargs):

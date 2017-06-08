@@ -1,13 +1,14 @@
-import unittest
 import http.cookiejar
+import unittest
 import unittest.mock
 import xml.etree.ElementTree as ET
-from broadsoft.requestobjects.GroupGetListInServiceProviderRequest import GroupGetListInServiceProviderRequest
+
+from broadsoft.lib import BroadsoftInstance
 from broadsoft.requestobjects.GroupAddRequest import GroupAddRequest
+from broadsoft.requestobjects.GroupGetListInServiceProviderRequest import GroupGetListInServiceProviderRequest
 from broadsoft.requestobjects.UserAddRequest import UserAddRequest
-from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest, AuthenticationRequest, LoginRequest,\
+from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest, AuthenticationRequest, LoginRequest, \
     LogoutRequest
-from broadsoft import BroadsoftInstance
 
 
 def return_none(*args, **kwargs):
