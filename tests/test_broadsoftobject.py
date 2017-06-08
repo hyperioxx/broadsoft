@@ -51,3 +51,6 @@ class TestBroadsoftObject(unittest.TestCase):
         args, kwargs = call
         self.assertFalse(kwargs['use_test'])
         derive_broadsoft_instance_patch.called = False
+
+    def test_injected_broadsoftinstance_overrides_prior_settings_in_child_object(self):
+        self.assertFalse("write this")

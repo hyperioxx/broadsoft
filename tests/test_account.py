@@ -241,7 +241,6 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertIsInstance(cmd, UserSharedCallAppearanceAddEndpointRequest)
         self.assertEqual(cmd.sip_user_id, str(a.did) + '@' + a.default_domain)
         self.assertEqual(cmd.device_name, d1.name)
-        self.assertEqual(cmd.line_port, d1.name + '_lp@' + a.default_domain)
 
     def test_add_devices(self):
         a = Account(did=6175551212)
@@ -926,3 +925,32 @@ class TestBroadsoftAccount(unittest.TestCase):
         call = set_password_patch.call_args_list[0]
         args, kwargs = call
         self.assertIsInstance(kwargs['broadsoftinstance'], BroadsoftInstance.BroadsoftInstance)
+
+    @unittest.mock.patch.object(UserModifyRequest, '__init__', side_effect=return_none)
+    def test_link_primary_device_post_call(
+            self, umr_init_patch
+    ):
+        d = Device(name='dname', line_port='lp')
+        a = Account(did=6175551212, sip_user_id='6175551212@broadsoft.mit.edu')
+        a.link_primary_device(req_object=BroadsoftRequest(), device=d)
+
+        call = umr_init_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertEqual(kwargs['did'], a.did)
+        self.assertEqual(kwargs['sip_user_id'], a.sip_user_id)
+        self.assertEqual(kwargs['device_name'], d.name)
+        self.assertEqual(kwargs['line_port'], d.line_port)
+
+    @unittest.mock.patch.object(UserSharedCallAppearanceAddEndpointRequest, '__init__', side_effect=return_none)
+    def test_link_sca_device_post_call(
+            self, usca_init_patch
+    ):
+        d = Device(name='dname', line_port='lp')
+        a = Account(did=6175551212, sip_user_id='6175551212@broadsoft.mit.edu')
+        a.link_sca_device(req_object=BroadsoftRequest(), device=d)
+
+        call = usca_init_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertEqual(kwargs['sip_user_id'], a.sip_user_id)
+        self.assertEqual(kwargs['device_name'], d.name)
+        self.assertEqual(kwargs['line_port'], d.line_port)

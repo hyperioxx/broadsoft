@@ -117,15 +117,13 @@ class Account(BroadsoftObject):
             self.sip_password = str(random.randint(1000000000, 9999999999))
 
     def link_primary_device(self, req_object, device):
-        u_mod = UserModifyRequest(did=self.did, sip_user_id=self.sip_user_id,
-                                  device_name=device.name)
+        u_mod = UserModifyRequest(did=self.did, sip_user_id=self.sip_user_id, device_name=device.name,
+                                  line_port=device.line_port)
         self.inject_broadsoftinstance(child=u_mod)
         req_object.commands.append(u_mod)
 
     def link_sca_device(self, req_object, device):
         line_port = device.line_port
-        if not line_port:
-            line_port = device.name + '_lp@' + self.default_domain
         sca = UserSharedCallAppearanceAddEndpointRequest(sip_user_id=self.sip_user_id,
                                                          device_name=device.name, line_port=line_port)
         self.inject_broadsoftinstance(child=sca)
