@@ -24,13 +24,18 @@ class BroadsoftRequest(XmlDocument):
     default_timezone = 'America/New_York'
     check_success = False
 
-    def __init__(self, broadsoft_instance=None, session_id=None, require_logging=True, auth_object=None,
-                 login_object=None, timezone=None):
+    def __init__(self, session_id=None, require_logging=True, auth_object=None,
+                 login_object=None, timezone=None, broadsoftinstance=None, api_url=None,
+                 creds_member=None, service_provider=None, group_id=None):
+        self.api_url = api_url
         self.auth_object = auth_object
-        self.broadsoft_instance = broadsoft_instance
+        self.broadsoftinstance = broadsoftinstance
+        self.creds_member = creds_member
         self.commands = []
+        self.group_id = group_id
         self.last_response = None
         self.login_object = login_object
+        self.service_provider = service_provider
         self.session_id = session_id
 
         if timezone:
@@ -44,6 +49,13 @@ class BroadsoftRequest(XmlDocument):
 
         # now that we're done setting up shop, start the logging
         self.default_logging(require_logging)
+
+    def apply_broadsoftinstance(self):
+        props = ['api_url', 'creds_member', 'service_provider', 'group_id']
+        for p in props:
+            if getattr(self, p) is None:
+                bi_attr = getattr(self.broadsoftinstance, p)
+                setattr(self, p, bi_attr)
 
     def authenticate_and_login(self):
         logging.info("running authenticate request", extra={'session_id': self.session_id})
@@ -274,6 +286,9 @@ class BroadsoftRequest(XmlDocument):
 
         if hasattr(self, 'clid_did') and self.clid_did:
             self.clid_did = BroadsoftRequest.convert_phone_number(number=self.clid_did)
+
+        if self.broadsoftinstance:
+            self.apply_broadsoftinstance()
 
     def prep_for_xml(self):
         self.prep_attributes()

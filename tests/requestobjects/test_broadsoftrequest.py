@@ -5,9 +5,9 @@ import xml.etree.ElementTree as ET
 from broadsoft.requestobjects.GroupGetListInServiceProviderRequest import GroupGetListInServiceProviderRequest
 from broadsoft.requestobjects.GroupAddRequest import GroupAddRequest
 from broadsoft.requestobjects.UserAddRequest import UserAddRequest
-from broadsoft.requestobjects.GroupAccessDeviceAddRequest import GroupAccessDeviceAddRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest, AuthenticationRequest, LoginRequest,\
     LogoutRequest
+from broadsoft import BroadsoftInstance
 
 
 def return_none(*args, **kwargs):
@@ -535,5 +535,29 @@ class TestBroadsoftRequest(unittest.TestCase):
         # two nested commands
         self.assertEqual(3, len(convert_booleans_patch.call_args_list))
 
-    def test_usage_of_broadsoftinstance(self):
-        self.assertFalse("write this")
+    def test_apply_broadsoft_instance(self):
+        # none of the BroadsoftInstance properties set
+        bi = BroadsoftInstance.BroadsoftInstance()
+        b = BroadsoftRequest(broadsoftinstance=bi)
+        self.assertEqual(b.api_url, bi.api_url)
+        self.assertEqual(b.creds_member, bi.creds_member)
+        self.assertEqual(b.service_provider, bi.service_provider)
+        self.assertEqual(b.group_id, bi.group_id)
+
+        # all of the BroadsoftInstance properties set
+        bi = BroadsoftInstance.BroadsoftInstance()
+        b = BroadsoftRequest(broadsoftinstance=bi, api_url='1', creds_member='2', service_provider='3', group_id='4')
+        self.assertEqual(b.api_url, '1')
+        self.assertEqual(b.creds_member, '2')
+        self.assertEqual(b.service_provider, '3')
+        self.assertEqual(b.group_id, '4')
+
+    @unittest.mock.patch.object(BroadsoftRequest, 'apply_broadsoftinstance')
+    def test_apply_broadsoft_instance_in_prep_attributes(
+            self, apply_broadsoftinstance_patch):
+        bi = BroadsoftInstance.BroadsoftInstance()
+        b = BroadsoftRequest(broadsoftinstance=bi)
+        apply_broadsoftinstance_patch.called = False
+        b.prep_attributes()
+        self.assertTrue(apply_broadsoftinstance_patch.called)
+

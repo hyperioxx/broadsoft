@@ -1,13 +1,15 @@
 import xml.etree.ElementTree as ET
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
+from broadsoft import BroadsoftInstance
 
 
 class BroadsoftObject:
     prod_default_domain = 'broadsoft.mit.edu'
     test_default_domain = 'broadsoft-dev.mit.edu'
 
-    def __init__(self, xml=None, use_test=False):
+    def __init__(self, xml=None, use_test=False, broadsoft_instance=None):
         self.xml = xml
+        self.broadsoft_instance = broadsoft_instance
         self.default_domain = None
         self.use_test = use_test
         self.prep_attributes()
@@ -36,7 +38,14 @@ class BroadsoftObject:
         if self.xml and type(self.xml) is str:
             self.xml = ET.fromstring(self.xml)
 
+        if self.broadsoft_instance is None:
+            self.broadsoft_instance = self.derive_broadsoft_instance(use_test=self.use_test)
+
     def provision(self):
         ro = self.build_provision_request()
         results = ro.post()
         return results
+
+    @staticmethod
+    def derive_broadsoft_instance(use_test):
+        return BroadsoftInstance.factory(use_test=use_test)

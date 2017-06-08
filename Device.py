@@ -42,7 +42,7 @@ class Device(BroadsoftObject):
         self.is_primary = False
 
     def build_provision_request(self):
-        g = GroupAccessDeviceAddRequest(use_test=self.use_test)
+        g = GroupAccessDeviceAddRequest(broadsoftinstance=self.broadsoft_instance)
         g.description = self.description
         g.device_name = self.name
         g.device_type = self.type
@@ -56,7 +56,7 @@ class Device(BroadsoftObject):
     def fetch(self, target_name=None):
         if not target_name:
             target_name = self.name
-        self.xml = GroupAccessDeviceGetRequest.get_device(name=target_name, use_test=self.use_test)
+        self.xml = GroupAccessDeviceGetRequest.get_device(name=target_name, broadsoftinstance=self.broadsoft_instance)
         self.from_xml()
 
     def from_xml(self):
@@ -67,7 +67,7 @@ class Device(BroadsoftObject):
         if len(descs) > 0:
             self.description = descs[0].text
 
-    def set_password(self, did=None, sip_user_name=None, sip_password=None, **kwargs):
+    def set_password(self, did=None, sip_user_name=None, sip_password=None):
         if not did and not sip_user_name:
             raise ValueError("can't call Device.set_password without a value for did or sip_user_name")
 
@@ -81,10 +81,6 @@ class Device(BroadsoftObject):
             b = BroadsoftRequest()
             sip_user_name = self.derive_sip_user_id(did=did)
 
-        if kwargs and 'use_test' in kwargs:
-            self.use_test = kwargs['use_test']
-            kwargs.pop('use_test', None)
-
         g = GroupAccessDeviceModifyRequest(device_name=self.name, sip_user_name=sip_user_name,
-                                           sip_password=sip_password, use_test=self.use_test, **kwargs)
+                                           sip_password=sip_password, broadsoftinstance=self.broadsoft_instance)
         g.post()

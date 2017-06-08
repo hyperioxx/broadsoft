@@ -16,6 +16,7 @@ class TestBroadsoftInstance(BroadsoftInstance):
         self.api_url = 'https://web1.voiplogic.net/webservice/services/ProvisioningService'
         self.creds_member = 'test'
 
+
 def factory(use_test=False):
     if use_test:
         return TestBroadsoftInstance()
