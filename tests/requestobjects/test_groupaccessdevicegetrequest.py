@@ -2,6 +2,7 @@ import unittest.mock
 import xml.etree.ElementTree as ET
 from broadsoft.requestobjects.GroupAccessDeviceGetRequest import GroupAccessDeviceGetRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
+from broadsoft import BroadsoftInstance
 
 
 def return_none(**kwargs):
@@ -15,7 +16,7 @@ class TestBroadsoftGroupAccessDeviceGetRequest(unittest.TestCase):
             g.validate()
 
     def test_to_xml(self):
-        g = GroupAccessDeviceGetRequest(name='beaverphone')
+        g = GroupAccessDeviceGetRequest(name='beaverphone', broadsoftinstance=BroadsoftInstance.factory())
 
         x = g.to_xml()
         self.maxDiff = None
@@ -30,27 +31,6 @@ class TestBroadsoftGroupAccessDeviceGetRequest(unittest.TestCase):
             '</BroadsoftDocument>',
             ET.tostring(x).decode('utf-8')
         )
-
-    @unittest.mock.patch.object(BroadsoftRequest, 'extract_payload')
-    @unittest.mock.patch('broadsoft.requestobjects.lib.BroadsoftRequest.LogoutRequest.logout')
-    @unittest.mock.patch.object(BroadsoftRequest, 'check_error')
-    @unittest.mock.patch('requests.post')
-    @unittest.mock.patch('broadsoft.requestobjects.lib.SoapEnvelope.SoapEnvelope.to_string')
-    @unittest.mock.patch.object(BroadsoftRequest, 'to_string')
-    @unittest.mock.patch.object(BroadsoftRequest, 'authenticate_and_login')
-    def test_use_test_gets_passed_to_get_device(
-            self, login_patch, ro_to_string_patch, envelop_to_string_patch, requests_post_patch, check_error_patch,
-            logout_patch, extract_payload_patch
-    ):
-        g = GroupAccessDeviceGetRequest.get_device(name='beaver', use_test=False)
-        call = requests_post_patch.call_args_list[0]
-        args, kwargs = call
-        self.assertEqual(kwargs['url'], BroadsoftRequest.prod_api_url)
-
-        g = GroupAccessDeviceGetRequest.get_device(name='beaver', use_test=True)
-        call = requests_post_patch.call_args_list[1]
-        args, kwargs = call
-        self.assertEqual(kwargs['url'], BroadsoftRequest.test_api_url)
 
     @unittest.mock.patch.object(BroadsoftRequest, 'extract_payload')
     @unittest.mock.patch('broadsoft.requestobjects.lib.BroadsoftRequest.LogoutRequest.logout')

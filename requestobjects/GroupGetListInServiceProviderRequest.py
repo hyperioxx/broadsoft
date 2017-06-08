@@ -7,7 +7,8 @@ from broadsoft.requestobjects.lib.SearchRequest import SearchRequest
 class GroupGetListInServiceProviderRequest(SearchRequest):
     command_name = 'GroupGetListInServiceProviderRequest'
 
-    def __init__(self, **kwargs):
+    def __init__(self, service_provider=None, **kwargs):
+        self.service_provider = service_provider
         SearchRequest.__init__(self, **kwargs)
 
     def build_command_xml(self):

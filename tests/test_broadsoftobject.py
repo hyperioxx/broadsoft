@@ -13,8 +13,8 @@ class TestBroadsoftObject(unittest.TestCase):
         self.assertEqual(b.test_default_domain, b.default_domain)
 
     def test_pass_broadsoftinstance(self):
-        b = BroadsoftObject(broadsoft_instance='a')
-        self.assertEqual('a', b.broadsoft_instance)
+        b = BroadsoftObject(broadsoftinstance='a')
+        self.assertEqual('a', b.broadsoftinstance)
 
     def test_derive_broadsoftinstance(self):
         self.assertIsInstance(

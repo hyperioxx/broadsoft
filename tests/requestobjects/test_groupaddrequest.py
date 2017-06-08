@@ -1,6 +1,7 @@
 import unittest.mock
 import xml.etree.ElementTree as ET
 from broadsoft.requestobjects.GroupAddRequest import GroupAddRequest
+from broadsoft import BroadsoftInstance
 
 
 class TestBroadsoftGroupAddRequest(unittest.TestCase):
@@ -66,7 +67,7 @@ class TestBroadsoftGroupAddRequest(unittest.TestCase):
         self.assertTrue(convert_phone_number_patch.called)
 
     def test_groupaddrequest_to_xml_call(self):
-        gar = GroupAddRequest()
+        gar = GroupAddRequest(broadsoftinstance=BroadsoftInstance.factory())
         gar.calling_line_id_name = 'test line id'
         gar.contact_email = 'beaver@mit.edu'
         gar.contact_name = 'Tim Beaver'
@@ -98,16 +99,6 @@ class TestBroadsoftGroupAddRequest(unittest.TestCase):
             '</BroadsoftDocument>',
             ET.tostring(element=xml).decode("utf-8")
         )
-
-    def test_use_test_gets_passed_to_broadsoftdocument(self):
-        g = GroupAddRequest()
-        self.assertEqual(g.prod_api_url, g.api_url)
-
-        g = GroupAddRequest(use_test=False)
-        self.assertEqual(g.prod_api_url, g.api_url)
-
-        g = GroupAddRequest(use_test=True)
-        self.assertEqual(g.test_api_url, g.api_url)
 
     def test_can_pass_session_id(self):
         g = GroupAddRequest(session_id='sesh')

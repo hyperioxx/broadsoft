@@ -63,16 +63,6 @@ class TestBroadsoftSearchRequest(unittest.TestCase):
         s.embed(parent=x)
         self.assertTrue(validate_patch.called)
 
-    def test_use_test_gets_passed_to_broadsoftdocument(self):
-        g = SearchRequest()
-        self.assertEqual(g.prod_api_url, g.api_url)
-
-        g = SearchRequest(use_test=False)
-        self.assertEqual(g.prod_api_url, g.api_url)
-
-        g = SearchRequest(use_test=True)
-        self.assertEqual(g.test_api_url, g.api_url)
-
     def test_can_pass_session_id(self):
         g = SearchRequest(session_id='sesh')
         self.assertEqual('sesh', g.session_id)

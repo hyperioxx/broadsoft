@@ -51,19 +51,25 @@ class BroadsoftRequest(XmlDocument):
         self.default_logging(require_logging)
 
     def apply_broadsoftinstance(self):
-        props = ['api_url', 'creds_member', 'service_provider', 'group_id']
-        for p in props:
+        universal_properties = ['api_url', 'creds_member', 'service_provider', 'group_id']
+        for p in universal_properties:
             if getattr(self, p) is None:
+                bi_attr = getattr(self.broadsoftinstance, p)
+                setattr(self, p, bi_attr)
+
+        occasional_properties = ['service_provider']
+        for p in occasional_properties:
+            if hasattr(self, p) and getattr(self, p) is None:
                 bi_attr = getattr(self.broadsoftinstance, p)
                 setattr(self, p, bi_attr)
 
     def authenticate_and_login(self):
         logging.info("running authenticate request", extra={'session_id': self.session_id})
-        a = AuthenticationRequest.authenticate(use_test=self.use_test, session_id=self.session_id)
+        a = AuthenticationRequest.authenticate(broadsoftinstance=self.broadsoftinstance, session_id=self.session_id)
         self.auth_object = a
 
         logging.info("running login request", extra={'session_id': self.session_id})
-        l = LoginRequest.login(use_test=self.use_test, auth_object=a)
+        l = LoginRequest.login(broadsoftinstance=self.broadsoftinstance, auth_object=a)
         self.login_object = l
         logging.info("continuing with request", extra={'session_id': self.session_id})
 
@@ -172,7 +178,7 @@ class BroadsoftRequest(XmlDocument):
 
     def derive_creds(self):
         from nistcreds.NistCreds import NistCreds
-        creds = NistCreds(group='broadsoft', member=self.broadsoft_instance.creds_member)
+        creds = NistCreds(group='broadsoft', member=self.broadsoftinstance.creds_member)
         self.api_user_id = creds.username
         self.api_password = creds.password
 
@@ -252,7 +258,7 @@ class BroadsoftRequest(XmlDocument):
         # if we're managing login behavior, also do an implicit logout
         if self.need_logout(auto_login):
             logging.info("automatically running logout request", extra={'session_id': self.session_id})
-            l = LogoutRequest.logout(use_test=self.use_test, auth_object=self.auth_object)
+            l = LogoutRequest.logout(broadsoftinstance=self.broadsoftinstance, auth_object=self.auth_object)
 
         # if requested, dig actual message out of SOAP envelope it came in (and return as XML object)
         if extract_payload:
@@ -417,10 +423,12 @@ class BroadsoftRequest(XmlDocument):
 class AuthenticationRequest(BroadsoftRequest):
     command_name = 'AuthenticationRequest'
 
-    def __init__(self, use_test=False, **kwargs):
+    def __init__(self, api_user_id=None, api_password=None, **kwargs):
         self.auth_cookie_jar = None
         self.nonce = None
-        BroadsoftRequest.__init__(self, use_test=use_test, **kwargs)
+        self.api_user_id = api_user_id
+        self.api_password = api_password
+        BroadsoftRequest.__init__(self, **kwargs)
 
     def build_command_xml(self):
         if not self.api_user_id or not self.api_password:
@@ -451,8 +459,10 @@ class AuthenticationRequest(BroadsoftRequest):
 class LoginRequest(BroadsoftRequest):
     command_name = 'LoginRequest14sp4'
 
-    def __init__(self, use_test=False, **kwargs):
-        BroadsoftRequest.__init__(self, use_test=use_test, **kwargs)
+    def __init__(self, use_test=False, api_user_id=None, api_password=None, **kwargs):
+        self.api_user_id = api_user_id
+        self.api_password = api_password
+        BroadsoftRequest.__init__(self, **kwargs)
 
     def build_command_xml(self):
         if not self.api_user_id or not self.api_password:
@@ -493,8 +503,10 @@ class LoginRequest(BroadsoftRequest):
 class LogoutRequest(BroadsoftRequest):
     command_name = 'LogoutRequest'
 
-    def __init__(self, use_test=False, **kwargs):
-        BroadsoftRequest.__init__(self, use_test=use_test, **kwargs)
+    def __init__(self, api_user_id=None, api_password=None, **kwargs):
+        self.api_user_id = api_user_id
+        self.api_password = api_password
+        BroadsoftRequest.__init__(self, **kwargs)
 
     def build_command_xml(self):
         cmd = self.build_command_shell()

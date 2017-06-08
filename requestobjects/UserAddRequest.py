@@ -8,8 +8,6 @@ class UserAddRequest(BroadsoftRequest):
 
     def __init__(self, kname=None, sip_user_id=None, last_name=None, first_name=None, did=None,
                  sip_password=None, email=None, **kwargs):
-        # group_id will be inherited from BroadsoftRequest.default_group_id, but can be overridden by passing
-        # group_id (will get picked up in **kwargs)
         self.did = did
         self.first_name = first_name
         self.kname = kname

@@ -60,7 +60,7 @@ class Account(BroadsoftObject):
 
     def add_services(self, req_object):
         if self.services and len(self.services) > 0:
-            s = UserServiceAssignListRequest(broadsoftinstance=self.broadsoft_instance)
+            s = UserServiceAssignListRequest(broadsoftinstance=self.broadsoftinstance)
             s.did = self.did
             s.sip_user_id = self.sip_user_id
             s.services = self.services
@@ -69,10 +69,10 @@ class Account(BroadsoftObject):
     def build_provision_request(self):
         # going to do this as a compound request so that it's pseudo-atomic...if one fails, the rest should
         # fail, regardless of where in the process that failure occurs
-        b = BroadsoftRequest(broadsoftinstance=self.broadsoft_instance)
+        b = BroadsoftRequest(broadsoftinstance=self.broadsoftinstance)
 
         # object to create the user
-        u_add = UserAddRequest(broadsoftinstance=self.broadsoft_instance)
+        u_add = UserAddRequest(broadsoftinstance=self.broadsoftinstance)
         u_add.first_name = self.first_name
         u_add.last_name = self.last_name
         u_add.did = self.did
@@ -91,7 +91,7 @@ class Account(BroadsoftObject):
         return b
 
     def fetch(self):
-        self.xml = UserGetRequest.get_user(did=self.did, sip_user_id=self.sip_user_id, broadsoftinstance=self.broadsoft_instance)
+        self.xml = UserGetRequest.get_user(did=self.did, sip_user_id=self.sip_user_id, broadsoftinstance=self.broadsoftinstance)
         self.from_xml()
 
     def from_xml(self):
@@ -113,7 +113,7 @@ class Account(BroadsoftObject):
 
     def link_primary_device(self, req_object, device):
         u_mod = UserModifyRequest(did=self.did, sip_user_id=self.sip_user_id,
-                                  device_name=device.name, broadsoftinstance=self.broadsoft_instance)
+                                  device_name=device.name, broadsoftinstance=self.broadsoftinstance)
         req_object.commands.append(u_mod)
 
     def link_sca_device(self, req_object, device):
@@ -122,14 +122,14 @@ class Account(BroadsoftObject):
             line_port = device.name + '_lp@' + self.default_domain
         sca = UserSharedCallAppearanceAddEndpointRequest(sip_user_id=self.sip_user_id,
                                                          device_name=device.name, line_port=line_port,
-                                                         broadsoftinstance=self.broadsoft_instance)
+                                                         broadsoftinstance=self.broadsoftinstance)
         req_object.commands.append(sca)
 
     def load_devices(self):
         # first, any that were directly in xml
         if self.xml:
             for ade in self.xml.findall('./command/accessDeviceEndpoint'):
-                d = Device(broadsoftinstance=self.broadsoft_instance)
+                d = Device(broadsoftinstance=self.broadsoftinstance)
                 # the <accessDeviceEndpoint> gives us enough info to actually fetch the device
                 d.bootstrap_access_device_endpoint(ade=ade)
                 d.fetch(target_name=d.name)
@@ -137,10 +137,10 @@ class Account(BroadsoftObject):
 
         # now find any shared call appearances
         sca_xml = UserSharedCallAppearanceGetRequest.get_devices(sip_user_id=self.sip_user_id,
-                                                                 broadsoftinstance=self.broadsoft_instance)
+                                                                 broadsoftinstance=self.broadsoftinstance)
         scas = BroadsoftRequest.convert_results_table(xml=sca_xml)
         for sca in scas:
-            d = Device(broadsoftinstance=self.broadsoft_instance)
+            d = Device(broadsoftinstance=self.broadsoftinstance)
             # the shared call appearance listings give us nearly everything about a device, but we run a fetch as well
             # to get everything
             d.bootstrap_shared_call_appearance(sca=sca)
@@ -160,7 +160,7 @@ class Account(BroadsoftObject):
         if self.sip_password:
             self.set_device_passwords(new_sip_password=self.sip_password)
 
-    def set_device_passwords(self, new_sip_password=None):
+    def set_device_passwords(self, new_sip_password=None, **kwargs):
         if not self.sip_user_id and not self.did:
             raise ValueError("can't run Account.set_device_passwords without a value for sip_user_id or did")
 
@@ -172,7 +172,7 @@ class Account(BroadsoftObject):
 
         for d in self.devices:
             d.set_password(sip_user_name=self.sip_user_id, did=self.did, sip_password=new_sip_password,
-                           broadsoftinstance=self.broadsoft_instance)
+                           broadsoftinstance=self.broadsoftinstance, **kwargs)
 
     def set_portal_password(self, sip_password=None):
         new_password = sip_password
@@ -188,4 +188,4 @@ class Account(BroadsoftObject):
             raise AttributeError("can't reset Account sip_password without a value for sip_password")
 
         UserModifyRequest.set_password(did=self.did, sip_user_id=self.sip_user_id, new_password=new_password,
-                                       broadsoftinstance=self.broadsoft_instance)
+                                       broadsoftinstance=self.broadsoftinstance)

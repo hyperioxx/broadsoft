@@ -15,7 +15,7 @@ class GroupAddRequest(BroadsoftRequest):
         self.group_id = group_id
         self.group_name = group_name
         self.user_limit = 100000
-        BroadsoftRequest.__init__(self, auto_derive_group_id=False, **kwargs)
+        BroadsoftRequest.__init__(self, **kwargs)
 
     def build_command_xml(self):
         self.prep_for_xml()

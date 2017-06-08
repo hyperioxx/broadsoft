@@ -32,27 +32,6 @@ class TestBroadsoftUserGetRequest(unittest.TestCase):
     @unittest.mock.patch('broadsoft.requestobjects.lib.SoapEnvelope.SoapEnvelope.to_string')
     @unittest.mock.patch.object(BroadsoftRequest, 'to_string')
     @unittest.mock.patch.object(BroadsoftRequest, 'authenticate_and_login')
-    def test_use_test_gets_passed_to_get_device(
-            self, login_patch, ro_to_string_patch, envelop_to_string_patch, requests_post_patch, check_error_patch,
-            logout_patch, extract_payload_patch
-    ):
-        g = UserGetRequest.get_user(sip_user_id='6175551212@broadsoft.mit.edu', use_test=False)
-        call = requests_post_patch.call_args_list[0]
-        args, kwargs = call
-        self.assertEqual(kwargs['url'], BroadsoftRequest.prod_api_url)
-
-        g = UserGetRequest.get_user(sip_user_id='6175551212@broadsoft.mit.edu', use_test=True)
-        call = requests_post_patch.call_args_list[1]
-        args, kwargs = call
-        self.assertEqual(kwargs['url'], BroadsoftRequest.test_api_url)
-
-    @unittest.mock.patch.object(BroadsoftRequest, 'extract_payload')
-    @unittest.mock.patch('broadsoft.requestobjects.lib.BroadsoftRequest.LogoutRequest.logout')
-    @unittest.mock.patch.object(BroadsoftRequest, 'check_error')
-    @unittest.mock.patch('requests.post')
-    @unittest.mock.patch('broadsoft.requestobjects.lib.SoapEnvelope.SoapEnvelope.to_string')
-    @unittest.mock.patch.object(BroadsoftRequest, 'to_string')
-    @unittest.mock.patch.object(BroadsoftRequest, 'authenticate_and_login')
     def test_can_pass_session_id(
             self, login_patch, ro_to_string_patch, envelop_to_string_patch, requests_post_patch, check_error_patch,
             logout_patch, extract_payload_patch

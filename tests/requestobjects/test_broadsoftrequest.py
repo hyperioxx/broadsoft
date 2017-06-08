@@ -57,7 +57,7 @@ class TestBroadsoftRequest(unittest.TestCase):
         # to_string() lives in XmlRequest, but can never be called by it since there's no to_xml() for this parent
         # object. so we test with AuthenticationRequest
 
-        a = AuthenticationRequest()
+        a = AuthenticationRequest(broadsoftinstance=BroadsoftInstance.factory())
         a.session_id = 'sesh'
 
         # without urlencoding
@@ -102,7 +102,7 @@ class TestBroadsoftRequest(unittest.TestCase):
 
         # with extract_payload True
         self.maxDiff = None
-        a = AuthenticationRequest()
+        a = AuthenticationRequest(broadsoftinstance=BroadsoftInstance.factory())
         # last_response should start out unpopulated
         self.assertIsNone(a.last_response)
         a.session_id = 'sesh'
@@ -115,7 +115,7 @@ class TestBroadsoftRequest(unittest.TestCase):
         self.assertIsNotNone(a.last_response)
 
         # with extract_payload False
-        a = AuthenticationRequest()
+        a = AuthenticationRequest(broadsoftinstance=BroadsoftInstance.factory())
         a.session_id = 'sesh'
         p = a.post(extract_payload=False)
         self.assertEqual(
@@ -154,23 +154,27 @@ class TestBroadsoftRequest(unittest.TestCase):
     ):
         # to_string() lives in XmlRequest, but can never be called by it since there's no to_xml() for this parent
         # object. so we test with AuthenticationRequest
-        a = AuthenticationRequest()
+        a = AuthenticationRequest(broadsoftinstance=BroadsoftInstance.factory())
         a.session_id = 'sesh'
         with self.assertRaises(RuntimeError):
             a.post()
 
     def test_derive_url_for_test_and_prod_envs(self):
-        # default value for use_test
-        b = BroadsoftRequest()
-        self.assertEqual(b.api_url, b.prod_api_url)
+        test_i = BroadsoftInstance.factory(use_test=True)
+        prod_i = BroadsoftInstance.factory(use_test=False)
+        default_i = BroadsoftInstance.factory()
+
+        # use_test is default
+        b = BroadsoftRequest(broadsoftinstance=default_i)
+        self.assertEqual(b.api_url, default_i.api_url)
 
         # use_test is False
-        b = BroadsoftRequest(use_test=False)
-        self.assertEqual(b.api_url, b.prod_api_url)
+        b = BroadsoftRequest(broadsoftinstance=prod_i)
+        self.assertEqual(b.api_url, prod_i.api_url)
 
         # use_test is True
-        b = BroadsoftRequest(use_test=True)
-        self.assertEqual(b.api_url, b.test_api_url)
+        b = BroadsoftRequest(broadsoftinstance=test_i)
+        self.assertEqual(b.api_url, test_i.api_url)
 
     @unittest.mock.patch('requests.post', side_effect=return_xml)
     def test_passing_cookies_when_present(
@@ -183,7 +187,7 @@ class TestBroadsoftRequest(unittest.TestCase):
                 self.auth_cookie_jar = http.cookiejar.CookieJar()
 
         f = FakeAuth()
-        g = GroupGetListInServiceProviderRequest(auth_object=f, login_object=f)
+        g = GroupGetListInServiceProviderRequest(auth_object=f, login_object=f, broadsoftinstance=BroadsoftInstance.factory())
         g.post()
 
         call = post_patch.call_args_list[0]
@@ -195,8 +199,8 @@ class TestBroadsoftRequest(unittest.TestCase):
             self,
             post_patch
     ):
-        a = AuthenticationRequest.authenticate()
-        b = BroadsoftRequest(auth_object=a)
+        a = AuthenticationRequest.authenticate(broadsoftinstance=BroadsoftInstance.factory())
+        b = BroadsoftRequest(auth_object=a, broadsoftinstance=BroadsoftInstance.factory())
         self.assertEqual(a.session_id, b.session_id)
 
     def test_convert_results_table(self):
@@ -258,7 +262,7 @@ class TestBroadsoftRequest(unittest.TestCase):
             login_patch,
             auth_patch
     ):
-        b = BroadsoftRequest()
+        b = BroadsoftRequest(broadsoftinstance=BroadsoftInstance.factory())
         b.authenticate_and_login()
         self.assertTrue(login_patch.called)
         self.assertTrue(auth_patch.called)
@@ -271,13 +275,13 @@ class TestBroadsoftRequest(unittest.TestCase):
             login_patch
     ):
         # with auto_login true and no attached auth objects, should auto login
-        g = GroupGetListInServiceProviderRequest()
+        g = GroupGetListInServiceProviderRequest(broadsoftinstance=BroadsoftInstance.factory())
         g.post(auto_login=True)
         self.assertTrue(login_patch.called)
         login_patch.called = False
 
         # with auto_login false, should throw an error (and not login)
-        g = GroupGetListInServiceProviderRequest()
+        g = GroupGetListInServiceProviderRequest(broadsoftinstance=BroadsoftInstance.factory())
         with self.assertRaises(RuntimeError):
             g.post(auto_login=False)
             self.assertFalse(login_patch.called)
@@ -290,7 +294,7 @@ class TestBroadsoftRequest(unittest.TestCase):
                 self.auth_cookie_jar = http.cookiejar.CookieJar()
         a = FakeAuth()
         l = FakeAuth()
-        g = GroupGetListInServiceProviderRequest(auth_object=a, login_object=l)
+        g = GroupGetListInServiceProviderRequest(auth_object=a, login_object=l, broadsoftinstance=BroadsoftInstance.factory())
         g.post(auto_login=True)
         self.assertFalse(login_patch.called)
         login_patch.called = False
@@ -303,7 +307,7 @@ class TestBroadsoftRequest(unittest.TestCase):
 
         a = FakeAuth()
         l = FakeAuth()
-        g = GroupGetListInServiceProviderRequest(auth_object=a, login_object=l)
+        g = GroupGetListInServiceProviderRequest(auth_object=a, login_object=l, broadsoftinstance=BroadsoftInstance.factory())
         g.post(auto_login=False)
         self.assertFalse(login_patch.called)
         login_patch.called = False
@@ -334,14 +338,12 @@ class TestBroadsoftRequest(unittest.TestCase):
             b.check_error(string_response=regular_response)
 
     def test_default_group_id(self):
-        b = BroadsoftRequest(group_id='blah')
+        i = BroadsoftInstance.factory()
+        b = BroadsoftRequest(group_id='blah', broadsoftinstance=i)
         self.assertEqual('blah', b.group_id)
 
-        b = BroadsoftRequest()
-        self.assertEqual(b.default_group_id, b.group_id)
-
-        b = BroadsoftRequest(auto_derive_group_id=False)
-        self.assertIsNone(b.group_id)
+        b = BroadsoftRequest(broadsoftinstance=i)
+        self.assertEqual(i.default_group_id, b.group_id)
 
     def test_to_xml_with_no_contents(self):
         b = BroadsoftRequest()
@@ -354,12 +356,12 @@ class TestBroadsoftRequest(unittest.TestCase):
         )
 
     def test_derive_commands(self):
-        gg = GroupGetListInServiceProviderRequest()
-        ga = GroupAddRequest()
+        gg = GroupGetListInServiceProviderRequest(broadsoftinstance=BroadsoftInstance.factory())
+        ga = GroupAddRequest(broadsoftinstance=BroadsoftInstance.factory())
         ga.group_id = 'newgroup'
 
         # instantiated a BroadsoftRequest object; expect to see contents of BroadsoftRequest.commands
-        b = BroadsoftRequest()
+        b = BroadsoftRequest(broadsoftinstance=BroadsoftInstance.factory())
         b.commands = [ga, gg]
         self.assertEqual([ga, gg], b.derive_commands())
 
@@ -375,12 +377,12 @@ class TestBroadsoftRequest(unittest.TestCase):
         )
 
     def test_to_xml_with_attached_commands(self):
-        gg = GroupGetListInServiceProviderRequest()
-        ga = GroupAddRequest()
+        gg = GroupGetListInServiceProviderRequest(broadsoftinstance=BroadsoftInstance.factory())
+        ga = GroupAddRequest(broadsoftinstance=BroadsoftInstance.factory())
         ga.default_domain = 'broadsoft.mit.edu'
         ga.group_id = 'newgroup'
 
-        b = BroadsoftRequest()
+        b = BroadsoftRequest(broadsoftinstance=BroadsoftInstance.factory())
         b.commands = [ga, gg]
 
         x = b.to_xml()
@@ -483,25 +485,25 @@ class TestBroadsoftRequest(unittest.TestCase):
             logout_patch
     ):
         # should call need_logout
-        g = GroupGetListInServiceProviderRequest()
+        g = GroupGetListInServiceProviderRequest(broadsoftinstance=BroadsoftInstance.factory())
         g.post(auto_login=True)
         self.assertTrue(need_logout_patch.called)
 
     def test_is_auth_suite(self):
         # BroadsoftRequest is no
-        b = BroadsoftRequest()
+        b = BroadsoftRequest(broadsoftinstance=BroadsoftInstance.factory())
         self.assertFalse(b.is_auth_suite())
 
         # LoginRequest is yes
-        lo = LoginRequest()
+        lo = LoginRequest(broadsoftinstance=BroadsoftInstance.factory())
         self.assertTrue(lo.is_auth_suite())
 
         # LogoutRequest is yes
-        lo = LogoutRequest()
+        lo = LogoutRequest(broadsoftinstance=BroadsoftInstance.factory())
         self.assertTrue(lo.is_auth_suite())
 
         # AuthenticationRequest is yes
-        a = AuthenticationRequest()
+        a = AuthenticationRequest(broadsoftinstance=BroadsoftInstance.factory())
         self.assertTrue(a.is_auth_suite())
 
         # new one with command_name is no
@@ -525,9 +527,10 @@ class TestBroadsoftRequest(unittest.TestCase):
             self,
             convert_booleans_patch
     ):
-        b = BroadsoftRequest(use_test=True)
-        g = GroupGetListInServiceProviderRequest()
-        u = UserAddRequest(did=6175551212, sip_user_id='6175551212@broadsoft.mit.edu', first_name='tim', last_name='beaver', sip_password='password')
+        b = BroadsoftRequest(broadsoftinstance=BroadsoftInstance.factory())
+        g = GroupGetListInServiceProviderRequest(broadsoftinstance=BroadsoftInstance.factory())
+        u = UserAddRequest(did=6175551212, sip_user_id='6175551212@broadsoft.mit.edu', first_name='tim',
+                           last_name='beaver', sip_password='password', broadsoftinstance=BroadsoftInstance.factory())
         b.commands = [g,u]
         b.to_xml()
 
@@ -561,3 +564,5 @@ class TestBroadsoftRequest(unittest.TestCase):
         b.prep_attributes()
         self.assertTrue(apply_broadsoftinstance_patch.called)
 
+    def test_when_no_broadsoftinstance_or_relevant_attributes_set_use_default_broadsoft_instance(self):
+        self.assertFalse("write this")

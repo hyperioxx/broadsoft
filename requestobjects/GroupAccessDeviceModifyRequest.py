@@ -12,8 +12,6 @@ class GroupAccessDeviceModifyRequest(BroadsoftRequest):
                  protocol='SIP 2.0', transport_protocol='Unspecified', mac_address=None, ip_address=None, port=None,
                  sip_user_name=None, sip_password=None,
                  **kwargs):
-        # group_id will be inherited from BroadsoftRequest.default_group_id, but can be overridden by passing
-        # group_id (will get picked up in **kwargs)
         self.description = description
         self.device_name = device_name
         self.ip_address = ip_address

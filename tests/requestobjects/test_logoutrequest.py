@@ -13,17 +13,6 @@ def return_xml(*args, **kwargs):
 
 
 class TestBroadsoftLogoutRequest(unittest.TestCase):
-    @unittest.mock.patch('requests.post', side_effect=return_xml)
-    def test_logout_request_passes_use_test(
-            self,
-            post_patch
-    ):
-        l = LogoutRequest.logout(use_test=True)
-        self.assertTrue(l.use_test)
-
-        l = LogoutRequest.logout(use_test=False )
-        self.assertFalse(l.use_test)
-
     def test_to_xml(self):
         l = LogoutRequest()
         l.api_user_id = 'userid'

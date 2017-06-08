@@ -2,6 +2,7 @@ import unittest.mock
 import xml.etree.ElementTree as ET
 from broadsoft.requestobjects.UserAddRequest import UserAddRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
+from broadsoft import BroadsoftInstance
 
 
 class TestBroadsoftUserAddRequest(unittest.TestCase):
@@ -73,11 +74,12 @@ class TestBroadsoftUserAddRequest(unittest.TestCase):
             u.validate()
 
     def test_can_override_default_group_id(self):
-        u = UserAddRequest(group_id='blah')
+        i = BroadsoftInstance.factory()
+        u = UserAddRequest(group_id='blah', broadsoftinstance=i)
         self.assertEqual('blah', u.group_id)
 
-        u = UserAddRequest()
-        self.assertEqual(u.default_group_id, u.group_id)
+        u = UserAddRequest(broadsoftinstance=i)
+        self.assertEqual(i.group_id, u.group_id)
 
     def test_derive_email(self):
         u = UserAddRequest(kname='beaver')
@@ -100,7 +102,7 @@ class TestBroadsoftUserAddRequest(unittest.TestCase):
         # with sip_password
         u = UserAddRequest(group_id='testgroup', session_id='sesh', kname='beaver', last_name='Beaver',
                            first_name='Tim', email='beaver@mit.edu', sip_user_id='6175551212@broadsoft.mit.edu',
-                           did='617 555 1212', sip_password='123456789')
+                           did='617 555 1212', sip_password='123456789', broadsoftinstance=BroadsoftInstance.factory())
 
         target_xml = \
             '<command xmlns="" xsi:type="UserAddRequest17sp4">' + \

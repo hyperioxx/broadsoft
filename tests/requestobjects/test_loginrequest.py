@@ -1,6 +1,7 @@
 import unittest.mock
 from broadsoft.requestobjects.lib.BroadsoftRequest import LoginRequest
 import xml.etree.ElementTree as ET
+from broadsoft import BroadsoftInstance
 
 
 def return_none(*args, **kwargs):
@@ -17,23 +18,6 @@ def return_xml(*args, **kwargs):
 
 
 class TestBroadsoftLoginRequest(unittest.TestCase):
-    @unittest.mock.patch('requests.post', side_effect=return_xml)
-    def test_login_request_passes_use_test(
-            self,
-            post_patch
-    ):
-        class FakeAuth:
-            def __init__(self):
-                self.nonce = 'nonce'
-
-        a = FakeAuth()
-
-        l = LoginRequest.login(use_test=True, auth_object=a)
-        self.assertTrue(l.use_test)
-
-        l = LoginRequest.login(use_test=False, auth_object=a)
-        self.assertFalse(l.use_test)
-
     def test_build_signed_password(self):
         class FakeAuth:
             def __init__(self):
@@ -102,7 +86,7 @@ class TestBroadsoftLoginRequest(unittest.TestCase):
             creds_patch
     ):
         # use_test True
-        l = LoginRequest(use_test=True)
+        l = LoginRequest(broadsoftinstance=BroadsoftInstance.factory(use_test=True))
         # will throw error since mocking creds fetch
         try:
             l.build_command_xml()
@@ -113,7 +97,7 @@ class TestBroadsoftLoginRequest(unittest.TestCase):
         self.assertEqual('test', kwargs['member'])
 
         # use_test False
-        l = LoginRequest(use_test=False)
+        l = LoginRequest(broadsoftinstance=BroadsoftInstance.factory(use_test=False))
         # will throw error since mocking creds fetch
         try:
             l.build_command_xml()

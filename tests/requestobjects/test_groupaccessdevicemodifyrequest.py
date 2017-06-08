@@ -1,7 +1,7 @@
 import unittest.mock
 import xml.etree.ElementTree as ET
 from broadsoft.requestobjects.GroupAccessDeviceModifyRequest import GroupAccessDeviceModifyRequest
-from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
+from broadsoft import BroadsoftInstance
 
 
 class TestBroadsoftGroupAccessDeviceModifyRequest(unittest.TestCase):
@@ -11,9 +11,11 @@ class TestBroadsoftGroupAccessDeviceModifyRequest(unittest.TestCase):
             g.validate()
 
     def test_group_id_inheritance(self):
+        i = BroadsoftInstance.factory()
+
         # defaults to default set in BroadsoftRequest
-        g = GroupAccessDeviceModifyRequest()
-        self.assertEqual(g.default_group_id, g.group_id)
+        g = GroupAccessDeviceModifyRequest(broadsoftinstance=i)
+        self.assertEqual(i.group_id, g.group_id)
 
         # can also override
         g = GroupAccessDeviceModifyRequest(group_id='gid')
@@ -62,7 +64,7 @@ class TestBroadsoftGroupAccessDeviceModifyRequest(unittest.TestCase):
         # with a mac address
         g = GroupAccessDeviceModifyRequest(device_name='dname', mac_address='aabbcc112233',
                                         description='desc', group_id='testgroup', ip_address='18.18.18.18',
-                                        port='1054')
+                                        port='1054', broadsoftinstance=BroadsoftInstance.factory())
 
         target_xml = \
             '<command xmlns="" xsi:type="GroupAccessDeviceModifyRequest14">' + \
@@ -85,7 +87,7 @@ class TestBroadsoftGroupAccessDeviceModifyRequest(unittest.TestCase):
         # without a mac address
         g = GroupAccessDeviceModifyRequest(device_name='dname',
                                         description='desc', group_id='testgroup', ip_address='18.18.18.18',
-                                        port='1054')
+                                        port='1054', broadsoftinstance=BroadsoftInstance.factory())
 
         target_xml = \
             '<command xmlns="" xsi:type="GroupAccessDeviceModifyRequest14">' + \
@@ -106,7 +108,7 @@ class TestBroadsoftGroupAccessDeviceModifyRequest(unittest.TestCase):
 
         # with just sip_user_name and sip_password
         g = GroupAccessDeviceModifyRequest(device_name='dname', sip_user_name='6175551212@mit.edu',
-                                           sip_password='password')
+                                           sip_password='password', broadsoftinstance=BroadsoftInstance.factory())
 
         target_xml = \
             '<command xmlns="" xsi:type="GroupAccessDeviceModifyRequest14">' + \

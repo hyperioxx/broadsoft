@@ -8,9 +8,8 @@ class GroupAccessDeviceAddRequest(BroadsoftRequest):
     check_success = True
 
     def __init__(self, device_name=None, device_type=None, description=None,
-                 protocol='SIP 2.0', transport_protocol='Unspecified', mac_address=None, **kwargs):
-        # group_id will be inherited from BroadsoftRequest.default_group_id, but can be overridden by passing
-        # group_id (will get picked up in **kwargs)
+                 protocol='SIP 2.0', transport_protocol='Unspecified', mac_address=None,
+                 **kwargs):
         self.description = description
         self.device_name = device_name
         self.device_type = device_type

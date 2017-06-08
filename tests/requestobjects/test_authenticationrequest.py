@@ -2,6 +2,7 @@ import http.cookiejar
 import unittest.mock
 import xml.etree.ElementTree as ET
 from broadsoft.requestobjects.lib.BroadsoftRequest import AuthenticationRequest
+from broadsoft import BroadsoftInstance
 
 
 def return_none(*args, **kwargs):
@@ -20,7 +21,7 @@ def return_xml(*args, **kwargs):
 
 class TestBroadsoftAuthenticationRequest(unittest.TestCase):
     def test_authenticationrequest_to_xml_call(self):
-        a = AuthenticationRequest()
+        a = AuthenticationRequest(broadsoftinstance=BroadsoftInstance.factory())
         a.session_id = 'sesh'
         xml = a.to_xml()
         self.assertEqual(
@@ -47,7 +48,7 @@ class TestBroadsoftAuthenticationRequest(unittest.TestCase):
             post_patch
     ):
         session_id = 'test_authenticate_call_passes_session_id'
-        AuthenticationRequest.authenticate(session_id=session_id)
+        AuthenticationRequest.authenticate(session_id=session_id, broadsoftinstance=BroadsoftInstance.factory())
 
         call = post_patch.call_args_list[0]
         args, kwargs = call
@@ -55,47 +56,6 @@ class TestBroadsoftAuthenticationRequest(unittest.TestCase):
         self.assertTrue(
             '&lt;sessionId xmlns=""&gt;' + session_id + '&lt;/sessionId&gt;' in kwargs['data']
         )
-
-    def test_use_test_passed_to_derive_user_id_from_init(self):
-        a = AuthenticationRequest()
-        self.assertFalse(a.use_test)
-
-        a = AuthenticationRequest(use_test=False)
-        self.assertFalse(a.use_test)
-
-        a = AuthenticationRequest(use_test=True)
-        self.assertTrue(a.use_test)
-
-    @unittest.mock.patch('requests.post', side_effect=return_xml)
-    def test_authenticate_use_test_gets_passed_to_broadsoftdocument(
-            self,
-            post_patch
-    ):
-        # when calling AuthenticationRequest.__init__
-        a = AuthenticationRequest()
-        self.assertEqual(a.prod_api_url, a.api_url)
-
-        a = AuthenticationRequest(use_test=False)
-        self.assertEqual(a.prod_api_url, a.api_url)
-
-        a = AuthenticationRequest(use_test=True)
-        self.assertEqual(a.test_api_url, a.api_url)
-
-        # when calling AuthenticationRequest.authenticate
-        a = AuthenticationRequest.authenticate(session_id='test')
-        call = post_patch.call_args_list[0]
-        args, kwargs = call
-        self.assertEqual(AuthenticationRequest.prod_api_url, kwargs['url'])
-
-        a = AuthenticationRequest.authenticate(session_id='test', use_test=False)
-        call = post_patch.call_args_list[1]
-        args, kwargs = call
-        self.assertEqual(AuthenticationRequest.prod_api_url, kwargs['url'])
-
-        a = AuthenticationRequest.authenticate(session_id='test', use_test=True)
-        call = post_patch.call_args_list[2]
-        args, kwargs = call
-        self.assertEqual(AuthenticationRequest.test_api_url, kwargs['url'])
 
     def test_can_pass_session_id(self):
         a = AuthenticationRequest(session_id='sesh')
@@ -106,7 +66,7 @@ class TestBroadsoftAuthenticationRequest(unittest.TestCase):
             self,
             post_patch
     ):
-        a = AuthenticationRequest.authenticate()
+        a = AuthenticationRequest.authenticate(broadsoftinstance=BroadsoftInstance.factory())
         self.assertIsNotNone(a.auth_cookie_jar)
         self.assertEqual('CookieJar', a.auth_cookie_jar.__class__.__name__)
 
@@ -116,14 +76,14 @@ class TestBroadsoftAuthenticationRequest(unittest.TestCase):
             creds_patch
     ):
         # use_test True
-        a = AuthenticationRequest(use_test=True)
+        a = AuthenticationRequest(broadsoftinstance=BroadsoftInstance.factory(use_test=True))
         a.build_command_xml()
         call = creds_patch.call_args_list[0]
         args, kwargs = call
         self.assertEqual('test', kwargs['member'])
 
         # use_test False
-        a = AuthenticationRequest(use_test=False)
+        a = AuthenticationRequest(broadsoftinstance=BroadsoftInstance.factory(use_test=False))
         a.build_command_xml()
         call = creds_patch.call_args_list[1]
         args, kwargs = call

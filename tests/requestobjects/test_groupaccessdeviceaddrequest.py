@@ -1,7 +1,7 @@
 import unittest.mock
 import xml.etree.ElementTree as ET
 from broadsoft.requestobjects.GroupAccessDeviceAddRequest import GroupAccessDeviceAddRequest
-from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
+from broadsoft import BroadsoftInstance
 
 
 class TestBroadsoftGroupAccessDeviceAddRequest(unittest.TestCase):
@@ -44,8 +44,9 @@ class TestBroadsoftGroupAccessDeviceAddRequest(unittest.TestCase):
 
     def test_group_id_inheritance(self):
         # defaults to default set in BroadsoftRequest
-        g = GroupAccessDeviceAddRequest()
-        self.assertEqual(g.default_group_id, g.group_id)
+        i = BroadsoftInstance.factory()
+        g = GroupAccessDeviceAddRequest(broadsoftinstance=i)
+        self.assertEqual(i.group_id, g.group_id)
 
         # can also override
         g = GroupAccessDeviceAddRequest(group_id='gid')
@@ -94,7 +95,8 @@ class TestBroadsoftGroupAccessDeviceAddRequest(unittest.TestCase):
     def test_to_xml(self):
         # with a mac address
         g = GroupAccessDeviceAddRequest(device_name='dname', mac_address='aabbcc112233',
-                                        device_type='dtype', description='desc', group_id='testgroup')
+                                        device_type='dtype', description='desc', group_id='testgroup',
+                                        broadsoftinstance=BroadsoftInstance.factory())
 
         target_xml = \
             '<command xmlns="" xsi:type="GroupAccessDeviceAddRequest14">' + \
@@ -112,7 +114,8 @@ class TestBroadsoftGroupAccessDeviceAddRequest(unittest.TestCase):
 
         # without a mac address
         g = GroupAccessDeviceAddRequest(device_name='dname',
-                                        device_type='dtype', description='desc', group_id='testgroup')
+                                        device_type='dtype', description='desc', group_id='testgroup',
+                                        broadsoftinstance=BroadsoftInstance.factory())
 
         target_xml = \
             '<command xmlns="" xsi:type="GroupAccessDeviceAddRequest14">' + \

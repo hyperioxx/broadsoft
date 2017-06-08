@@ -7,9 +7,9 @@ class BroadsoftObject:
     prod_default_domain = 'broadsoft.mit.edu'
     test_default_domain = 'broadsoft-dev.mit.edu'
 
-    def __init__(self, xml=None, use_test=False, broadsoft_instance=None):
+    def __init__(self, xml=None, use_test=False, broadsoftinstance=None):
         self.xml = xml
-        self.broadsoft_instance = broadsoft_instance
+        self.broadsoftinstance = broadsoftinstance
         self.default_domain = None
         self.use_test = use_test
         self.prep_attributes()
@@ -38,8 +38,8 @@ class BroadsoftObject:
         if self.xml and type(self.xml) is str:
             self.xml = ET.fromstring(self.xml)
 
-        if self.broadsoft_instance is None:
-            self.broadsoft_instance = self.derive_broadsoft_instance(use_test=self.use_test)
+        if self.broadsoftinstance is None:
+            self.broadsoftinstance = self.derive_broadsoft_instance(use_test=self.use_test)
 
     def provision(self):
         ro = self.build_provision_request()
