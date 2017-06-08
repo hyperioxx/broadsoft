@@ -565,5 +565,24 @@ class TestBroadsoftRequest(unittest.TestCase):
         b.prep_attributes()
         self.assertTrue(apply_broadsoftinstance_patch.called)
 
+    def test_broadsoftinstance_needed(self):
+        # has broadsoftinstance set
+        b = BroadsoftRequest(broadsoftinstance=BroadsoftInstance.factory())
+        self.assertFalse(b.broadsoftinstance_needed())
+
+        # has a relevant property set
+        for p in BroadsoftRequest.broadsoftinstance_properties:
+            b = BroadsoftRequest()
+            setattr(b, p, 'blah')
+            self.assertFalse(b.broadsoftinstance_needed())
+
+        # otherwise
+        b = BroadsoftRequest(broadsoftinstance=b)
+        b.broadsoftinstance = None
+        for p in BroadsoftRequest.broadsoftinstance_properties:
+            setattr(b, p, None)
+        self.assertTrue(b.broadsoftinstance_needed())
+
     def test_when_no_broadsoftinstance_or_relevant_attributes_set_use_default_broadsoft_instance(self):
-        self.assertFalse("write this")
+        b = BroadsoftRequest()
+        self.assertIsInstance(b.broadsoftinstance, BroadsoftInstance.BroadsoftInstance)

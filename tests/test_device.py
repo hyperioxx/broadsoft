@@ -1,7 +1,11 @@
 import unittest.mock
 from broadsoft.Device import Device
+from broadsoft.requestobjects.GroupAccessDeviceGetRequest import GroupAccessDeviceGetRequest
 from broadsoft.requestobjects.GroupAccessDeviceAddRequest import GroupAccessDeviceAddRequest
+from broadsoft.requestobjects.GroupAccessDeviceModifyRequest import GroupAccessDeviceModifyRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
+from broadsoft.lib.BroadsoftObject import BroadsoftObject
+from broadsoft.lib import BroadsoftInstance
 from xml.etree.ElementTree import Element
 import xml.etree.ElementTree as ET
 
@@ -216,20 +220,40 @@ class TestBroadsoftDevice(unittest.TestCase):
             d = Device(name='dname')
             d.set_password(sip_user_name='6175551212@mit.edu')
 
-    @unittest.mock.patch(
-        'broadsoft.requestobjects.lib.BroadsoftRequest.BroadsoftRequest.post')
-    @unittest.mock.patch(
-        'broadsoft.requestobjects.GroupAccessDeviceModifyRequest.GroupAccessDeviceModifyRequest.__init__',
-        side_effect=return_none)
-    def test_set_password_pass_auth_and_login_object(
-            self, device_mod_patch, post_patch
+    @unittest.mock.patch.object(BroadsoftObject, 'inject_broadsoftinstance')
+    def test_build_provision_request_injects_broadsoftinstance(
+            self, inject_broadsoftinstance_patch
     ):
-        d = Device(name='dname')
-        d.set_password(auth_object='a', login_object='b', did=6175551212, sip_password='password')
-        call = device_mod_patch.call_args_list[0]
-        args, kwargs = call
-        self.assertEqual('a', kwargs['auth_object'])
-        self.assertEqual('b', kwargs['login_object'])
+        d = Device(broadsoftinstance=BroadsoftInstance.factory())
+        d.build_provision_request()
+        self.assertTrue(inject_broadsoftinstance_patch.called)
+        self.assertEqual(1, len(inject_broadsoftinstance_patch.call_args_list))
 
-    def test_broadsoft_instance_passed_to_each_requestobject(self):
-        self.assertFalse("write this")
+        call = inject_broadsoftinstance_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertIsInstance(kwargs['child'], GroupAccessDeviceAddRequest)
+
+    @unittest.mock.patch.object(Device, 'from_xml')
+    @unittest.mock.patch.object(GroupAccessDeviceGetRequest, 'get_device')
+    def test_fetch_passes_broadsoft_instance(
+            self, get_device_patch, from_xml_patch
+    ):
+        d = Device(broadsoftinstance=BroadsoftInstance.factory())
+        d.fetch(target_name='dname')
+        call = get_device_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertIsInstance(kwargs['broadsoftinstance'], BroadsoftInstance.BroadsoftInstance)
+
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    @unittest.mock.patch.object(BroadsoftObject, 'inject_broadsoftinstance')
+    def test_set_password_injects_broadsoftinstance(
+            self, inject_broadsoftinstance_patch, post_patch
+    ):
+        d = Device(broadsoftinstance=BroadsoftInstance.factory(), name='dname')
+        d.set_password(sip_password='pw', did=6175551212)
+        self.assertTrue(inject_broadsoftinstance_patch.called)
+        self.assertEqual(1, len(inject_broadsoftinstance_patch.call_args_list))
+
+        call = inject_broadsoftinstance_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertIsInstance(kwargs['child'], GroupAccessDeviceModifyRequest)

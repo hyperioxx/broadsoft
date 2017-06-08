@@ -614,21 +614,6 @@ class TestBroadsoftAccount(unittest.TestCase):
         a.set_device_passwords(new_sip_password='newpassword')
         self.assertFalse(load_devices_patch.called)
 
-    @unittest.mock.patch.object(Device, 'set_password')
-    def test_set_device_passwords_pass_auth_and_login_object(
-            self, set_password_patch
-    ):
-        d1 = Device(name='dname', broadsoftinstance=BroadsoftInstance.factory())
-
-        # one device
-        a = Account(did=6175551212)
-        a.devices = [d1]
-        a.set_device_passwords(new_sip_password='newpassword', auth_object='a', login_object='b')
-        call = set_password_patch.call_args_list[0]
-        args, kwargs = call
-        self.assertEqual('a', kwargs['auth_object'])
-        self.assertEqual('b', kwargs['login_object'])
-
     @unittest.mock.patch.object(Account, 'set_device_passwords')
     @unittest.mock.patch.object(BroadsoftObject, 'provision')
     def test_provision_handles_sip_password(
@@ -705,5 +690,239 @@ class TestBroadsoftAccount(unittest.TestCase):
         a.provision()
         self.assertEqual('6175551212@' + a.default_domain, a.sip_user_id)
 
-    def test_broadsoft_instance_passed_to_each_requestobject(self):
-        self.assertFalse("write this")
+    def test_inject_broadsoftinstance(self):
+        prod_i = BroadsoftInstance.factory()
+        test_i = BroadsoftInstance.factory(use_test=True)
+
+        # using prod instance (device has none)
+        d = Device(name='dname')
+        a = Account(broadsoftinstance=prod_i)
+        a.inject_broadsoftinstance(child=d)
+        self.assertIsInstance(d.broadsoftinstance, BroadsoftInstance.BroadsoftInstance)
+
+        # using test instance (device has none)
+        d = Device(name='dname')
+        a = Account(broadsoftinstance=test_i)
+        a.inject_broadsoftinstance(child=d)
+        self.assertIsInstance(d.broadsoftinstance, BroadsoftInstance.TestBroadsoftInstance)
+
+        # using prod instance (device has test)
+        d = Device(name='dname', broadsoftinstance=test_i)
+        a = Account(broadsoftinstance=prod_i)
+        a.inject_broadsoftinstance(child=d)
+        self.assertIsInstance(d.broadsoftinstance, BroadsoftInstance.BroadsoftInstance)
+
+        # using test instance (device has prod)
+        d = Device(name='dname', broadsoftinstance=prod_i)
+        a = Account(broadsoftinstance=test_i)
+        a.inject_broadsoftinstance(child=d)
+        self.assertIsInstance(d.broadsoftinstance, BroadsoftInstance.TestBroadsoftInstance)
+
+        # using none (device has test)
+        d = Device(name='dname', broadsoftinstance=test_i)
+        a = Account()
+        a.broadsoftinstance = None
+        a.inject_broadsoftinstance(child=d)
+        self.assertIsInstance(d.broadsoftinstance, BroadsoftInstance.TestBroadsoftInstance)
+
+        # using none (device has prod)
+        d = Device(name='dname', broadsoftinstance=prod_i)
+        a = Account()
+        a.broadsoftinstance = None
+        a.inject_broadsoftinstance(child=d)
+        self.assertIsInstance(d.broadsoftinstance, BroadsoftInstance.BroadsoftInstance)
+
+    @unittest.mock.patch.object(Account, 'inject_broadsoftinstance')
+    @unittest.mock.patch.object(Account, 'link_sca_device')
+    @unittest.mock.patch.object(Account, 'link_primary_device')
+    @unittest.mock.patch.object(Account, 'build_provision_request')
+    def test_add_devices_injects_broadsoftinstance_once_per_device(
+            self, build_provision_request_patch, link_primary_device_patch, link_sca_device_patch,
+            inject_broadsoftinstance_patch
+    ):
+        d1 = Device(name='dname1')
+        d2 = Device(name='dname2')
+        a = Account(broadsoftinstance=BroadsoftInstance.factory())
+        a.devices = [d1, d2]
+        a.add_devices(req_object=BroadsoftRequest())
+
+        self.assertTrue(inject_broadsoftinstance_patch.called)
+        self.assertEqual(2, len(inject_broadsoftinstance_patch.call_args_list))
+
+        call = inject_broadsoftinstance_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertEqual(d1.name, kwargs['child'].name)
+        self.assertIsInstance(kwargs['child'], Device)
+
+        call = inject_broadsoftinstance_patch.call_args_list[1]
+        args, kwargs = call
+        self.assertEqual(d2.name, kwargs['child'].name)
+        self.assertIsInstance(kwargs['child'], Device)
+
+    @unittest.mock.patch.object(BroadsoftObject, 'inject_broadsoftinstance')
+    def test_add_services_injects_broadsoftinstance(
+            self, inject_broadsoftinstance_patch
+    ):
+        from broadsoft.requestobjects.UserServiceAssignListRequest import UserServiceAssignListRequest
+        a = Account(broadsoftinstance=BroadsoftInstance.factory())
+        a.services = ['a', 'b', 'c']
+        a.add_services(req_object=BroadsoftRequest())
+        self.assertTrue(inject_broadsoftinstance_patch.called)
+        self.assertEqual(1, len(inject_broadsoftinstance_patch.call_args_list))
+
+        call = inject_broadsoftinstance_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertIsInstance(kwargs['child'], UserServiceAssignListRequest)
+
+    @unittest.mock.patch.object(Account, 'add_devices')
+    @unittest.mock.patch.object(Account, 'add_services')
+    @unittest.mock.patch.object(BroadsoftObject, 'inject_broadsoftinstance')
+    def test_build_provision_request_injects_broadsoftinstance(
+            self, inject_broadsoftinstance_patch, add_services_patch, add_devices_patch
+    ):
+        a = Account(broadsoftinstance=BroadsoftInstance.factory())
+        a.build_provision_request()
+        self.assertTrue(inject_broadsoftinstance_patch.called)
+        self.assertEqual(2, len(inject_broadsoftinstance_patch.call_args_list))
+
+        call = inject_broadsoftinstance_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertIsInstance(kwargs['child'], BroadsoftRequest)
+
+        call = inject_broadsoftinstance_patch.call_args_list[1]
+        args, kwargs = call
+        self.assertIsInstance(kwargs['child'], UserAddRequest)
+
+    @unittest.mock.patch('broadsoft.requestobjects.UserGetRequest.UserGetRequest.get_user')
+    @unittest.mock.patch.object(Account, 'from_xml')
+    def fetch_passes_broadsoftinstance(
+            self, from_xml_patch, get_user_patch
+    ):
+        bi = BroadsoftInstance.factory()
+        a = Account(did=6175551212, broadsoftinstance=bi)
+        a.fetch()
+
+        call = get_user_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertIsInstance(kwargs['broadsoftinstance'], BroadsoftInstance.BroadsoftInstance)
+
+    @unittest.mock.patch.object(BroadsoftObject, 'inject_broadsoftinstance')
+    def test_link_primary_device_injects_broadsoftinstance(
+            self, inject_broadsoftinstance_patch
+    ):
+        d1 = Device(name='dname1')
+        a = Account(broadsoftinstance=BroadsoftInstance.factory())
+        a.link_primary_device(req_object=BroadsoftRequest(), device=d1)
+
+        self.assertTrue(inject_broadsoftinstance_patch.called)
+        self.assertEqual(1, len(inject_broadsoftinstance_patch.call_args_list))
+
+        call = inject_broadsoftinstance_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertIsInstance(kwargs['child'], UserModifyRequest)
+
+    @unittest.mock.patch.object(BroadsoftObject, 'inject_broadsoftinstance')
+    def test_link_sca_device_injects_broadsoftinstance(
+            self, inject_broadsoftinstance_patch
+    ):
+        d1 = Device(name='dname1')
+        a = Account(broadsoftinstance=BroadsoftInstance.factory())
+        a.link_sca_device(req_object=BroadsoftRequest(), device=d1)
+
+        self.assertTrue(inject_broadsoftinstance_patch.called)
+        self.assertEqual(1, len(inject_broadsoftinstance_patch.call_args_list))
+
+        call = inject_broadsoftinstance_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertIsInstance(kwargs['child'], UserSharedCallAppearanceAddEndpointRequest)
+
+    @unittest.mock.patch(
+        'broadsoft.requestobjects.UserSharedCallAppearanceGetRequest.UserSharedCallAppearanceGetRequest.get_devices',
+        side_effect=get_sca_mock
+    )
+    @unittest.mock.patch.object(Device, 'bootstrap_access_device_endpoint')
+    @unittest.mock.patch.object(Device, 'bootstrap_shared_call_appearance')
+    @unittest.mock.patch.object(Device, 'fetch')
+    @unittest.mock.patch.object(BroadsoftObject, 'inject_broadsoftinstance')
+    def test_load_devices_injects_broadsoftinstance(
+            self, inject_broadsoftinstance_patch, device_fetch_patch, device_bootstrap_sca_patch,
+            device_bootstrap_ade_patch, get_scas_patch
+    ):
+        xml = """<?xml version="1.0" encoding="ISO-8859-1"?>
+            <BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <sessionId xmlns="">192.168.0.100,1743299062,1496154334750</sessionId>
+            <command echo="" xsi:type="UserGetResponse21" xmlns="">
+                <accessDeviceEndpoint>
+                    <blah>1</blah>
+                </accessDeviceEndpoint>
+                <accessDeviceEndpoint>
+                    <blah>2</blah>
+                </accessDeviceEndpoint>
+            </command>
+            </BroadsoftDocument>"""
+        xml = ET.fromstring(xml)
+
+        a = Account(broadsoftinstance=BroadsoftInstance.factory())
+        a.xml = xml
+        a.load_devices()
+
+        # expect to see 4 calls to inject_broadsoftinstance_patch
+        self.assertTrue(inject_broadsoftinstance_patch.called)
+        self.assertEqual(4, len(inject_broadsoftinstance_patch.call_args_list))
+        # * 2 for the faked accessDeviceEndpoint results in a.xml
+        call = inject_broadsoftinstance_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertIsInstance(kwargs['child'], Device)
+
+        call = inject_broadsoftinstance_patch.call_args_list[1]
+        args, kwargs = call
+        self.assertIsInstance(kwargs['child'], Device)
+
+        # * 2 for the faked rows in UserSharedCallAppearanceGetRequest.get_devices
+        call = inject_broadsoftinstance_patch.call_args_list[2]
+        args, kwargs = call
+        self.assertIsInstance(kwargs['child'], Device)
+
+        call = inject_broadsoftinstance_patch.call_args_list[3]
+        args, kwargs = call
+        self.assertIsInstance(kwargs['child'], Device)
+
+        # furthermore, when we call UserSharedCallAppearanceGetRequest.get_devices should pass the instance
+        call = get_scas_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertIsInstance(kwargs['broadsoftinstance'], BroadsoftInstance.BroadsoftInstance)
+
+    @unittest.mock.patch.object(Device, 'set_password')
+    @unittest.mock.patch.object(BroadsoftObject, 'inject_broadsoftinstance')
+    def test_set_device_passwords_injects_broadsoftinstance(
+            self, inject_broadsoftinstance_patch, device_set_password_patch
+    ):
+        d1 = Device(name='dname1')
+        d2 = Device(name='dname2')
+        a = Account(broadsoftinstance=BroadsoftInstance.factory(), did=6175551212)
+        a.devices = [d1, d2]
+        a.set_device_passwords(new_sip_password='pw')
+
+        self.assertTrue(inject_broadsoftinstance_patch.called)
+        self.assertEqual(2, len(inject_broadsoftinstance_patch.call_args_list))
+
+        call = inject_broadsoftinstance_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertEqual(d1.name, kwargs['child'].name)
+        self.assertIsInstance(kwargs['child'], Device)
+
+        call = inject_broadsoftinstance_patch.call_args_list[1]
+        args, kwargs = call
+        self.assertEqual(d2.name, kwargs['child'].name)
+        self.assertIsInstance(kwargs['child'], Device)
+
+    @unittest.mock.patch.object(UserModifyRequest, 'set_password')
+    def test_set_portal_password_passes_broadsoftinstance(
+            self, set_password_patch
+    ):
+        a = Account(broadsoftinstance=BroadsoftInstance.factory(), did=6175551212)
+        a.set_portal_password(sip_password='pw')
+
+        call = set_password_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertIsInstance(kwargs['broadsoftinstance'], BroadsoftInstance.BroadsoftInstance)

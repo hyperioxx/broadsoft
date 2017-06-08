@@ -8,6 +8,9 @@ compound command (via attaching to BroadsoftRequest.commands)
 
 building a new request object
 
+broadsoftinstance
+    child objects will always inherit from parent, even if set explicitly otherwise
+
 provisioning a user
     build an Account object
     add Device objects to it

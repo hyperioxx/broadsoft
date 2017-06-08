@@ -4,6 +4,7 @@ import datetime
 import socket
 import random
 import logging
+from broadsoft.lib import BroadsoftInstance
 from broadsoft.requestobjects.lib.SoapEnvelope import SoapEnvelope
 from hashlib import sha1, md5
 from nettools.MACtools import MAC
@@ -23,6 +24,7 @@ class BroadsoftRequest(XmlDocument):
     logging_fname = 'api.log'
     default_timezone = 'America/New_York'
     check_success = False
+    broadsoftinstance_properties = ['api_url', 'creds_member', 'service_provider', 'group_id']
 
     def __init__(self, session_id=None, require_logging=True, auth_object=None,
                  login_object=None, timezone=None, broadsoftinstance=None, api_url=None,
@@ -51,8 +53,7 @@ class BroadsoftRequest(XmlDocument):
         self.default_logging(require_logging)
 
     def apply_broadsoftinstance(self):
-        universal_properties = ['api_url', 'creds_member', 'service_provider', 'group_id']
-        for p in universal_properties:
+        for p in self.broadsoftinstance_properties:
             if getattr(self, p) is None:
                 bi_attr = getattr(self.broadsoftinstance, p)
                 setattr(self, p, bi_attr)
@@ -72,6 +73,18 @@ class BroadsoftRequest(XmlDocument):
         l = LoginRequest.login(broadsoftinstance=self.broadsoftinstance, auth_object=a)
         self.login_object = l
         logging.info("continuing with request", extra={'session_id': self.session_id})
+
+    def broadsoftinstance_needed(self):
+        # value for broadsoftinstance? not needed.
+        if self.broadsoftinstance is not None:
+            return False
+
+        # any of the broadsoftinstance-related properties set? not needed.
+        for p in self.broadsoftinstance_properties:
+            if getattr(self, p) is not None:
+                return False
+
+        return True
 
     def build_command_shell(self):
         cmd = ET.Element('command')
@@ -196,6 +209,20 @@ class BroadsoftRequest(XmlDocument):
 
         return is_auth_suite
 
+    def need_login(self):
+        # not part of the login/logout suite, and no login/auth object attached? need to login.
+        if not self.is_auth_suite() and (not self.login_object or not self.auth_object):
+            return True
+
+        return False
+
+    def need_logout(self, auto_login):
+        # not part of the login/logout suite, and auto_login? run auto logout.
+        if not self.is_auth_suite() and auto_login:
+            return True
+
+        return False
+
     def post(self, extract_payload=True, auto_login=True):
         # this function is only for descendant objects, like AuthenticationRequest
 
@@ -268,20 +295,6 @@ class BroadsoftRequest(XmlDocument):
         xml = ET.fromstring(text=content)
         return xml
 
-    def need_login(self):
-        # not part of the login/logout suite, and no login/auth object attached? need to login.
-        if not self.is_auth_suite() and (not self.login_object or not self.auth_object):
-            return True
-
-        return False
-
-    def need_logout(self, auto_login):
-        # not part of the login/logout suite, and auto_login? run auto logout.
-        if not self.is_auth_suite() and auto_login:
-            return True
-
-        return False
-
     # stuff that happens for multiple request objects which we don't want to mess up
     def prep_attributes(self):
         if hasattr(self, 'did') and self.did:
@@ -292,6 +305,9 @@ class BroadsoftRequest(XmlDocument):
 
         if hasattr(self, 'clid_did') and self.clid_did:
             self.clid_did = BroadsoftRequest.convert_phone_number(number=self.clid_did)
+
+        if self.broadsoftinstance_needed():
+            self.broadsoftinstance = BroadsoftInstance.factory()
 
         if self.broadsoftinstance:
             self.apply_broadsoftinstance()

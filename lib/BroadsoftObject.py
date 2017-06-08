@@ -27,6 +27,17 @@ class BroadsoftObject:
     def from_xml(self):
         self.prep_attributes()
 
+    # Ensures that child objects inherit same BroadsoftInstance as parent (sets parameters like URL, enterprise name,
+    # creds group, etc).
+    # Obviously, can't run this with set-and-fire static methods, so we have to pass BroadsoftInstance directly for
+    # those. Admittedly, it's a little confusing that there are two separate methods for inserting the BroadsoftInstance
+    # into child object calls. However, in the case of Device objects added to an Account object, we don't have direct
+    # control over the __init__ phase of the object's lifecycle. So injection is best for that, and is easier to test.
+    # For the static methods calls, we add at __init__.
+    def inject_broadsoftinstance(self, child):
+        if self.broadsoftinstance:
+            child.broadsoftinstance = self.broadsoftinstance
+
     def prep_attributes(self):
         self.derive_default_domain()
 
