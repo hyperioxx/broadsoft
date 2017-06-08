@@ -5,9 +5,6 @@ from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 
 
 class BroadsoftObject:
-    prod_default_domain = 'broadsoft.mit.edu'
-    test_default_domain = 'broadsoft-dev.mit.edu'
-
     def __init__(self, xml=None, use_test=False, broadsoftinstance=None):
         self.xml = xml
         self.broadsoftinstance = broadsoftinstance
@@ -17,12 +14,18 @@ class BroadsoftObject:
 
     def derive_sip_user_id(self, did):
         did = BroadsoftRequest.convert_phone_number(number=did)
+
+        if not did:
+            raise ValueError("can't run BroadsoftObject.derive_sip_user_id without a value for did")
+
+        if not self.default_domain:
+            raise ValueError("can't run BroadsoftObject.derive_sip_user_id without a value for default_domain")
+
         return did + '@' + self.default_domain
 
     def derive_default_domain(self):
-        self.default_domain = self.prod_default_domain
-        if self.use_test:
-            self.default_domain = self.test_default_domain
+        if self.broadsoftinstance:
+            self.default_domain = self.broadsoftinstance.default_domain
 
     def from_xml(self):
         self.prep_attributes()
@@ -43,6 +46,9 @@ class BroadsoftObject:
                 pass
 
     def prep_attributes(self):
+        if self.broadsoftinstance is None:
+            self.broadsoftinstance = self.derive_broadsoft_instance(use_test=self.use_test)
+
         self.derive_default_domain()
 
         if hasattr(self, 'did') and self.did:
@@ -53,9 +59,6 @@ class BroadsoftObject:
 
         if self.xml and type(self.xml) is str:
             self.xml = ET.fromstring(self.xml)
-
-        if self.broadsoftinstance is None:
-            self.broadsoftinstance = self.derive_broadsoft_instance(use_test=self.use_test)
 
     def provision(self):
         ro = self.build_provision_request()

@@ -954,3 +954,6 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertEqual(kwargs['sip_user_id'], a.sip_user_id)
         self.assertEqual(kwargs['device_name'], d.name)
         self.assertEqual(kwargs['line_port'], d.line_port)
+
+    def test_barf_if_try_to_add_device_missing_lineport(self):
+        self.assertFalse("write this")

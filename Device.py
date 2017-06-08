@@ -7,8 +7,11 @@ from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 
 class Device(BroadsoftObject):
     def __init__(self, name=None, type=None, description=None, mac_address=None, protocol=None,
-                 transport_protocol=None, line_port=None, is_primary=None, **kwargs):
+                 transport_protocol=None, line_port=None, is_primary=None, did=None, index=1, **kwargs):
         self.description = description
+        self.did = did
+        self.index = index              # defaults to 1; the number of appearances for a given DID on a given device,
+                                        # which can be more than 1
         self.is_primary = is_primary
         self.name = name
         self.type = type
@@ -20,6 +23,7 @@ class Device(BroadsoftObject):
         self.transport_protocol = transport_protocol
 
         BroadsoftObject.__init__(self, **kwargs)
+        self.derive_line_port()
 
     def __repr__(self):
         return "<Broadsoft Device name:%s, type:%s, line_port:%s>" % (self.name, self.type, self.line_port)
@@ -51,6 +55,17 @@ class Device(BroadsoftObject):
         if self.transport_protocol:
             g.transport_protocol = self.transport_protocol
         return g
+
+    def derive_line_port(self):
+        self.derive_default_domain()
+        if self.did and self.index and self.mac_address and self.default_domain:
+            from nettools.MACtools import MAC
+
+            did = BroadsoftRequest.convert_phone_number(number=self.did)
+            m = MAC(mac=self.mac_address)
+            mac = m.bare_mac
+
+            self.line_port = str(did) + '_' + str(mac) + '_' + str(self.index) + '@' + self.default_domain
 
     def fetch(self, target_name=None):
         if not target_name:

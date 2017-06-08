@@ -6,13 +6,18 @@ from broadsoft.lib.BroadsoftObject import BroadsoftObject
 
 class TestBroadsoftObject(unittest.TestCase):
     def test_derive_domain_based_on_test_and_prod(self):
+        i = BroadsoftInstance.factory(use_test=False)
         b = BroadsoftObject(use_test=False)
-        self.assertEqual(b.prod_default_domain, b.default_domain)
+        self.assertEqual(i.default_domain, b.default_domain)
 
+        i = BroadsoftInstance.factory(use_test=True)
         b = BroadsoftObject(use_test=True)
-        self.assertEqual(b.test_default_domain, b.default_domain)
+        self.assertEqual(i.default_domain, b.default_domain)
 
-    def test_pass_broadsoftinstance(self):
+    @unittest.mock.patch.object(BroadsoftObject, 'prep_attributes')
+    def test_pass_broadsoftinstance(
+            self, prep_attributes_patch
+    ):
         b = BroadsoftObject(broadsoftinstance='a')
         self.assertEqual('a', b.broadsoftinstance)
 
