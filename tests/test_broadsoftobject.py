@@ -51,6 +51,3 @@ class TestBroadsoftObject(unittest.TestCase):
         args, kwargs = call
         self.assertFalse(kwargs['use_test'])
         derive_broadsoft_instance_patch.called = False
-
-    def test_usage_of_broadsoftinstance(self):
-        self.assertFalse("write this; make sure it passes broadsoftinstance to everything")
