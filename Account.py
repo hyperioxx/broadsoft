@@ -7,6 +7,7 @@ from broadsoft.requestobjects.UserServiceAssignListRequest import UserServiceAss
 from broadsoft.requestobjects.UserSharedCallAppearanceAddEndpointRequest import \
     UserSharedCallAppearanceAddEndpointRequest
 from broadsoft.requestobjects.UserSharedCallAppearanceGetRequest import UserSharedCallAppearanceGetRequest
+from broadsoft.requestobjects.UserThirdPartyVoiceMailSupportModifyRequest import UserThirdPartyVoiceMailSupportModifyRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 
 
@@ -44,6 +45,18 @@ class Account(BroadsoftObject):
 
     def __repr__(self):
         return "<Broadsoft Account did:%s, last_name:%s, first_name:%s, sip_user_id:%s>" % (self.did, self.last_name, self.first_name, self.sip_user_id)
+
+    def activate_unity_voicemail(self, busy_redirect_to_voice_mail=True, no_answer_redirect_to_voice_mail=True,
+                                 no_answer_number_of_rings=3, always_redirect_to_voice_mail=False):
+        if not self.sip_user_id:
+            raise ValueError("can't call Account.activate_third_party_voicemail without a value for sip_user_id")
+
+        UserThirdPartyVoiceMailSupportModifyRequest.activate_unity_voicemail(sip_user_id=self.sip_user_id,
+                                                                             busy_redirect_to_voice_mail=busy_redirect_to_voice_mail,
+                                                                             no_answer_redirect_to_voice_mail=no_answer_redirect_to_voice_mail,
+                                                                             no_answer_number_of_rings=no_answer_number_of_rings,
+                                                                             always_redirect_to_voice_mail=always_redirect_to_voice_mail,
+                                                                             broadsoftinstance=self.broadsoftinstance)
 
     def add_devices(self, req_object):
         if len(self.devices) > 0:

@@ -965,8 +965,25 @@ class TestBroadsoftAccount(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             a.add_devices(req_object=BroadsoftRequest())
 
-    def test_function_to_activate_third_party_voicemail(self):
+    @unittest.mock.patch('broadsoft.requestobjects.UserThirdPartyVoiceMailSupportModifyRequest.UserThirdPartyVoiceMailSupportModifyRequest.activate_unity_voicemail')
+    def test_activate_unity_voicemail_passes_broadsoftinstance(
+            self, activate_unity_voicemail_patch
+    ):
+        a = Account(broadsoftinstance=BroadsoftInstance.factory(), did=6175551212)
+        a.activate_unity_voicemail()
+
+        call = activate_unity_voicemail_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertIsInstance(kwargs['broadsoftinstance'], BroadsoftInstance.BroadsoftInstance)
+
+    def test_activate_unity_voicemail_barfs_when_no_user_id(self):
+        a = Account()
+        a.sip_user_id = None
+        with self.assertRaises(ValueError):
+            a.activate_unity_voicemail()
+
+    def test_deactivate_thirdparty_voicemail_passes_broadsoftinstance(self):
         self.assertFalse("write this")
 
-    def test_function_to_deactivate_third_party_voicemail(self):
+    def test_deactivate_thirdparty_voicemail_barfs_when_no_user_id(self):
         self.assertFalse("write this")

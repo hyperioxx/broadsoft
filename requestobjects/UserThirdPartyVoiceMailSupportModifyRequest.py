@@ -83,3 +83,26 @@ class UserThirdPartyVoiceMailSupportModifyRequest(BroadsoftRequest):
     def validate(self):
         if self.sip_user_id is None:
             raise ValueError("can't run broadsoft.UserSharedCallAppearanceModifyRequest.to_xml() without a value for sip_user_id.")
+
+    @staticmethod
+    def activate_unity_voicemail(sip_user_id, busy_redirect_to_voice_mail=True,
+                                       no_answer_redirect_to_voice_mail=True, server_selection='User Specific Mail Server',
+                                       user_server=6172530000, mailbox_id_type='User Or Group Phone Number',
+                                 no_answer_number_of_rings=3, always_redirect_to_voice_mail=False,
+                                 out_of_primary_zone_redirect_to_voice_mail=False,
+                                 **kwargs):
+        u = UserThirdPartyVoiceMailSupportModifyRequest(sip_user_id=sip_user_id, is_active=True,
+                                                        busy_redirect_to_voice_mail=busy_redirect_to_voice_mail,
+                                                        no_answer_redirect_to_voice_mail=no_answer_redirect_to_voice_mail,
+                                                        server_selection=server_selection, user_server=user_server,
+                                                        mailbox_id_type=mailbox_id_type,
+                                                        no_answer_number_of_rings=no_answer_number_of_rings,
+                                                        always_redirect_to_voice_mail=always_redirect_to_voice_mail,
+                                                        out_of_primary_zone_redirect_to_voice_mail=out_of_primary_zone_redirect_to_voice_mail,
+                                                        **kwargs)
+        u.post()
+
+    @staticmethod
+    def deactivate_unity_voicemail(sip_user_id, **kwargs):
+        u = UserThirdPartyVoiceMailSupportModifyRequest(sip_user_id=sip_user_id, is_active=False, **kwargs)
+        u.post()
