@@ -644,9 +644,10 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertEqual('password', a.sip_password)
 
     def test_default_services(self):
-        self.assertEqual(2, len(Account.default_services))
+        self.assertEqual(3, len(Account.default_services))
         self.assertIn('Shared Call Appearance 10', Account.default_services)
         self.assertIn('Third-Party Voice Mail Support', Account.default_services)
+        self.assertIn('Voice Messaging User', Account.default_services)
 
     def test_account_converts_did_at_init(self):
         a = Account(did=6175551212)

@@ -16,7 +16,8 @@ class Account(BroadsoftObject):
     # account
     default_services = [
         'Shared Call Appearance 10',
-        'Third-Party Voice Mail Support'
+        'Third-Party Voice Mail Support',
+        'Voice Messaging User'
     ]
 
     def __init__(self, did=None, extension=None, last_name=None, first_name=None,
