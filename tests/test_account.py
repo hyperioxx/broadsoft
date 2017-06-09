@@ -154,8 +154,8 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertEqual(a.sip_password, uadd.sip_password)
 
     def test_devices_added_get_built_into_request_object(self):
-        d1 = Device(description='beaver phone 1', name='beaverphone1', type='iphone')
-        d2 = Device(description='beaver phone 2', name='beaverphone2', type='hamburger')
+        d1 = Device(description='beaver phone 1', name='beaverphone1', type='iphone', line_port='lp1')
+        d2 = Device(description='beaver phone 2', name='beaverphone2', type='hamburger', line_port='lp2')
         a = Account(did=6175551212, extension=51212, last_name='beaver', first_name='tim',
                     sip_user_id='beaver@broadsoft.mit.edu', kname='beaver', email='beaver@mit.edu',
                     use_test=True, services=['a'])
@@ -245,8 +245,8 @@ class TestBroadsoftAccount(unittest.TestCase):
     def test_add_devices(self):
         a = Account(did=6175551212)
         b = BroadsoftRequest()
-        d1 = Device(description='beaver phone 1', name='beaverphone1', type='iphone', use_test=False)
-        d2 = Device(description='beaver phone 2', name='beaverphone2', type='cisco', use_test=False)
+        d1 = Device(description='beaver phone 1', name='beaverphone1', type='iphone', use_test=False, line_port='lp1')
+        d2 = Device(description='beaver phone 2', name='beaverphone2', type='cisco', use_test=False, line_port='lp2')
         a.devices = [d1, d2]
         a.add_devices(req_object=b)
 
@@ -739,8 +739,8 @@ class TestBroadsoftAccount(unittest.TestCase):
             self, build_provision_request_patch, link_primary_device_patch, link_sca_device_patch,
             inject_broadsoftinstance_patch
     ):
-        d1 = Device(name='dname1')
-        d2 = Device(name='dname2')
+        d1 = Device(name='dname1', line_port='lp1')
+        d2 = Device(name='dname2', line_port='lp2')
         a = Account(broadsoftinstance=BroadsoftInstance.factory())
         a.devices = [d1, d2]
         a.add_devices(req_object=BroadsoftRequest())
@@ -956,4 +956,11 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertEqual(kwargs['line_port'], d.line_port)
 
     def test_barf_if_try_to_add_device_missing_lineport(self):
-        self.assertFalse("write this")
+        d1 = Device(name='d1', line_port='d1_lp')
+        d2 = Device(name='d2')
+        d2.line_port = None
+        a = Account(did=6175551212)
+        a.devices = [d1, d2]
+
+        with self.assertRaises(RuntimeError):
+            a.add_devices(req_object=BroadsoftRequest())
