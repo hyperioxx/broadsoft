@@ -964,3 +964,9 @@ class TestBroadsoftAccount(unittest.TestCase):
 
         with self.assertRaises(RuntimeError):
             a.add_devices(req_object=BroadsoftRequest())
+
+    def test_function_to_activate_third_party_voicemail(self):
+        self.assertFalse("write this")
+
+    def test_function_to_deactivate_third_party_voicemail(self):
+        self.assertFalse("write this")
