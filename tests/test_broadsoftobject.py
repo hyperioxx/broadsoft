@@ -2,6 +2,9 @@ import unittest
 import unittest.mock
 from broadsoft.lib import BroadsoftInstance
 from broadsoft.lib.BroadsoftObject import BroadsoftObject
+from broadsoft.Device import Device
+from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
+from broadsoft.requestobjects.UserAddRequest import UserAddRequest
 
 
 class TestBroadsoftObject(unittest.TestCase):
@@ -58,4 +61,17 @@ class TestBroadsoftObject(unittest.TestCase):
         derive_broadsoft_instance_patch.called = False
 
     def test_injected_broadsoftinstance_overrides_prior_settings_in_child_object(self):
-        self.assertFalse("write this")
+
+        u = UserAddRequest(broadsoftinstance=False)
+        # set each of the defined broadsoftinstance related properties to garbage
+        for p in BroadsoftRequest.broadsoftinstance_properties:
+            setattr(u, p, 'garbanzo')
+
+        i = BroadsoftInstance.factory()
+        o = BroadsoftObject(broadsoftinstance=i)
+        o.inject_broadsoftinstance(child=u)
+
+        # for each of the defined broadsoftinstance related properties, check to see now matches value in broadsoft
+        # instance
+        for p in BroadsoftRequest.broadsoftinstance_properties:
+            self.assertEqual(getattr(u, p), getattr(i, p))

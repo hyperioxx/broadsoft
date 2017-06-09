@@ -5,10 +5,10 @@ from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 
 
 class BroadsoftObject:
-    def __init__(self, xml=None, use_test=False, broadsoftinstance=None):
+    def __init__(self, xml=None, use_test=False, broadsoftinstance=None, default_domain=None):
         self.xml = xml
         self.broadsoftinstance = broadsoftinstance
-        self.default_domain = None
+        self.default_domain = default_domain
         self.use_test = use_test
         self.prep_attributes()
 
