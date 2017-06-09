@@ -60,6 +60,9 @@ class BroadsoftObject:
         if self.xml and type(self.xml) is str:
             self.xml = ET.fromstring(self.xml)
 
+        if hasattr(self, 'kname') and hasattr(self, 'email') and self.kname is not None and self.email is None:
+            self.email = self.kname + '@mit.edu'
+
     def provision(self):
         ro = self.build_provision_request()
         results = ro.post()

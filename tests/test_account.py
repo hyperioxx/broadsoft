@@ -966,37 +966,109 @@ class TestBroadsoftAccount(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             a.add_devices(req_object=BroadsoftRequest())
 
-    @unittest.mock.patch('broadsoft.requestobjects.UserThirdPartyVoiceMailSupportModifyRequest.UserThirdPartyVoiceMailSupportModifyRequest.activate_unity_voicemail')
-    def test_activate_unity_voicemail_passes_broadsoftinstance(
-            self, activate_unity_voicemail_patch
-    ):
-        a = Account(broadsoftinstance=BroadsoftInstance.factory(), did=6175551212)
-        a.activate_unity_voicemail()
-
-        call = activate_unity_voicemail_patch.call_args_list[0]
-        args, kwargs = call
-        self.assertIsInstance(kwargs['broadsoftinstance'], BroadsoftInstance.BroadsoftInstance)
-
     def test_activate_unity_voicemail_barfs_when_no_user_id(self):
         a = Account()
         a.sip_user_id = None
         with self.assertRaises(ValueError):
             a.activate_unity_voicemail()
 
-    @unittest.mock.patch(
-        'broadsoft.requestobjects.UserThirdPartyVoiceMailSupportModifyRequest.UserThirdPartyVoiceMailSupportModifyRequest.deactivate_unity_voicemail')
-    def test_deactivate_thirdparty_voicemail_passes_broadsoftinstance(
+    @unittest.mock.patch('broadsoft.requestobjects.UserThirdPartyVoiceMailSupportModifyRequest.UserThirdPartyVoiceMailSupportModifyRequest.deactivate_unity_voicemail')
+    def test_deactivate_unity_voicemail_passes_broadsoftinstance(
             self, deactivate_unity_voicemail_patch
     ):
-        a = Account(broadsoftinstance=BroadsoftInstance.factory(), did=6175551212)
+        a = Account(sip_user_id='6175551212@mit.edu')
         a.deactivate_unity_voicemail()
-
         call = deactivate_unity_voicemail_patch.call_args_list[0]
         args, kwargs = call
         self.assertIsInstance(kwargs['broadsoftinstance'], BroadsoftInstance.BroadsoftInstance)
 
-    def test_deactivate_thirdparty_voicemail_barfs_when_no_user_id(self):
+    def test_deactivate_unity_voicemail_barfs_when_no_user_id(self):
         a = Account()
         a.sip_user_id = None
         with self.assertRaises(ValueError):
             a.deactivate_unity_voicemail()
+
+    def test_deactivate_broadsoft_voicemail_barfs_when_no_user_id(self):
+        a = Account()
+        a.sip_user_id = None
+        with self.assertRaises(ValueError):
+            a.deactivate_broadsoft_voicemail()
+
+    @unittest.mock.patch(
+        'broadsoft.requestobjects.UserVoiceMessagingUserModifyVoiceManagementRequest.UserVoiceMessagingUserModifyVoiceManagementRequest.deactivate_broadsoft_voicemail')
+    def test_deactivate_broadsoft_voicemail_passes_broadsoftinstance(
+            self, deactivate_broadsoft_voicemail_patch
+    ):
+        a = Account(sip_user_id='6175551212@mit.edu')
+        a.deactivate_broadsoft_voicemail()
+        call = deactivate_broadsoft_voicemail_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertIsInstance(kwargs['broadsoftinstance'], BroadsoftInstance.BroadsoftInstance)
+
+    @unittest.mock.patch.object(BroadsoftObject, 'inject_broadsoftinstance')
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    def test_activate_unity_voicemail_passes_broadsoftinstance(
+            self, post_patch, inject_broadsoftinstance_patch
+    ):
+        i = BroadsoftInstance.factory(use_test=True)
+        a = Account(sip_user_id='6175551212@mit.edu', broadsoftinstance=i)
+        a.activate_unity_voicemail()
+
+        # expect to see inject_broadsoftinstance_patch called once, for the BroadsoftRequest object that's containing
+        # our activate and deactivate calls
+        self.assertTrue(inject_broadsoftinstance_patch.called)
+        self.assertEqual(1, inject_broadsoftinstance_patch.called)
+        call = inject_broadsoftinstance_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertIsInstance(kwargs['child'], BroadsoftRequest)
+
+    @unittest.mock.patch.object(BroadsoftObject, 'inject_broadsoftinstance')
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    def test_activate_broadsoft_voicemail_passes_broadsoftinstance(
+            self, post_patch, inject_broadsoftinstance_patch
+    ):
+        i = BroadsoftInstance.factory(use_test=True)
+        a = Account(sip_user_id='6175551212@mit.edu', broadsoftinstance=i)
+        a.activate_broadsoft_voicemail()
+
+        # expect to see inject_broadsoftinstance_patch called once, for the BroadsoftRequest object that's containing
+        # our activate and deactivate calls
+        self.assertTrue(inject_broadsoftinstance_patch.called)
+        self.assertEqual(1, inject_broadsoftinstance_patch.called)
+        call = inject_broadsoftinstance_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertIsInstance(kwargs['child'], BroadsoftRequest)
+
+    def test_email_derived_from_kname(self):
+        a = Account(sip_user_id='6175551212@mit.edu', kname='beaver')
+        self.assertEqual('beaver@mit.edu', a.email)
+
+    def test_activate_broadsoft_voicemail_barfs_without_email(self):
+        a = Account(sip_user_id='6175551212@mit.edu')
+        with self.assertRaises(ValueError):
+            a.activate_broadsoft_voicemail()
+
+    @unittest.mock.patch('broadsoft.requestobjects.UserVoiceMessagingUserModifyVoiceManagementRequest.UserVoiceMessagingUserModifyVoiceManagementRequest.__init__', side_effect=return_none)
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    def test_activate_broadsoft_voicemail_defaults_to_object_email(
+            self, post_patch, activate_patch
+    ):
+        a = Account(sip_user_id='6175551212@mit.edu', email='beaver@mit.edu')
+        a.activate_broadsoft_voicemail()
+        call = activate_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertEqual(kwargs['voice_message_notify_email_address'], a.email)
+        self.assertEqual(kwargs['voice_message_delivery_email_address'], a.email)
+
+        a = Account(sip_user_id='6175551212@mit.edu', email='beaver@mit.edu')
+        a.activate_broadsoft_voicemail(voice_message_notify_email_address='newton@harvard.edu', voice_message_delivery_email_address='newton@harvard.edu')
+        call = activate_patch.call_args_list[1]
+        args, kwargs = call
+        self.assertEqual(kwargs['voice_message_notify_email_address'], 'newton@harvard.edu')
+        self.assertEqual(kwargs['voice_message_delivery_email_address'], 'newton@harvard.edu')
+
+    def test_activate_broadsoft_voicemail_requires_extra_args_as_necessary(self):
+        # ex: send_voice_message_notify_email requires voice_message_notify_email_address
+        # send_carbon_copy_voice_message->voice_message_carbon_copy_email_address
+        # transfer_on_zero_to_phone_number->transfer_phone_number
+        self.assertFalse("write this")
