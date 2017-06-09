@@ -47,12 +47,12 @@ class Account(BroadsoftObject):
 
     def add_devices(self, req_object):
         if len(self.devices) > 0:
-            # first, all devices get added to system
             for d in self.devices:
                 # error if missing line_port at this time
                 if d.line_port is None:
                     raise RuntimeError("The device " + str(d) + " does not have a line_port specified. One can be automatically generated with a DID and MAC address.")
 
+                # all devices get added to system
                 self.inject_broadsoftinstance(child=d)
                 d_ro = d.build_provision_request()
                 req_object.commands.append(d_ro)
