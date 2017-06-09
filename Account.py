@@ -49,7 +49,7 @@ class Account(BroadsoftObject):
     def activate_unity_voicemail(self, busy_redirect_to_voice_mail=True, no_answer_redirect_to_voice_mail=True,
                                  no_answer_number_of_rings=3, always_redirect_to_voice_mail=False):
         if not self.sip_user_id:
-            raise ValueError("can't call Account.activate_third_party_voicemail without a value for sip_user_id")
+            raise ValueError("can't call Account.activate_unity_voicemail without a value for sip_user_id")
 
         UserThirdPartyVoiceMailSupportModifyRequest.activate_unity_voicemail(sip_user_id=self.sip_user_id,
                                                                              busy_redirect_to_voice_mail=busy_redirect_to_voice_mail,
@@ -111,6 +111,14 @@ class Account(BroadsoftObject):
         self.add_devices(req_object=b)
 
         return b
+
+    def deactivate_unity_voicemail(self, busy_redirect_to_voice_mail=True, no_answer_redirect_to_voice_mail=True,
+                                     no_answer_number_of_rings=3, always_redirect_to_voice_mail=False):
+        if not self.sip_user_id:
+            raise ValueError("can't call Account.deactivate_unity_voicemail without a value for sip_user_id")
+
+        UserThirdPartyVoiceMailSupportModifyRequest.deactivate_unity_voicemail(sip_user_id=self.sip_user_id,
+                                                                                 broadsoftinstance=self.broadsoftinstance)
 
     def fetch(self):
         self.xml = UserGetRequest.get_user(did=self.did, sip_user_id=self.sip_user_id, broadsoftinstance=self.broadsoftinstance)
