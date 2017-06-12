@@ -1107,3 +1107,36 @@ class TestBroadsoftAccount(unittest.TestCase):
         # asked for unity, so activate should be for thirdparty, and deactivate for broadsoft
         self.assertIsInstance(activate, UserThirdPartyVoiceMailSupportModifyRequest)
         self.assertIsInstance(deactivate, UserVoiceMessagingUserModifyVoiceManagementRequest)
+
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    def test_delete_converts_did_to_sip_user_id(
+            self, post_patch
+    ):
+        a = Account(did='617-555-1212')
+        requests = a.delete()
+        request = requests[0]
+        cmd = request.commands[0]
+
+        self.assertEqual('6175551212@' + a.default_domain, cmd.sip_user_id)
+
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    def test_delete_barfs_when_no_sip_user_id(
+            self, post_patch
+    ):
+        a = Account()
+        with self.assertRaises(ValueError):
+            requests = a.delete()
+
+    @unittest.mock.patch.object(BroadsoftObject, 'inject_broadsoftinstance')
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    def test_delete_injects_broadsoftinstance(
+            self, post_patch, inject_patch
+    ):
+        i = BroadsoftInstance.factory(use_test=True)
+        a = Account(sip_user_id='6175551212@mit.edu', broadsoftinstance=i)
+        a.delete()
+
+        self.assertTrue(inject_patch.called)
+
+    def test_delete_should_allow_delete_devices(self):
+        self.assertFalse("write this")

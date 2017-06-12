@@ -11,6 +11,7 @@ from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 from broadsoft.Voicemail import Voicemail
 from broadsoft.requestobjects.UserVoiceMessagingUserModifyVoiceManagementRequest import UserVoiceMessagingUserModifyVoiceManagementRequest
 from broadsoft.requestobjects.UserThirdPartyVoiceMailSupportModifyRequest import UserThirdPartyVoiceMailSupportModifyRequest
+from broadsoft.requestobjects.UserDeleteRequest import UserDeleteRequest
 
 
 class Account(BroadsoftObject):
@@ -152,6 +153,24 @@ class Account(BroadsoftObject):
 
         UserVoiceMessagingUserModifyVoiceManagementRequest.deactivate_broadsoft_voicemail(sip_user_id=self.sip_user_id,
                                                                                  broadsoftinstance=self.broadsoftinstance)
+
+    def delete(self):
+        self.prep_attributes()
+
+        if self.sip_user_id is None:
+            raise ValueError("can't call Account.delete() without a value for sip_user_id")
+
+        # going to do this as a compound request so that it's pseudo-atomic...if one fails, the rest should
+        # fail, regardless of where in the process that failure occurs
+        b = BroadsoftRequest()
+        self.inject_broadsoftinstance(child=b)
+
+        # build XML to delete user
+        user = UserDeleteRequest(sip_user_id=self.sip_user_id)
+
+        b.commands = [user]
+        b.post()
+        return [b]
 
     def fetch(self):
         self.xml = UserGetRequest.get_user(did=self.did, sip_user_id=self.sip_user_id, broadsoftinstance=self.broadsoftinstance)
