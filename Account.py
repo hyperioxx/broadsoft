@@ -9,8 +9,10 @@ from broadsoft.requestobjects.UserSharedCallAppearanceAddEndpointRequest import 
 from broadsoft.requestobjects.UserSharedCallAppearanceGetRequest import UserSharedCallAppearanceGetRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 from broadsoft.Voicemail import Voicemail
-from broadsoft.requestobjects.UserVoiceMessagingUserModifyVoiceManagementRequest import UserVoiceMessagingUserModifyVoiceManagementRequest
-from broadsoft.requestobjects.UserThirdPartyVoiceMailSupportModifyRequest import UserThirdPartyVoiceMailSupportModifyRequest
+from broadsoft.requestobjects.UserVoiceMessagingUserModifyVoiceManagementRequest import \
+    UserVoiceMessagingUserModifyVoiceManagementRequest
+from broadsoft.requestobjects.UserThirdPartyVoiceMailSupportModifyRequest import \
+    UserThirdPartyVoiceMailSupportModifyRequest
 from broadsoft.requestobjects.UserDeleteRequest import UserDeleteRequest
 
 
@@ -43,13 +45,14 @@ class Account(BroadsoftObject):
         self.sip_user_id = sip_user_id
 
         # fully optional
-        self.devices = []   # Devices associated with this Account (should be broadsoft.Device objects)
+        self.devices = []  # Devices associated with this Account (should be broadsoft.Device objects)
         self.sip_password = sip_password
 
         BroadsoftObject.__init__(self, **kwargs)
 
     def __repr__(self):
-        return "<Broadsoft Account did:%s, last_name:%s, first_name:%s, sip_user_id:%s>" % (self.did, self.last_name, self.first_name, self.sip_user_id)
+        return "<Broadsoft Account did:%s, last_name:%s, first_name:%s, sip_user_id:%s>" % (
+        self.did, self.last_name, self.first_name, self.sip_user_id)
 
     def activate_voicemail(self, type=None, voicemail_object=None):
         if not self.sip_user_id:
@@ -91,7 +94,8 @@ class Account(BroadsoftObject):
             for d in self.devices:
                 # error if missing line_port at this time
                 if d.line_port is None:
-                    raise RuntimeError("The device " + str(d) + " does not have a line_port specified. One can be automatically generated with a DID and MAC address.")
+                    raise RuntimeError("The device " + str(
+                        d) + " does not have a line_port specified. One can be automatically generated with a DID and MAC address.")
 
                 # all devices get added to system
                 self.inject_broadsoftinstance(child=d)
@@ -145,14 +149,14 @@ class Account(BroadsoftObject):
             raise ValueError("can't call Account.deactivate_unity_voicemail without a value for sip_user_id")
 
         UserThirdPartyVoiceMailSupportModifyRequest.deactivate_unity_voicemail(sip_user_id=self.sip_user_id,
-                                                                                 broadsoftinstance=self.broadsoftinstance)
+                                                                               broadsoftinstance=self.broadsoftinstance)
 
     def deactivate_broadsoft_voicemail(self):
         if not self.sip_user_id:
             raise ValueError("can't call Account.deactivate_unity_voicemail without a value for sip_user_id")
 
         UserVoiceMessagingUserModifyVoiceManagementRequest.deactivate_broadsoft_voicemail(sip_user_id=self.sip_user_id,
-                                                                                 broadsoftinstance=self.broadsoftinstance)
+                                                                                          broadsoftinstance=self.broadsoftinstance)
 
     def delete(self, delete_devices=False):
         self.prep_attributes()
@@ -180,7 +184,7 @@ class Account(BroadsoftObject):
         return [b]
 
     def fetch(self):
-        self.xml = UserGetRequest.get_user(did=self.did, sip_user_id=self.sip_user_id, broadsoftinstance=self.broadsoftinstance)
+        self.xml = UserGetRequest.get_user(sip_user_id=self.sip_user_id, broadsoftinstance=self.broadsoftinstance)
         self.from_xml()
 
     def from_xml(self):
@@ -214,8 +218,14 @@ class Account(BroadsoftObject):
         req_object.commands.append(sca)
 
     def load_devices(self):
-        # first, any that were directly in xml
-        if self.xml:
+        # if there's no XML for the user, fetch entire User. Primary device will be in User record, rest found by
+        # searching for shared call appearances. Since .fetch() calls .load_devices(), will wind up back here.
+        if self.xml is None:
+            self.fetch()
+
+        # if there is XML for the user...
+        else:
+            # first, any that were directly in xml
             for ade in self.xml.findall('./command/accessDeviceEndpoint'):
                 d = Device()
                 self.inject_broadsoftinstance(child=d)
@@ -224,18 +234,18 @@ class Account(BroadsoftObject):
                 d.fetch(target_name=d.name)
                 self.devices.append(d)
 
-        # now find any shared call appearances
-        sca_xml = UserSharedCallAppearanceGetRequest.get_devices(sip_user_id=self.sip_user_id,
-                                                                 broadsoftinstance=self.broadsoftinstance)
-        scas = BroadsoftRequest.convert_results_table(xml=sca_xml)
-        for sca in scas:
-            d = Device()
-            self.inject_broadsoftinstance(child=d)
-            # the shared call appearance listings give us nearly everything about a device, but we run a fetch as well
-            # to get everything
-            d.bootstrap_shared_call_appearance(sca=sca)
-            d.fetch(target_name=d.name)
-            self.devices.append(d)
+            # now find any shared call appearances
+            sca_xml = UserSharedCallAppearanceGetRequest.get_devices(sip_user_id=self.sip_user_id,
+                                                                     broadsoftinstance=self.broadsoftinstance)
+            scas = BroadsoftRequest.convert_results_table(xml=sca_xml)
+            for sca in scas:
+                d = Device()
+                self.inject_broadsoftinstance(child=d)
+                # the shared call appearance listings give us nearly everything about a device, but we run a fetch as well
+                # to get everything
+                d.bootstrap_shared_call_appearance(sca=sca)
+                d.fetch(target_name=d.name)
+                self.devices.append(d)
 
     def provision(self):
         BroadsoftObject.prep_attributes(self)

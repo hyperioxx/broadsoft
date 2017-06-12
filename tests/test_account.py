@@ -432,6 +432,58 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertEqual('beaverspa', d.name)
         self.assertFalse(d.is_primary)
 
+    @unittest.mock.patch.object(BroadsoftRequest, 'convert_results_table')
+    @unittest.mock.patch('broadsoft.requestobjects.UserSharedCallAppearanceGetRequest.UserSharedCallAppearanceGetRequest.get_devices')
+    @unittest.mock.patch.object(Device, 'fetch')
+    @unittest.mock.patch.object(Account, 'fetch')
+    def test_load_devices_should_call_fetch_when_necessary(
+            self, account_fetch_patch, device_account_patch, get_scas_patch, convert_results_patch
+    ):
+        # no xml in Account? fetch.
+        a = Account(did=6175551212)
+        account_fetch_patch.called = False
+        a.load_devices()
+        self.assertTrue(account_fetch_patch.called)
+
+        # xml in Account? don't fetch.
+        a = Account(did=6175551212)
+        xml = """
+            <ns0:BroadsoftDocument xmlns:ns0="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" protocol="OCI">
+            <sessionId>dhcp-18-189-4-125.dyn.mit.edu,2017-05-26 15:33:32.605555,3222027341</sessionId>
+            <command echo="" xsi:type="UserGetResponse21">
+                <serviceProviderId>ENT136</serviceProviderId>
+                <groupId>mit</groupId>
+                <lastName>Beaver</lastName>
+                <firstName>Tim</firstName>
+                <callingLineIdLastName>Beaver</callingLineIdLastName>
+                <callingLineIdFirstName>Tim</callingLineIdFirstName>
+                <hiraganaLastName>Beaver</hiraganaLastName>
+                <hiraganaFirstName>Tim</hiraganaFirstName>
+                <phoneNumber>2212221101</phoneNumber>
+                <extension>1101</extension>
+                <language>English</language>
+                <timeZone>America/New_York</timeZone>
+                <timeZoneDisplayName>(GMT-04:00) (US) Eastern Time</timeZoneDisplayName>
+                <defaultAlias>2212221101@broadsoft-dev.mit.edu</defaultAlias>
+                <accessDeviceEndpoint>
+                    <accessDevice>
+                        <deviceLevel>Group</deviceLevel>
+                        <deviceName>beaver550</deviceName>
+                    </accessDevice>
+                    <linePort>2212221101_lp@broadsoft-dev.mit.edu</linePort>
+                    <staticRegistrationCapable>false</staticRegistrationCapable>
+                    <useDomain>true</useDomain>
+                    <supportVisualDeviceManagement>false</supportVisualDeviceManagement>
+                </accessDeviceEndpoint>
+                <countryCode>1</countryCode>
+            </command>
+            </ns0:BroadsoftDocument>
+        """
+        a.xml = ET.fromstring(xml)
+        account_fetch_patch.called = False
+        a.load_devices()
+        self.assertFalse(account_fetch_patch.called)
+
     @unittest.mock.patch('broadsoft.requestobjects.UserGetRequest.UserGetRequest.get_user')
     @unittest.mock.patch.object(Account, 'from_xml')
     def test_fetch(
@@ -441,7 +493,6 @@ class TestBroadsoftAccount(unittest.TestCase):
         a.fetch()
         call = get_user_patch.call_args_list[0]
         args, kwargs = call
-        self.assertEqual(a.did, kwargs['did'])
         self.assertEqual(a.sip_user_id, kwargs['sip_user_id'])
 
     @unittest.mock.patch.object(Device, 'fetch')
