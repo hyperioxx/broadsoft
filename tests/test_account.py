@@ -12,6 +12,9 @@ from broadsoft.requestobjects.UserServiceAssignListRequest import UserServiceAss
 from broadsoft.requestobjects.UserSharedCallAppearanceAddEndpointRequest import \
     UserSharedCallAppearanceAddEndpointRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
+from broadsoft.Voicemail import Voicemail
+from broadsoft.requestobjects.UserVoiceMessagingUserModifyVoiceManagementRequest import UserVoiceMessagingUserModifyVoiceManagementRequest
+from broadsoft.requestobjects.UserThirdPartyVoiceMailSupportModifyRequest import UserThirdPartyVoiceMailSupportModifyRequest
 
 
 def get_device_mock(name, **kwargs):
@@ -615,31 +618,34 @@ class TestBroadsoftAccount(unittest.TestCase):
 
     @unittest.mock.patch.object(Account, 'set_device_passwords')
     @unittest.mock.patch.object(BroadsoftObject, 'provision')
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
     def test_provision_handles_sip_password(
-            self, provision_patch, set_device_passwords_patch
+            self, post_patch, provision_patch, set_device_passwords_patch
     ):
         d1 = Device(name='d1name')
         d2 = Device(name='d2name')
 
         # when there is a sip_password, should call set_device_passwords
         # not testing alternate case, because right now ALWAYS a sip_password when provisioning
-        a = Account(did=6175551212, last_name='beaver', first_name='tim', sip_password='password')
+        a = Account(did=6175551212, last_name='beaver', first_name='tim', sip_password='password',
+                    email='beaver@mit.edu')
         a.devices = [d1, d2]
         a.provision()
         self.assertTrue(set_device_passwords_patch.called)
 
     @unittest.mock.patch.object(Account, 'set_device_passwords')
     @unittest.mock.patch.object(BroadsoftObject, 'provision')
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
     def test_sets_password_implicitly_on_provision_when_required(
-            self, provision_patch, set_device_passwords_patch
+            self, post_patch, provision_patch, set_device_passwords_patch
     ):
         # when no sip_password
-        a = Account(did=6175551212, last_name='beaver', first_name='tim')
+        a = Account(did=6175551212, last_name='beaver', first_name='tim', email='beaver@mit.edu')
         a.provision()
         self.assertIsNotNone(a.sip_password)
 
         # when is sip_password
-        a = Account(did=6175551212, last_name='beaver', first_name='tim', sip_password='password')
+        a = Account(did=6175551212, last_name='beaver', first_name='tim', sip_password='password', email='beaver@mit.edu')
         a.provision()
         self.assertEqual('password', a.sip_password)
 
@@ -658,15 +664,16 @@ class TestBroadsoftAccount(unittest.TestCase):
 
     @unittest.mock.patch.object(Account, 'set_device_passwords')
     @unittest.mock.patch.object(BroadsoftObject, 'provision')
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
     def test_account_converts_did_at_provision(
-            self, provision_patch, set_device_passwords_patch
+            self, post_patch, provision_patch, set_device_passwords_patch
     ):
-        a = Account()
+        a = Account(email='beaver@mit.edu')
         a.did = 6175551212
         a.provision()
         self.assertEqual('6175551212', a.did)
 
-        a = Account()
+        a = Account(email='beaver@mit.edu')
         a.did = '617 555 1212'
         a.provision()
         self.assertEqual('6175551212', a.did)
@@ -677,15 +684,16 @@ class TestBroadsoftAccount(unittest.TestCase):
 
     @unittest.mock.patch.object(Account, 'set_device_passwords')
     @unittest.mock.patch.object(BroadsoftObject, 'provision')
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
     def test_account_derives_sip_user_id_at_provision(
-            self, provision_patch, set_device_passwords_patch
+            self, post_patch, provision_patch, set_device_passwords_patch
     ):
-        a = Account()
+        a = Account(email='beaver@mit.edu')
         a.did = 6175551212
         a.provision()
         self.assertEqual('6175551212@' + a.default_domain, a.sip_user_id)
 
-        a = Account()
+        a = Account(email='beaver@mit.edu')
         a.did = '617 555 1212'
         a.provision()
         self.assertEqual('6175551212@' + a.default_domain, a.sip_user_id)
@@ -966,12 +974,6 @@ class TestBroadsoftAccount(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             a.add_devices(req_object=BroadsoftRequest())
 
-    def test_activate_unity_voicemail_barfs_when_no_user_id(self):
-        a = Account()
-        a.sip_user_id = None
-        with self.assertRaises(ValueError):
-            a.activate_unity_voicemail()
-
     @unittest.mock.patch('broadsoft.requestobjects.UserThirdPartyVoiceMailSupportModifyRequest.UserThirdPartyVoiceMailSupportModifyRequest.deactivate_unity_voicemail')
     def test_deactivate_unity_voicemail_passes_broadsoftinstance(
             self, deactivate_unity_voicemail_patch
@@ -988,7 +990,7 @@ class TestBroadsoftAccount(unittest.TestCase):
         with self.assertRaises(ValueError):
             a.deactivate_unity_voicemail()
 
-    def test_deactivate_broadsoft_voicemail_barfs_when_no_user_id(self):
+    def test_deactivate_voicemail_barfs_when_no_user_id(self):
         a = Account()
         a.sip_user_id = None
         with self.assertRaises(ValueError):
@@ -1007,12 +1009,12 @@ class TestBroadsoftAccount(unittest.TestCase):
 
     @unittest.mock.patch.object(BroadsoftObject, 'inject_broadsoftinstance')
     @unittest.mock.patch.object(BroadsoftRequest, 'post')
-    def test_activate_unity_voicemail_passes_broadsoftinstance(
+    def test_activate_voicemail_passes_broadsoftinstance(
             self, post_patch, inject_broadsoftinstance_patch
     ):
         i = BroadsoftInstance.factory(use_test=True)
         a = Account(sip_user_id='6175551212@mit.edu', broadsoftinstance=i)
-        a.activate_unity_voicemail()
+        a.activate_voicemail()
 
         # expect to see inject_broadsoftinstance_patch called once, for the BroadsoftRequest object that's containing
         # our activate and deactivate calls
@@ -1024,12 +1026,12 @@ class TestBroadsoftAccount(unittest.TestCase):
 
     @unittest.mock.patch.object(BroadsoftObject, 'inject_broadsoftinstance')
     @unittest.mock.patch.object(BroadsoftRequest, 'post')
-    def test_activate_broadsoft_voicemail_passes_broadsoftinstance(
+    def test_activate_voicemail_passes_broadsoftinstance(
             self, post_patch, inject_broadsoftinstance_patch
     ):
         i = BroadsoftInstance.factory(use_test=True)
-        a = Account(sip_user_id='6175551212@mit.edu', broadsoftinstance=i)
-        a.activate_broadsoft_voicemail()
+        a = Account(sip_user_id='6175551212@mit.edu', email='beaver@mit.edu', broadsoftinstance=i)
+        a.activate_voicemail()
 
         # expect to see inject_broadsoftinstance_patch called once, for the BroadsoftRequest object that's containing
         # our activate and deactivate calls
@@ -1043,32 +1045,65 @@ class TestBroadsoftAccount(unittest.TestCase):
         a = Account(sip_user_id='6175551212@mit.edu', kname='beaver')
         self.assertEqual('beaver@mit.edu', a.email)
 
-    def test_activate_broadsoft_voicemail_barfs_without_email(self):
+    def test_activate_voicemail_barfs_without_email(self):
         a = Account(sip_user_id='6175551212@mit.edu')
         with self.assertRaises(ValueError):
-            a.activate_broadsoft_voicemail()
+            a.activate_voicemail()
 
-    @unittest.mock.patch('broadsoft.requestobjects.UserVoiceMessagingUserModifyVoiceManagementRequest.UserVoiceMessagingUserModifyVoiceManagementRequest.__init__', side_effect=return_none)
     @unittest.mock.patch.object(BroadsoftRequest, 'post')
-    def test_activate_broadsoft_voicemail_defaults_to_object_email(
-            self, post_patch, activate_patch
+    def test_activate_voicemail_pass_voicemail_object(
+            self, post_patch
     ):
-        a = Account(sip_user_id='6175551212@mit.edu', email='beaver@mit.edu')
-        a.activate_broadsoft_voicemail()
-        call = activate_patch.call_args_list[0]
-        args, kwargs = call
-        self.assertEqual(kwargs['voice_message_notify_email_address'], a.email)
-        self.assertEqual(kwargs['voice_message_delivery_email_address'], a.email)
+        v = Voicemail(straight_to_voicemail=True, type='broadsoft')
+        a = Account(sip_user_id='6175551212@broadsoft.com', email='beaver@mit.edu')
+        r = a.activate_voicemail(voicemail_object=v)
 
-        a = Account(sip_user_id='6175551212@mit.edu', email='beaver@mit.edu')
-        a.activate_broadsoft_voicemail(voice_message_notify_email_address='newton@harvard.edu', voice_message_delivery_email_address='newton@harvard.edu')
-        call = activate_patch.call_args_list[1]
-        args, kwargs = call
-        self.assertEqual(kwargs['voice_message_notify_email_address'], 'newton@harvard.edu')
-        self.assertEqual(kwargs['voice_message_delivery_email_address'], 'newton@harvard.edu')
+        # the first command in the returned object from activate_voicemail will
+        request = r[0]
+        activate = request.commands[0]
+        # default object has always_redirect_to_voice_mail set to False. If our custom voicemail object was passed,
+        # will be true.
+        self.assertTrue(activate.always_redirect_to_voice_mail)
 
-    def test_activate_broadsoft_voicemail_requires_extra_args_as_necessary(self):
-        # ex: send_voice_message_notify_email requires voice_message_notify_email_address
-        # send_carbon_copy_voice_message->voice_message_carbon_copy_email_address
-        # transfer_on_zero_to_phone_number->transfer_phone_number
-        self.assertFalse("write this")
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    def test_activate_voicemail_construct_voicemail_object(
+            self, post_patch
+    ):
+        a = Account(sip_user_id='6175551212@broadsoft.com', email='beaver@mit.edu')
+        r = a.activate_voicemail()
+
+        # the first command in the returned object from activate_voicemail will
+        request = r[0]
+        activate = request.commands[0]
+        # default object has always_redirect_to_voice_mail set to True.
+        self.assertFalse(activate.always_redirect_to_voice_mail)
+
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    def test_activate_voicemail_commands_built(
+            self, post_patch
+    ):
+        # build default (broadsoft)
+        a = Account(sip_user_id='6175551212@broadsoft.com', email='beaver@mit.edu')
+        r = a.activate_voicemail()
+
+        # expect to see two commands: an activate, and a deactivate
+        request = r[0]
+        activate = request.commands[0]
+        deactivate = request.commands[1]
+
+        # default is broadsoft, so activate should be for broadsoft, and deactivate for third party
+        self.assertIsInstance(activate, UserVoiceMessagingUserModifyVoiceManagementRequest)
+        self.assertIsInstance(deactivate, UserThirdPartyVoiceMailSupportModifyRequest)
+
+        # build unity
+        a = Account(sip_user_id='6175551212@broadsoft.com', email='beaver@mit.edu', voicemail='unity')
+        r = a.activate_voicemail()
+
+        # expect to see two commands: an activate, and a deactivate
+        request = r[0]
+        activate = request.commands[0]
+        deactivate = request.commands[1]
+
+        # asked for unity, so activate should be for thirdparty, and deactivate for broadsoft
+        self.assertIsInstance(activate, UserThirdPartyVoiceMailSupportModifyRequest)
+        self.assertIsInstance(deactivate, UserVoiceMessagingUserModifyVoiceManagementRequest)

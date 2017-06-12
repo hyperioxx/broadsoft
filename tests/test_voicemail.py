@@ -64,3 +64,16 @@ class TestBroadsoftVoicemail(unittest.TestCase):
         v = Voicemail(sip_user_id='6175551212@beaver.mit.edu')
         with self.assertRaises(ValueError):
             v.validate()
+
+    def test_activate_barfs_with_bad_type(self):
+        v = Voicemail(sip_user_id='6175551212@beaver.mit.edu', email='beaver@mit.edu', type='garbanzo')
+        with self.assertRaises(NotImplementedError):
+            v.build_activate_command()
+
+    def test_deactivate_barfs_with_bad_type(self):
+        v = Voicemail(sip_user_id='6175551212@beaver.mit.edu', email='beaver@mit.edu', type='garbanzo')
+        with self.assertRaises(NotImplementedError):
+            v.build_deactivate_counterpart_command()
+
+    def test_unity_provision_should_create_unity_account_when_needed(self):
+        self.assertFalse("write this")

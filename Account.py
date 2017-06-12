@@ -7,9 +7,10 @@ from broadsoft.requestobjects.UserServiceAssignListRequest import UserServiceAss
 from broadsoft.requestobjects.UserSharedCallAppearanceAddEndpointRequest import \
     UserSharedCallAppearanceAddEndpointRequest
 from broadsoft.requestobjects.UserSharedCallAppearanceGetRequest import UserSharedCallAppearanceGetRequest
+from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
+from broadsoft.Voicemail import Voicemail
 from broadsoft.requestobjects.UserVoiceMessagingUserModifyVoiceManagementRequest import UserVoiceMessagingUserModifyVoiceManagementRequest
 from broadsoft.requestobjects.UserThirdPartyVoiceMailSupportModifyRequest import UserThirdPartyVoiceMailSupportModifyRequest
-from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 
 
 class Account(BroadsoftObject):
@@ -23,7 +24,7 @@ class Account(BroadsoftObject):
 
     def __init__(self, did=None, extension=None, last_name=None, first_name=None,
                  sip_user_id=None, kname=None, email=None, services=None,
-                 sip_password=None, **kwargs):
+                 sip_password=None, voicemail='broadsoft', **kwargs):
         self.did = did
         self.email = email
         self.first_name = first_name
@@ -34,6 +35,7 @@ class Account(BroadsoftObject):
             if type(services) == str:
                 services = [services]
             self.services = services
+        self.voicemail = voicemail
 
         # these are optional; will be derived by broadsoft.RequestObjects as needed
         self.extension = extension
@@ -48,83 +50,40 @@ class Account(BroadsoftObject):
     def __repr__(self):
         return "<Broadsoft Account did:%s, last_name:%s, first_name:%s, sip_user_id:%s>" % (self.did, self.last_name, self.first_name, self.sip_user_id)
 
-    def activate_broadsoft_voicemail(self, voice_message_delivery_email_address=None,
-                                     use_phone_message_waiting_indicator=False,
-                                     send_voice_message_notify_email=True,
-                                     voice_message_notify_email_address=None,
-                                     send_carbon_copy_voice_message=False,
-                                     voice_message_carbon_copy_email_address=None,
-                                     transfer_on_zero_to_phone_number=False, transfer_phone_number=None,
-                                     always_redirect_to_voice_mail=False, busy_redirect_to_voice_mail=True,
-                                     no_answer_redirect_to_voice_mail=True,
-                                     out_of_primary_zone_redirect_to_voice_mail=False):
+    def activate_voicemail(self, type=None, voicemail_object=None):
         if not self.sip_user_id:
             raise ValueError("can't call Account.activate_unity_voicemail without a value for sip_user_id")
 
-        if not self.email:
-            raise ValueError("can't call Account.activate_unity_voicemail without a value for email")
+        # no type provided? inherit from object.
+        if type is None:
+            type = self.voicemail
 
-        if voice_message_notify_email_address is None:
-            voice_message_notify_email_address = self.email
+        # user didn't specify a custom Voicemail object? Instantiate the default for the given type.
+        if voicemail_object is None:
+            voicemail_object = Voicemail(type=type)
 
-        if voice_message_delivery_email_address is None:
-            voice_message_delivery_email_address = self.email
+        # get email and sip_user_id into voicemail object, whether constructed or passed
+        if voicemail_object.email is None:
+            voicemail_object.email = self.email
+        if voicemail_object.sip_user_id is None:
+            voicemail_object.sip_user_id = self.sip_user_id
 
         # going to do this as a compound request so that it's pseudo-atomic...if one fails, the rest should
         # fail, regardless of where in the process that failure occurs
         b = BroadsoftRequest()
         self.inject_broadsoftinstance(child=b)
 
-        # activate broadsoft voicemail
-        # makes more sense to deactivate unity first, but this is the step that's more likely to fail, so might as well
-        # put it first
-        activate = UserVoiceMessagingUserModifyVoiceManagementRequest(sip_user_id=self.sip_user_id, is_active=True,
-                                     processing='Deliver To Email Address Only',
-                                     voice_message_delivery_email_address=voice_message_delivery_email_address,
-                                     use_phone_message_waiting_indicator=use_phone_message_waiting_indicator,
-                                     send_voice_message_notify_email=send_voice_message_notify_email,
-                                     voice_message_notify_email_address=voice_message_notify_email_address,
-                                     send_carbon_copy_voice_message=send_carbon_copy_voice_message,
-                                     voice_message_carbon_copy_email_address=voice_message_carbon_copy_email_address,
-                                     transfer_on_zero_to_phone_number=transfer_on_zero_to_phone_number,
-                                     transfer_phone_number=transfer_phone_number,
-                                     always_redirect_to_voice_mail=always_redirect_to_voice_mail,
-                                     busy_redirect_to_voice_mail=busy_redirect_to_voice_mail,
-                                     no_answer_redirect_to_voice_mail=no_answer_redirect_to_voice_mail,
-                                     out_of_primary_zone_redirect_to_voice_mail=out_of_primary_zone_redirect_to_voice_mail)
+        # build XML to activate chosen voicemail system
+        # makes more sense to deactivate counterpart first, but this is the step that's more likely to fail, so might
+        # as well put it first
+        activate = voicemail_object.build_activate_command()
 
-        # deactivate unity
-        deactivate = UserThirdPartyVoiceMailSupportModifyRequest(sip_user_id=self.sip_user_id, is_active=False)
+        # build XML to deactivate counterpart
+        deactivate = voicemail_object.build_deactivate_counterpart_command()
 
         b.commands = [activate, deactivate]
         b.post()
-
-    def activate_unity_voicemail(self, busy_redirect_to_voice_mail=True, no_answer_redirect_to_voice_mail=True,
-                                 no_answer_number_of_rings=3, always_redirect_to_voice_mail=False):
-        if not self.sip_user_id:
-            raise ValueError("can't call Account.activate_unity_voicemail without a value for sip_user_id")
-
-        # going to do this as a compound request so that it's pseudo-atomic...if one fails, the rest should
-        # fail, regardless of where in the process that failure occurs
-        b = BroadsoftRequest()
-        self.inject_broadsoftinstance(child=b)
-
-        # activate unity voicemail
-        # makes more sense to deactivate broadsoft first, but this is the step that's more likely to fail, so might as well
-        # put it first
-        activate = UserThirdPartyVoiceMailSupportModifyRequest(sip_user_id=self.sip_user_id, is_active=True,
-                                                               busy_redirect_to_voice_mail=busy_redirect_to_voice_mail,
-                                                               no_answer_redirect_to_voice_mail=no_answer_redirect_to_voice_mail,
-                                                               user_server=6172530000, mailbox_id_type='User Or Group Phone Number',
-                                                               no_answer_number_of_rings=no_answer_number_of_rings,
-                                                               always_redirect_to_voice_mail=always_redirect_to_voice_mail,
-                                                               out_of_primary_zone_redirect_to_voice_mail=False)
-
-        # deactivate broadsoft
-        deactivate = UserVoiceMessagingUserModifyVoiceManagementRequest(sip_user_id=self.sip_user_id, is_active=False)
-
-        b.commands = [activate, deactivate]
-        b.post()
+        return [b]
 
     def add_devices(self, req_object):
         if len(self.devices) > 0:
@@ -258,12 +217,17 @@ class Account(BroadsoftObject):
         if not self.sip_password:
             self.generate_sip_password()
 
-        BroadsoftObject.provision(self)
+        p = BroadsoftObject.provision(self)
 
         # Not making this part atomic since I want to leverage set_device_passwords(), so it gets called outside of
         # build_provision_request. Seems reasonable to not make the entire request fail if this part does anyway.
         if self.sip_password:
-            self.set_device_passwords(new_sip_password=self.sip_password)
+            p = self.set_device_passwords(new_sip_password=self.sip_password)
+
+        # set up voicemail
+        # Not making this part atomic since it seems reasonable to not make the entire request fail if this part does.
+        if self.voicemail:
+            v = self.activate_voicemail()
 
     def set_device_passwords(self, new_sip_password=None):
         if not self.sip_user_id and not self.did:
