@@ -15,6 +15,7 @@ from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 from broadsoft.Voicemail import Voicemail
 from broadsoft.requestobjects.UserVoiceMessagingUserModifyVoiceManagementRequest import UserVoiceMessagingUserModifyVoiceManagementRequest
 from broadsoft.requestobjects.UserThirdPartyVoiceMailSupportModifyRequest import UserThirdPartyVoiceMailSupportModifyRequest
+from broadsoft.requestobjects.GroupAccessDeviceDeleteRequest import GroupAccessDeviceDeleteRequest
 
 
 def get_device_mock(name, **kwargs):
@@ -135,6 +136,10 @@ def get_sca_mock(**kwargs):
         </command>
         </BroadsoftDocument>"""
     return ET.fromstring(xml)
+
+
+def return_empty_array(*args, **kwargs):
+    return []
 
 
 def return_none(*args, **kwargs):
@@ -1138,5 +1143,67 @@ class TestBroadsoftAccount(unittest.TestCase):
 
         self.assertTrue(inject_patch.called)
 
-    def test_delete_should_allow_delete_devices(self):
-        self.assertFalse("write this")
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    def test_delete_should_allow_delete_devices(
+            self, post_patch
+    ):
+        d1 = Device(name='dname1')
+        d2 = Device(name='dname2')
+        a = Account(sip_user_id='6175551212@mit.edu')
+        a.devices = [d1, d2]
+        requests = a.delete(delete_devices=True)
+        request = requests[0]
+
+        # expect to see three commands in the request, the latter two for the devices
+        self.assertEqual(3, len(request.commands))
+
+        delete_device_1 = request.commands[1]
+        self.assertIsInstance(delete_device_1, GroupAccessDeviceDeleteRequest)
+        self.assertEqual('dname1', delete_device_1.device_name)
+
+        delete_device_2 = request.commands[2]
+        self.assertIsInstance(delete_device_2, GroupAccessDeviceDeleteRequest)
+        self.assertEqual('dname2', delete_device_2.device_name)
+
+    @unittest.mock.patch.object(Account, 'load_devices', side_effect=return_empty_array)
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    def test_delete_does_not_barf_when_no_devices_found(
+            self, post_patch, load_devices_patch
+    ):
+        a = Account(sip_user_id='6175551212@mit.edu')
+        requests = a.delete(delete_devices=True)
+        request = requests[0]
+
+        # expect to see 1 commands in the request, since no devices
+        self.assertEqual(1, len(request.commands))
+
+    @unittest.mock.patch.object(Account, 'load_devices')
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    def test_delete_should_fetch_devices_when_necessary(
+            self, post_patch, load_devices_patch
+    ):
+        # devices are present, and delete_devices is True: shouldn't load
+        d1 = Device(name='dname1')
+        d2 = Device(name='dname2')
+        a = Account(sip_user_id='6175551212@mit.edu')
+        a.devices = [d1, d2]
+        a.delete(delete_devices=True)
+        self.assertFalse(load_devices_patch.called)
+
+        # devices are present, and delete_devices is False: shouldn't load
+        d1 = Device(name='dname1')
+        d2 = Device(name='dname2')
+        a = Account(sip_user_id='6175551212@mit.edu')
+        a.devices = [d1, d2]
+        a.delete(delete_devices=True)
+        self.assertFalse(load_devices_patch.called)
+
+        # devices are not present, and delete_devices is False: shouldn't load
+        a = Account(sip_user_id='6175551212@mit.edu')
+        a.delete(delete_devices=False)
+        self.assertFalse(load_devices_patch.called)
+
+        # devices are not present, and delete_devices is True: should load
+        a = Account(sip_user_id='6175551212@mit.edu')
+        a.delete(delete_devices=True)
+        self.assertTrue(load_devices_patch.called)

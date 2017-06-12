@@ -154,8 +154,11 @@ class Account(BroadsoftObject):
         UserVoiceMessagingUserModifyVoiceManagementRequest.deactivate_broadsoft_voicemail(sip_user_id=self.sip_user_id,
                                                                                  broadsoftinstance=self.broadsoftinstance)
 
-    def delete(self):
+    def delete(self, delete_devices=False):
         self.prep_attributes()
+
+        if delete_devices and len(self.devices) == 0:
+            self.load_devices()
 
         if self.sip_user_id is None:
             raise ValueError("can't call Account.delete() without a value for sip_user_id")
@@ -167,8 +170,12 @@ class Account(BroadsoftObject):
 
         # build XML to delete user
         user = UserDeleteRequest(sip_user_id=self.sip_user_id)
-
         b.commands = [user]
+
+        # for each device, add XML for device deletion
+        for d in self.devices:
+            b.commands.append(d.delete(bundle=True))
+
         b.post()
         return [b]
 
