@@ -14,6 +14,8 @@ from broadsoft.requestobjects.UserVoiceMessagingUserModifyVoiceManagementRequest
 from broadsoft.requestobjects.UserThirdPartyVoiceMailSupportModifyRequest import \
     UserThirdPartyVoiceMailSupportModifyRequest
 from broadsoft.requestobjects.UserDeleteRequest import UserDeleteRequest
+from broadsoft.requestobjects.UserGetListInGroupRequest import UserGetListInGroupRequest
+from broadsoft.lib import BroadsoftInstance
 
 
 class Account(BroadsoftObject):
@@ -294,3 +296,24 @@ class Account(BroadsoftObject):
 
         UserModifyRequest.set_password(did=self.did, sip_user_id=self.sip_user_id, new_password=new_password,
                                        broadsoftinstance=self.broadsoftinstance)
+
+    @staticmethod
+    def get_accounts(use_test=False, **kwargs):
+        if 'broadsoftinstance' not in kwargs or kwargs['broadsoftinstance'] is None:
+            i = BroadsoftInstance.factory(use_test=use_test)
+            kwargs['broadsoftinstance'] = i
+
+        accounts = []
+        results = UserGetListInGroupRequest.list_users(**kwargs)
+        for row in results:
+            sip_user_id = row['User Id']
+            last_name = row['Last Name']
+            email = row['Email Address']
+            did = row['Phone Number']
+            first_name = row['First Name']
+            extension = row['Extension']
+
+            a = Account(sip_user_id=sip_user_id, last_name=last_name, email=email, did=did, first_name=first_name,
+                        extension=extension, **kwargs)
+            accounts.append(a)
+        return accounts
