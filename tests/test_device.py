@@ -305,3 +305,25 @@ class TestBroadsoftDevice(unittest.TestCase):
         d = Device(name='dname')
         d.delete(bundle=False)
         self.assertTrue(post_patch.called)
+
+    @unittest.mock.patch.object(GroupAccessDeviceDeleteRequest, 'delete_device')
+    @unittest.mock.patch.object(GroupAccessDeviceDeleteRequest, '__init__', side_effect=return_none)
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    def test_delete_passes_broadsoftinstance(
+            self, post_patch, delete_init_patch, delete_execute_patch
+    ):
+        # when bundle is True (check __init__ on GroupAccessDeviceDeleteRequest)
+        i = BroadsoftInstance.factory(use_test=True)
+        d = Device(name='dname', broadsoftinstance=i)
+        d.delete(bundle=True)
+        call = delete_init_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertIsInstance(kwargs['broadsoftinstance'], BroadsoftInstance.TestBroadsoftInstance)
+
+        # when bundle is False (check GroupAccessDeviceDeleteRequest.delete_device)
+        i = BroadsoftInstance.factory(use_test=True)
+        d = Device(name='dname', broadsoftinstance=i)
+        d.delete(bundle=False)
+        call = delete_execute_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertIsInstance(kwargs['broadsoftinstance'], BroadsoftInstance.TestBroadsoftInstance)
