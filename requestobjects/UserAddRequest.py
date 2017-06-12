@@ -51,12 +51,12 @@ class UserAddRequest(BroadsoftRequest):
         pw = ET.SubElement(cmd, 'password')
         pw.text = self.sip_password
 
+        tz = ET.SubElement(cmd, 'timeZone')
+        tz.text = self.timezone
+
         if self.email:
             e = ET.SubElement(cmd, 'emailAddress')
             e.text = self.email
-
-        tz = ET.SubElement(cmd, 'timeZone')
-        tz.text = self.timezone
 
         return cmd
 

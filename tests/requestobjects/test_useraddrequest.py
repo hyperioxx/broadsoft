@@ -115,8 +115,8 @@ class TestBroadsoftUserAddRequest(unittest.TestCase):
             '<callingLineIdFirstName>Tim</callingLineIdFirstName>' + \
             '<phoneNumber>6175551212</phoneNumber>' + \
             '<password>123456789</password>' + \
-            '<emailAddress>beaver@mit.edu</emailAddress>' + \
             '<timeZone>' + u.timezone + '</timeZone>' + \
+            '<emailAddress>beaver@mit.edu</emailAddress>' + \
             '</command>'
 
         xml = u.to_xml()
