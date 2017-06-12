@@ -3,6 +3,7 @@ from broadsoft.requestobjects.GroupAccessDeviceAddRequest import GroupAccessDevi
 from broadsoft.requestobjects.GroupAccessDeviceGetRequest import GroupAccessDeviceGetRequest
 from broadsoft.requestobjects.GroupAccessDeviceModifyRequest import GroupAccessDeviceModifyRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
+from broadsoft.requestobjects.GroupAccessDeviceDeleteRequest import GroupAccessDeviceDeleteRequest
 
 
 class Device(BroadsoftObject):
@@ -55,6 +56,19 @@ class Device(BroadsoftObject):
         if self.transport_protocol:
             g.transport_protocol = self.transport_protocol
         return g
+
+    def delete(self, bundle=False):
+        if self.name is None:
+            raise ValueError("can't run Device.delete() without a value for name")
+
+        # "bundle" is for when we're packing the delete request into a set of requests to take advantage of atomicity
+        if bundle:
+            g = GroupAccessDeviceDeleteRequest(device_name=self.name, broadsoftinstance=self.broadsoftinstance)
+            return g
+
+        else:
+            return GroupAccessDeviceDeleteRequest.delete_device(device_name=self.name,
+                                                                broadsoftinstance=self.broadsoftinstance)
 
     def derive_line_port(self):
         self.derive_default_domain()

@@ -6,6 +6,7 @@ from broadsoft.requestobjects.GroupAccessDeviceModifyRequest import GroupAccessD
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 from broadsoft.lib.BroadsoftObject import BroadsoftObject
 from broadsoft.lib import BroadsoftInstance
+from broadsoft.requestobjects.GroupAccessDeviceDeleteRequest import GroupAccessDeviceDeleteRequest
 from xml.etree.ElementTree import Element
 import xml.etree.ElementTree as ET
 
@@ -282,3 +283,25 @@ class TestBroadsoftDevice(unittest.TestCase):
         i = BroadsoftInstance.factory(use_test=False)
         d = Device(did=6175551212, mac_address='aa:bb:cc:11:22:33', use_test=False)
         self.assertEqual('6175551212_aabbcc112233_' + str(d.index) + '@' + d.default_domain, d.line_port)
+
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    def test_delete_device_barfs_if_no_name(
+            self, post_patch
+    ):
+        d = Device()
+        with self.assertRaises(ValueError):
+            d.delete()
+
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    def test_delete_device_passes_back_delete_object_when_bundling(
+            self, post_patch
+    ):
+        # when we're bundling, should just pass back request object; shouldn't actually post it
+        d = Device(name='dname')
+        d.delete(bundle=True)
+        self.assertFalse(post_patch.called)
+
+        # when we're not bundling, should actually try to post it
+        d = Device(name='dname')
+        d.delete(bundle=False)
+        self.assertTrue(post_patch.called)
