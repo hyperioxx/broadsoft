@@ -37,6 +37,7 @@ def return_xml_error(*args, **kwargs):
 
 class TestBroadsoftRequest(unittest.TestCase):
     def test_convert_phone_number(self):
+        self.assertEqual('6175551212', BroadsoftRequest.convert_phone_number(number='+1-617-555-1212', dashes=False))
         self.assertEqual('6175551212', BroadsoftRequest.convert_phone_number(number='6175551212', dashes=False))
         self.assertEqual('6175551212', BroadsoftRequest.convert_phone_number(number='617 555 1212', dashes=False))
         self.assertEqual('6175551212', BroadsoftRequest.convert_phone_number(number='(617) 555-1212', dashes=False))

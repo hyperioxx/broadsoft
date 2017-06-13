@@ -398,6 +398,11 @@ class BroadsoftRequest(XmlDocument):
     def convert_phone_number(number, dashes=False):
         import re
         number = str(number)
+
+        # obvious intl code at the front? strip it
+        number = re.sub('^\+\d+\D', '', number)
+
+        # get rid of any non-numeric characters
         number = re.sub('\D', '', number)
         if dashes:
             number = number[:3] + '-' + number[3:6] + '-' + number[6:]

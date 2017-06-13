@@ -1,15 +1,4 @@
-discuss login fuctionality
-    auto login
-    doing it yourself
-    passing around auth and login objects to inherit session id
-    
-single command (directly via object)
-compound command (via attaching to BroadsoftRequest.commands)
-
-building a new request object
-
-broadsoftinstance
-    child objects will always inherit from parent, even if set explicitly otherwise
+basic usage of top level objects
 
 provisioning a user
     build an Account object
@@ -29,3 +18,16 @@ provisioning a user
     a.devices = [d1, d2]
     a.provision()
     ```
+
+broadsoftinstance
+    child objects will always inherit from parent, even if set explicitly otherwise
+    can pass attrs individually but not recc
+    
+how the requestobjects work, how to create a new one
+    discuss login fuctionality
+        auto login
+        doing it yourself
+        passing around auth and login objects to inherit session id
+        
+    single command (directly via object)
+    compound command (via attaching to BroadsoftRequest.commands)

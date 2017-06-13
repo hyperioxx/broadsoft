@@ -1258,3 +1258,9 @@ class TestBroadsoftAccount(unittest.TestCase):
         a = Account(sip_user_id='6175551212@mit.edu')
         a.delete(delete_devices=True)
         self.assertTrue(load_devices_patch.called)
+
+    def test_get_accounts_results(self):
+        self.assertFalse("write this")
+
+    def test_get_accounts_passes_broadsoftinstance(self):
+        self.assertFalse("write this")
