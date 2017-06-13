@@ -1108,23 +1108,6 @@ class TestBroadsoftAccount(unittest.TestCase):
             self, post_patch, inject_broadsoftinstance_patch
     ):
         i = BroadsoftInstance.factory(use_test=True)
-        a = Account(sip_user_id='6175551212@mit.edu', broadsoftinstance=i)
-        a.activate_voicemail()
-
-        # expect to see inject_broadsoftinstance_patch called once, for the BroadsoftRequest object that's containing
-        # our activate and deactivate calls
-        self.assertTrue(inject_broadsoftinstance_patch.called)
-        self.assertEqual(1, inject_broadsoftinstance_patch.called)
-        call = inject_broadsoftinstance_patch.call_args_list[0]
-        args, kwargs = call
-        self.assertIsInstance(kwargs['child'], BroadsoftRequest)
-
-    @unittest.mock.patch.object(BroadsoftObject, 'inject_broadsoftinstance')
-    @unittest.mock.patch.object(BroadsoftRequest, 'post')
-    def test_activate_voicemail_passes_broadsoftinstance(
-            self, post_patch, inject_broadsoftinstance_patch
-    ):
-        i = BroadsoftInstance.factory(use_test=True)
         a = Account(sip_user_id='6175551212@mit.edu', email='beaver@mit.edu', broadsoftinstance=i)
         a.activate_voicemail()
 
@@ -1202,6 +1185,32 @@ class TestBroadsoftAccount(unittest.TestCase):
         # asked for unity, so activate should be for thirdparty, and deactivate for broadsoft
         self.assertIsInstance(activate, UserThirdPartyVoiceMailSupportModifyRequest)
         self.assertIsInstance(deactivate, UserVoiceMessagingUserModifyVoiceManagementRequest)
+
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    def test_activate_voicemail_passes_relevant_attributes(self, post_patch):
+        # with mwi True
+        a = Account(sip_user_id='6175551212@broadsoft.com', email='beaver@mit.edu')
+        [request] = a.activate_voicemail(mwi=True)
+
+        # check activate command for email, sip_user_id, and mwi
+        activate = request.commands[0]
+        self.assertEqual(activate.voice_message_delivery_email_address, a.email)
+        self.assertEqual(activate.voice_message_notify_email_address, a.email)
+        self.assertEqual(activate.send_voice_message_notify_email, a.email)
+        self.assertEqual(activate.sip_user_id, a.sip_user_id)
+        self.assertTrue(activate.use_phone_message_waiting_indicator)
+
+        # with mwi False
+        a = Account(sip_user_id='6175551212@broadsoft.com', email='beaver@mit.edu')
+        [request] = a.activate_voicemail(mwi=False)
+
+        # check activate command for email, sip_user_id, and mwi
+        activate = request.commands[0]
+        self.assertEqual(activate.voice_message_delivery_email_address, a.email)
+        self.assertEqual(activate.voice_message_notify_email_address, a.email)
+        self.assertEqual(activate.send_voice_message_notify_email, a.email)
+        self.assertEqual(activate.sip_user_id, a.sip_user_id)
+        self.assertFalse(activate.use_phone_message_waiting_indicator)
 
     @unittest.mock.patch.object(BroadsoftRequest, 'post')
     def test_delete_converts_did_to_sip_user_id(

@@ -56,7 +56,7 @@ class Account(BroadsoftObject):
         return "<Broadsoft Account did:%s, last_name:%s, first_name:%s, sip_user_id:%s>" % (
         self.did, self.last_name, self.first_name, self.sip_user_id)
 
-    def activate_voicemail(self, type=None, voicemail_object=None):
+    def activate_voicemail(self, type=None, voicemail_object=None, mwi=None):
         if not self.sip_user_id:
             raise ValueError("can't call Account.activate_unity_voicemail without a value for sip_user_id")
 
@@ -68,11 +68,13 @@ class Account(BroadsoftObject):
         if voicemail_object is None:
             voicemail_object = Voicemail(type=type)
 
-        # get email and sip_user_id into voicemail object, whether constructed or passed
+        # get email, sip_user_id, and mwi into voicemail object, whether constructed or passed
         if voicemail_object.email is None:
             voicemail_object.email = self.email
         if voicemail_object.sip_user_id is None:
             voicemail_object.sip_user_id = self.sip_user_id
+        if voicemail_object.mwi is None:
+            voicemail_object.mwi = mwi
 
         # going to do this as a compound request so that it's pseudo-atomic...if one fails, the rest should
         # fail, regardless of where in the process that failure occurs
@@ -296,6 +298,9 @@ class Account(BroadsoftObject):
 
         UserModifyRequest.set_password(did=self.did, sip_user_id=self.sip_user_id, new_password=new_password,
                                        broadsoftinstance=self.broadsoftinstance)
+
+    def thaw_from_db(self, user_record, device_records):
+        pass
 
     @staticmethod
     def get_accounts(use_test=False, **kwargs):
