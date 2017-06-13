@@ -138,6 +138,45 @@ def get_sca_mock(**kwargs):
     return ET.fromstring(xml)
 
 
+def list_users_mock(*args, **kwargs):
+    xml = """<?xml version="1.0" encoding="ISO-8859-1"?>
+            <BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                <sessionId xmlns="">Chriss-MacBook-Pro-4.local,2017-06-12 20:29:56.190885,9387725444</sessionId>
+                <command echo="" xsi:type="UserGetListInGroupResponse" xmlns="">
+                    <userTable>
+                        <colHeading>User Id</colHeading>
+                        <colHeading>Last Name</colHeading>
+                        <colHeading>First Name</colHeading>
+                        <colHeading>Department</colHeading>
+                        <colHeading>Phone Number</colHeading>
+                        <colHeading>Phone Number Activated</colHeading>
+                        <colHeading>Email Address</colHeading>
+                        <colHeading>Hiragana Last Name</colHeading>
+                        <colHeading>Hiragana First Name</colHeading>
+                        <colHeading>In Trunk Group</colHeading>
+                        <colHeading>Extension</colHeading>
+                        <colHeading>Country Code</colHeading>
+                        <colHeading>National Prefix</colHeading>
+                        <row>
+                            <col>6175551212@broadsoft.mit.edu</col>
+                            <col>Beaver</col>
+                            <col>Tim</col>
+                            <col/>
+                            <col>+1-6175551212</col>
+                            <col>true</col>
+                            <col>beaver@mit.edu</col>
+                            <col>Beaver</col>
+                            <col>Tim</col>
+                            <col>false</col>
+                            <col>1212</col>
+                            <col>1</col>
+                            <col/>
+                        </row>
+                    </userTable>
+                </command>
+            </BroadsoftDocument>"""
+    return ET.fromstring(xml)
+
 def return_empty_array(*args, **kwargs):
     return []
 
@@ -1259,8 +1298,43 @@ class TestBroadsoftAccount(unittest.TestCase):
         a.delete(delete_devices=True)
         self.assertTrue(load_devices_patch.called)
 
-    def test_get_accounts_results(self):
-        self.assertFalse("write this")
+    @unittest.mock.patch('broadsoft.requestobjects.UserGetListInGroupRequest.UserGetListInGroupRequest.post', side_effect=list_users_mock)
+    def test_get_accounts_results(self, post_patch):
+        accounts = Account.get_accounts()
+        self.assertEqual(1, len(accounts))
 
-    def test_get_accounts_passes_broadsoftinstance(self):
-        self.assertFalse("write this")
+        a = accounts[0]
+        self.assertEqual('6175551212@broadsoft.mit.edu', a.sip_user_id)
+        self.assertEqual('Beaver', a.last_name)
+        self.assertEqual('beaver@mit.edu', a.email)
+        self.assertEqual('Beaver', a.last_name)
+        self.assertEqual('6175551212', a.did)
+        self.assertEqual('Tim', a.first_name)
+        self.assertEqual('1212', a.extension)
+
+    @unittest.mock.patch('broadsoft.requestobjects.UserGetListInGroupRequest.UserGetListInGroupRequest.list_users')
+    def test_get_accounts_passes_broadsoftinstance_to_list_users(self, list_users_patch):
+        i = BroadsoftInstance.factory(use_test=True)
+        Account.get_accounts(broadsoftinstance=i)
+        call = list_users_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertIsInstance(kwargs['broadsoftinstance'], BroadsoftInstance.TestBroadsoftInstance)
+
+        i = BroadsoftInstance.factory(use_test=False)
+        Account.get_accounts(broadsoftinstance=i)
+        call = list_users_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertIsInstance(kwargs['broadsoftinstance'], BroadsoftInstance.BroadsoftInstance)
+
+    @unittest.mock.patch('broadsoft.requestobjects.UserGetListInGroupRequest.UserGetListInGroupRequest.post',
+                         side_effect=list_users_mock)
+    def test_get_accounts_passes_broadsoftinstance_to_results(self, post_patch):
+        i = BroadsoftInstance.factory(use_test=True)
+        accounts = Account.get_accounts(broadsoftinstance=i)
+        for a in accounts:
+            self.assertIsInstance(a.broadsoftinstance, BroadsoftInstance.TestBroadsoftInstance)
+
+        i = BroadsoftInstance.factory(use_test=False)
+        accounts = Account.get_accounts(broadsoftinstance=i)
+        for a in accounts:
+            self.assertIsInstance(a.broadsoftinstance, BroadsoftInstance.BroadsoftInstance)
