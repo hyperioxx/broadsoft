@@ -27,3 +27,14 @@ class TestBroadsoftLogoutRequest(unittest.TestCase):
             '</BroadsoftDocument>',
             ET.tostring(xml).decode('utf-8')
         )
+
+    @unittest.mock.patch('broadsoft.requestobjects.lib.BroadsoftRequest.BroadsoftRequest.post')
+    def test_logout_updates_broadsoftinstance(self, post_patch):
+        l = LogoutRequest()
+        l.broadsoftinstance.auth_object = 'a'
+        l.broadsoftinstance.login_object = 'l'
+        l.broadsoftinstance.session_id = 'sesh'
+        l.post()
+        self.assertIsNone(l.broadsoftinstance.auth_object)
+        self.assertIsNone(l.broadsoftinstance.login_object)
+        self.assertIsNone(l.broadsoftinstance.session_id)
