@@ -327,3 +327,6 @@ class TestBroadsoftDevice(unittest.TestCase):
         call = delete_execute_patch.call_args_list[0]
         args, kwargs = call
         self.assertIsInstance(kwargs['broadsoftinstance'], BroadsoftInstance.TestBroadsoftInstance)
+
+    def test_type_gets_mapped_on_init(self):
+        self.assertFalse("write this")

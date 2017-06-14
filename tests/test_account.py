@@ -18,6 +18,28 @@ from broadsoft.requestobjects.UserThirdPartyVoiceMailSupportModifyRequest import
 from broadsoft.requestobjects.GroupAccessDeviceDeleteRequest import GroupAccessDeviceDeleteRequest
 
 
+def fake_phone_db_record():
+    class FakeDbPhone:
+        def __init__(self):
+            self.did = '6175551212'
+            self.description = 'beaverphone'
+            self.phone_type = 'batphone'
+            self.hwaddr = 'aabbcc112233'
+            self.active = 'Y'
+            self.line_port = 'lp@mit.edu'
+
+    return FakeDbPhone()
+
+
+def fake_users_db_record():
+    class FakeDbUser:
+        def __init__(self):
+            self.did = '6175551212'
+            self.display_name = 'Tim Beaver'
+            self.password = '123456'
+
+    return FakeDbUser()
+
 def get_device_mock(name, **kwargs):
     if name == 'beaver550':
         xml = """<?xml version="1.0" encoding="ISO-8859-1"?>
@@ -177,12 +199,17 @@ def list_users_mock(*args, **kwargs):
             </BroadsoftDocument>"""
     return ET.fromstring(xml)
 
+
 def return_empty_array(*args, **kwargs):
     return []
 
 
 def return_none(*args, **kwargs):
     return None
+
+
+def roles_mock(*args, **kwargs):
+    return ['beaver']
 
 
 class TestBroadsoftAccount(unittest.TestCase):
@@ -1189,8 +1216,8 @@ class TestBroadsoftAccount(unittest.TestCase):
     @unittest.mock.patch.object(BroadsoftRequest, 'post')
     def test_activate_voicemail_passes_relevant_attributes(self, post_patch):
         # with mwi True
-        a = Account(sip_user_id='6175551212@broadsoft.com', email='beaver@mit.edu')
-        [request] = a.activate_voicemail(mwi=True)
+        a = Account(sip_user_id='6175551212@broadsoft.com', email='beaver@mit.edu', voicemail_mwi=True)
+        [request] = a.activate_voicemail()
 
         # check activate command for email, sip_user_id, and mwi
         activate = request.commands[0]
@@ -1201,8 +1228,8 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertTrue(activate.use_phone_message_waiting_indicator)
 
         # with mwi False
-        a = Account(sip_user_id='6175551212@broadsoft.com', email='beaver@mit.edu')
-        [request] = a.activate_voicemail(mwi=False)
+        a = Account(sip_user_id='6175551212@broadsoft.com', email='beaver@mit.edu', voicemail_mwi=False)
+        [request] = a.activate_voicemail()
 
         # check activate command for email, sip_user_id, and mwi
         activate = request.commands[0]
@@ -1347,3 +1374,146 @@ class TestBroadsoftAccount(unittest.TestCase):
         accounts = Account.get_accounts(broadsoftinstance=i)
         for a in accounts:
             self.assertIsInstance(a.broadsoftinstance, BroadsoftInstance.BroadsoftInstance)
+
+    def test_split_name(self):
+        self.assertEqual(('Tim', 'Beaver'), Account.split_name(name='Tim Beaver'))
+        self.assertEqual(('Tim E.', 'Beaver'), Account.split_name(name='Tim E. Beaver'))
+
+    @unittest.mock.patch('mitroles.MitRoles.MitRoles.get_owners_for_did', side_effect=roles_mock)
+    @unittest.mock.patch.object(Account, 'provision')
+    def test_thaw_from_db_passes_voicemail_mwi(self, account_provision_patch, roles_patch):
+        u = fake_users_db_record()
+        d = fake_phone_db_record()
+        a = Account.thaw_from_db(user_record=u, device_records=[d], voicemail='broadsoft', voicemail_mwi=True)
+        self.assertTrue(a.voicemail_mwi)
+
+        a = Account.thaw_from_db(user_record=u, device_records=[d], voicemail='broadsoft', voicemail_mwi=False)
+        self.assertFalse(a.voicemail_mwi)
+
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    def test_activate_passes_mwi(self, post_patch):
+        a = Account(did=6175551212, email='beaver.mit.edu', voicemail_mwi=True)
+        [request] = a.activate_voicemail()
+
+        activate = request.commands[0]
+        self.assertTrue(activate.use_phone_message_waiting_indicator)
+
+        a = Account(did=6175551212, email='beaver.mit.edu', voicemail_mwi=False)
+        [request] = a.activate_voicemail()
+
+        activate = request.commands[0]
+        self.assertFalse(activate.use_phone_message_waiting_indicator)
+
+    @unittest.mock.patch('mitroles.MitRoles.MitRoles.get_owners_for_did', side_effect=roles_mock)
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    def test_thaw_from_db_passes_kwargs(self, post_patch, roles_patch):
+        u = fake_users_db_record()
+        d = fake_phone_db_record()
+
+        # use_test (True and False)
+        a = Account.thaw_from_db(user_record=u, device_records=[d], use_test=True)
+        self.assertIsInstance(a.broadsoftinstance, BroadsoftInstance.TestBroadsoftInstance)
+
+        a = Account.thaw_from_db(user_record=u, device_records=[d], use_test=False)
+        self.assertIsInstance(a.broadsoftinstance, BroadsoftInstance.BroadsoftInstance)
+
+        # broadsoft instance (test and prod)
+        i = BroadsoftInstance.factory(use_test=True)
+        a = Account.thaw_from_db(user_record=u, device_records=[d], broadsoftinstance=i)
+        self.assertIsInstance(a.broadsoftinstance, BroadsoftInstance.TestBroadsoftInstance)
+
+        i = BroadsoftInstance.factory(use_test=True)
+        a = Account.thaw_from_db(user_record=u, device_records=[d], broadsoftinstance=i)
+        self.assertIsInstance(a.broadsoftinstance, BroadsoftInstance.BroadsoftInstance)
+
+        self.assertFalse("once implement passing auth object, login object, session id into BroadsoftObject test those")
+
+    @unittest.mock.patch('mitroles.MitRoles.MitRoles.get_owners_for_did', side_effect=roles_mock)
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    def test_thaw_from_db_skips_inactive_devices(self, post_patch, roles_patch):
+        u = fake_users_db_record()
+        d1 = fake_phone_db_record()
+        d2 = fake_phone_db_record()
+
+        # update d1 and d2 to be different
+        d1.description = 'd1'
+        d2.description = 'd2'
+        d1.active = 'N'
+
+        a = Account.thaw_from_db(user_record=u, device_records=[d1, d2])
+        # should only see d2 in devices
+        self.assertEqual(1, len(a.devices))
+        self.assertEqual('d2', a.devices[0].name)
+
+    @unittest.mock.patch('mitroles.MitRoles.MitRoles.get_owners_for_did', side_effect=roles_mock)
+    @unittest.mock.patch.object(Account, 'provision')
+    def test_thaw_from_db_skips_provision_when_no_devices(self, provision_patch, roles_patch):
+        # no devices, no force, shouldn't be called
+        u = fake_users_db_record()
+        a = Account.thaw_from_db(user_record=u, device_records=[], force_when_no_devices=False)
+        self.assertFalse(provision_patch.called)
+
+        # no devices, force, should be called
+        u = fake_users_db_record()
+        a = Account.thaw_from_db(user_record=u, device_records=[], force_when_no_devices=True)
+        self.assertTrue(provision_patch.called)
+
+    @unittest.mock.patch('mitroles.MitRoles.MitRoles.get_owners_for_did', side_effect=roles_mock)
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    def test_thaw_from_db_passes_voicemail_type(self, post_patch, roles_patch):
+        # broadsoft
+        u = fake_users_db_record()
+        d = fake_phone_db_record()
+        a = Account.thaw_from_db(user_record=u, device_records=[d], voicemail='broadsoft')
+        self.assertEqual('broadsoft', a.voicemail)
+
+        # unity
+        u = fake_users_db_record()
+        d = fake_phone_db_record()
+        a = Account.thaw_from_db(user_record=u, device_records=[d], voicemail='unity')
+        self.assertEqual('unity', a.voicemail)
+
+    @unittest.mock.patch('mitroles.MitRoles.MitRoles.get_owners_for_did', side_effect=roles_mock)
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    def test_thaw_from_db_construction(self, post_patch, roles_patch):
+        u = fake_users_db_record()
+        d1 = fake_phone_db_record()
+        d2 = fake_phone_db_record()
+
+        # update d1 and d2 to be different
+        d1.description = 'd1'
+        d2.description = 'd2'
+        d2.hwaddr = 'ddeeff445566'
+        d2.phone_type = 'hamburger'
+
+        a = Account.thaw_from_db(user_record=u, device_records=[d1, d2], voicemail='broadsoft')
+
+        self.assertEqual(a.did, '6175551212')
+        self.assertEqual(a.kname, 'beaver')
+        self.assertEqual(a.email, 'beaver@mit.edu')
+        self.assertEqual(a.first_name, 'Tim')
+        self.assertEqual(a.last_name, 'Beaver')
+        self.assertEqual(a.voicemail, 'broadsoft')
+        self.assertEqual(a.sip_password, '123456')
+        self.assertTrue(a.voicemail_mwi)
+        self.assertEqual(2, len(a.devices))
+
+        # d1
+        d = a.devices[0]
+        self.assertEqual(d.did, '6175551212')
+        self.assertEqual(d.description, 'd1')
+        self.assertTrue(d.is_primary)
+        self.assertEqual(d.name, 'd1')
+        self.assertEqual(d.type, 'batphone')
+        self.assertEqual(d.mac_address, 'aabbcc112233')
+        self.assertEqual(d.line_port, d.did + '_' + d.mac_address + '_' + str(d.index) + '@' + d.default_domain)
+
+        # d2
+        d = a.devices[1]
+        self.assertEqual(d.did, '6175551212')
+        self.assertEqual(d.description, 'd2')
+        self.assertFalse(d.is_primary)
+        self.assertEqual(d.name, 'd2')
+        self.assertEqual(d.type, 'hamburger')
+        self.assertEqual(d.mac_address, 'ddeeff445566')
+        self.assertEqual(d.line_port, d.did + '_' + d.mac_address + '_' + str(d.index) + '@' + d.default_domain)

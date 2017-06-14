@@ -16,6 +16,7 @@ from broadsoft.requestobjects.UserThirdPartyVoiceMailSupportModifyRequest import
 from broadsoft.requestobjects.UserDeleteRequest import UserDeleteRequest
 from broadsoft.requestobjects.UserGetListInGroupRequest import UserGetListInGroupRequest
 from broadsoft.lib import BroadsoftInstance
+import re
 
 
 class Account(BroadsoftObject):
@@ -29,7 +30,7 @@ class Account(BroadsoftObject):
 
     def __init__(self, did=None, extension=None, last_name=None, first_name=None,
                  sip_user_id=None, kname=None, email=None, services=None,
-                 sip_password=None, voicemail='broadsoft', **kwargs):
+                 sip_password=None, voicemail='broadsoft', voicemail_mwi=None, **kwargs):
         self.did = did
         self.email = email
         self.first_name = first_name
@@ -49,6 +50,7 @@ class Account(BroadsoftObject):
         # fully optional
         self.devices = []  # Devices associated with this Account (should be broadsoft.Device objects)
         self.sip_password = sip_password
+        self.voicemail_mwi = voicemail_mwi
 
         BroadsoftObject.__init__(self, **kwargs)
 
@@ -56,7 +58,7 @@ class Account(BroadsoftObject):
         return "<Broadsoft Account did:%s, last_name:%s, first_name:%s, sip_user_id:%s>" % (
         self.did, self.last_name, self.first_name, self.sip_user_id)
 
-    def activate_voicemail(self, type=None, voicemail_object=None, mwi=None):
+    def activate_voicemail(self, type=None, voicemail_object=None):
         if not self.sip_user_id:
             raise ValueError("can't call Account.activate_unity_voicemail without a value for sip_user_id")
 
@@ -74,7 +76,7 @@ class Account(BroadsoftObject):
         if voicemail_object.sip_user_id is None:
             voicemail_object.sip_user_id = self.sip_user_id
         if voicemail_object.mwi is None:
-            voicemail_object.mwi = mwi
+            voicemail_object.mwi = self.voicemail_mwi
 
         # going to do this as a compound request so that it's pseudo-atomic...if one fails, the rest should
         # fail, regardless of where in the process that failure occurs
@@ -299,9 +301,6 @@ class Account(BroadsoftObject):
         UserModifyRequest.set_password(did=self.did, sip_user_id=self.sip_user_id, new_password=new_password,
                                        broadsoftinstance=self.broadsoftinstance)
 
-    def thaw_from_db(self, user_record, device_records):
-        pass
-
     @staticmethod
     def get_accounts(use_test=False, **kwargs):
         if 'broadsoftinstance' not in kwargs or kwargs['broadsoftinstance'] is None:
@@ -322,3 +321,60 @@ class Account(BroadsoftObject):
                         extension=extension, **kwargs)
             accounts.append(a)
         return accounts
+
+    @staticmethod
+    def split_name(name):
+        last_name = name
+        first_name = None
+
+        s = re.search(r'(.+?) (\S+)$', name)
+        if s:
+            first_name = s.group(1)
+            last_name = s.group(2)
+
+        return (first_name, last_name)
+
+    @staticmethod
+    def thaw_from_db(user_record, device_records, voicemail='broadsoft', voicemail_mwi=True,
+                     force_when_no_devices=False, **kwargs):
+        from mitroles.MitRoles import MitRoles
+
+        (firstname, lastname) = Account.split_name(name=user_record.display_name)
+
+        r = MitRoles()
+        owners = r.get_owners_for_did(did='6177154956')
+        owner = owners[0]
+
+        # build the user
+        a = Account(**kwargs)
+        a.did = user_record.did
+        a.kname = owner
+        a.email = owner + '@mit.edu'
+        a.first_name = firstname
+        a.last_name = lastname
+        a.voicemail = voicemail
+        a.sip_password = user_record.password
+        a.voicemail_mwi = voicemail_mwi
+
+        # build the devices
+        is_primary = True
+        for device_record in device_records:
+            if device_record.active != 'Y':
+                continue
+
+            d = Device(**kwargs)
+            d.did = user_record.did
+            d.description = device_record.description
+            d.is_primary = is_primary
+            is_primary = False
+            d.name = device_record.description
+            d.type = device_record.phone_type
+            d.mac_address = device_record.hwaddr
+            d.derive_line_port()
+
+            a.devices.append(d)
+
+        if len(a.devices) > 0 or force_when_no_devices:
+            a.provision()
+
+        return a
