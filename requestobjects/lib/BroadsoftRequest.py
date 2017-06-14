@@ -206,14 +206,14 @@ class BroadsoftRequest(XmlDocument):
 
         return False
 
-    def need_logout(self, auto_login):
-        # not part of the login/logout suite, and auto_login? run auto logout.
-        if not self.is_auth_suite() and auto_login:
+    def need_logout(self):
+        # not part of the login/logout suite, and auto_logout? run logout.
+        if not self.is_auth_suite() and self.broadsoftinstance.auto_logout:
             return True
 
         return False
 
-    def post(self, extract_payload=True, auto_login=True):
+    def post(self, extract_payload=True):
         # this function is only for descendant objects, like AuthenticationRequest
 
         command_name = "base BroadsoftRequest"
@@ -226,13 +226,8 @@ class BroadsoftRequest(XmlDocument):
 
         # if this isn't an auth/login request, check for login object. none? need to login.
         if self.need_login():
-            logging.info("auth/login needed. auto_login is " + str(auto_login), extra={'session_id': self.broadsoftinstance.session_id})
-            if auto_login:
-                self.authenticate_and_login()
-            else:
-                logging.error("need an AuthenticationRequest and associated LoginRequest to continue, or set auto_login to True",
-                             extra={'session_id': self.broadsoftinstance.session_id})
-                raise RuntimeError("need an AuthenticationRequest and associated LoginRequest to continue, or set auto_login to True")
+            logging.info("auth/login needed.", extra={'session_id': self.broadsoftinstance.session_id})
+            self.authenticate_and_login()
 
         # first, convert self into string representation
         # (to_string() comes from broadsoft.requestobjects.XmlDocument)
@@ -273,7 +268,7 @@ class BroadsoftRequest(XmlDocument):
         self.check_error(string_response=content)
 
         # if we're managing login behavior, also do an implicit logout
-        if self.need_logout(auto_login):
+        if self.need_logout():
             logging.info("automatically running logout request", extra={'session_id': self.broadsoftinstance.session_id})
             l = LogoutRequest.logout(broadsoftinstance=self.broadsoftinstance)
 

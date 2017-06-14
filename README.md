@@ -20,6 +20,9 @@ provisioning a user
     ```
 
 broadsoftinstance
+    does two things:
+        tracks attrs that depend on which broadsoft instance we're using (service provider id, api url)
+        tracks api login info to allow persistent login
     child objects will always inherit from parent, even if set explicitly otherwise
     can pass attrs individually but not recc
 

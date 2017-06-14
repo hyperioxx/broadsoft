@@ -285,17 +285,10 @@ class TestBroadsoftRequest(unittest.TestCase):
             post_patch,
             login_patch
     ):
-        # with auto_login true and no attached auth objects, should auto login
+        # with no attached auth objects, should auto login
         g = GroupGetListInServiceProviderRequest(broadsoftinstance=BroadsoftInstance.factory())
-        g.post(auto_login=True)
+        g.post()
         self.assertTrue(login_patch.called)
-        login_patch.called = False
-
-        # with auto_login false, should throw an error (and not login)
-        g = GroupGetListInServiceProviderRequest(broadsoftinstance=BroadsoftInstance.factory())
-        with self.assertRaises(RuntimeError):
-            g.post(auto_login=False)
-            self.assertFalse(login_patch.called)
         login_patch.called = False
 
         # with auto_login true and attached login objects, should not login
@@ -309,23 +302,7 @@ class TestBroadsoftRequest(unittest.TestCase):
         i.auth_object = a
         i.login_object = l
         g = GroupGetListInServiceProviderRequest(broadsoftinstance=i)
-        g.post(auto_login=True)
-        self.assertFalse(login_patch.called)
-        login_patch.called = False
-
-        # with auto_login false and attached login objects, should not login
-        class FakeAuth:
-            def __init__(self):
-                self.content = '<ns0:Envelope xmlns:ns0="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="urn:com:broadsoft:webservice"><ns0:Body><processOCIMessageResponse><ns1:processOCIMessageReturn>&lt;?xml version="1.0" encoding="UTF-8"?&gt;\n&lt;BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;&lt;sessionId xmlns=""&gt;None&lt;/sessionId&gt;&lt;command echo="" xsi:type="AuthenticationResponse" xmlns=""&gt;&lt;userId&gt;admMITapi&lt;/userId&gt;&lt;nonce&gt;1493661742798&lt;/nonce&gt;&lt;passwordAlgorithm&gt;MD5&lt;/passwordAlgorithm&gt;&lt;/command&gt;&lt;/BroadsoftDocument&gt;</ns1:processOCIMessageReturn></processOCIMessageResponse></ns0:Body></ns0:Envelope>'
-                self.auth_cookie_jar = http.cookiejar.CookieJar()
-
-        a = FakeAuth()
-        l = FakeAuth()
-        i = BroadsoftInstance.factory()
-        i.auth_object = a
-        i.login_object = l
-        g = GroupGetListInServiceProviderRequest(broadsoftinstance=i)
-        g.post(auto_login=False)
+        g.post()
         self.assertFalse(login_patch.called)
         login_patch.called = False
 
@@ -476,15 +453,25 @@ class TestBroadsoftRequest(unittest.TestCase):
                 cmd = self.build_command_shell()
                 return cmd
 
-        # with a non-login related function, need_logout() depends on auto_login
-        f = FakeRequest()
-        self.assertTrue(f.need_logout(auto_login=True))
-        self.assertFalse(f.need_logout(auto_login=False))
+        logout_i = BroadsoftInstance.factory()
+        logout_i.auto_logout = True
+
+        no_logout_i = BroadsoftInstance.factory()
+        no_logout_i.auto_logout = False
+
+        # with a non-login related function, need_logout() depends on broadsoftinstance.auto_logout
+        f = FakeRequest(broadsoftinstance=logout_i)
+        self.assertTrue(f.need_logout())
+
+        f = FakeRequest(broadsoftinstance=no_logout_i)
+        self.assertFalse(f.need_logout())
 
         # with a login related function, need_logout() is always False
-        l = LoginRequest()
-        self.assertFalse(l.need_logout(auto_login=True))
-        self.assertFalse(l.need_logout(auto_login=False))
+        l = LoginRequest(broadsoftinstance=logout_i)
+        self.assertFalse(l.need_logout())
+
+        l = LoginRequest(broadsoftinstance=no_logout_i)
+        self.assertFalse(l.need_logout())
 
     def test_extract_payload_returns_none_for_empty_results(self):
         response = '<?xml version="1.0" encoding="UTF-8"?><soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><soapenv:Body><processOCIMessageResponse xmlns=""><ns1:processOCIMessageReturn xmlns:ns1="urn:com:broadsoft:webservice"></ns1:processOCIMessageReturn></processOCIMessageResponse></soapenv:Body></soapenv:Envelope>'
@@ -503,7 +490,7 @@ class TestBroadsoftRequest(unittest.TestCase):
     ):
         # should call need_logout
         g = GroupGetListInServiceProviderRequest(broadsoftinstance=BroadsoftInstance.factory())
-        g.post(auto_login=True)
+        g.post()
         self.assertTrue(need_logout_patch.called)
 
     def test_is_auth_suite(self):

@@ -4,6 +4,7 @@ class BroadsoftInstance:
     def __init__(self, group_id=None, auth_object=None, login_object=None, session_id=None):
         self.api_url = '[unknown]'
         self.auth_object = auth_object
+        self.auto_logout = True
         self.creds_member = 'prod'
         self.default_domain = 'broadsoft.mit.edu'
         self.login_object = login_object
