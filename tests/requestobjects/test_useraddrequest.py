@@ -79,7 +79,7 @@ class TestBroadsoftUserAddRequest(unittest.TestCase):
         self.assertEqual('blah', u.group_id)
 
         u = UserAddRequest(broadsoftinstance=i)
-        self.assertEqual(i.group_id, u.group_id)
+        self.assertEqual(i.default_group_id, u.group_id)
 
     def test_derive_email(self):
         u = UserAddRequest(kname='beaver')

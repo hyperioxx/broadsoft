@@ -24,16 +24,12 @@ class BroadsoftRequest(XmlDocument):
     logging_fname = 'api.log'
     default_timezone = 'America/New_York'
     check_success = False
-    # attributes of other objects set by broadsoftinstance
-    broadsoftinstance_properties = ['service_provider', 'group_id']
 
-    def __init__(self, require_logging=True, timezone=None, broadsoftinstance=None, service_provider=None,
-                 group_id=None):
+    def __init__(self, require_logging=True, timezone=None, broadsoftinstance=None, group_id=None):
         self.broadsoftinstance = broadsoftinstance
         self.commands = []
         self.group_id = group_id
         self.last_response = None
-        self.service_provider = service_provider
 
         if timezone:
             self.timezone = timezone
@@ -45,18 +41,6 @@ class BroadsoftRequest(XmlDocument):
 
         # now that we're done setting up shop, start the logging
         self.default_logging(require_logging)
-
-    def apply_broadsoftinstance(self, force=False):
-        for p in self.broadsoftinstance_properties:
-            if getattr(self, p) is None or force:
-                bi_attr = getattr(self.broadsoftinstance, p)
-                setattr(self, p, bi_attr)
-
-        occasional_properties = ['service_provider']
-        for p in occasional_properties:
-            if hasattr(self, p) and (getattr(self, p) is None or force):
-                bi_attr = getattr(self.broadsoftinstance, p)
-                setattr(self, p, bi_attr)
 
     def authenticate_and_login(self):
         logging.info("running authenticate request", extra={'session_id': self.broadsoftinstance.session_id})
@@ -294,8 +278,8 @@ class BroadsoftRequest(XmlDocument):
         if self.broadsoftinstance_needed():
             self.broadsoftinstance = BroadsoftInstance.factory()
 
-        if self.broadsoftinstance:
-            self.apply_broadsoftinstance()
+        if self.group_id is None:
+            self.group_id = self.broadsoftinstance.default_group_id
 
     def prep_for_xml(self):
         self.prep_attributes()

@@ -10,11 +10,6 @@ def return_users_list(**kwargs):
 
 
 class TestBroadsoftUserGetListInGroupRequest(unittest.TestCase):
-    def test_inherits_service_provider_from_broadsoftinstance(self):
-        b = BroadsoftInstance.BroadsoftInstance()
-        g = UserGetListInGroupRequest(broadsoftinstance=b)
-        self.assertEqual(g.service_provider, b.service_provider)
-
     def test_to_xml(self):
         b = BroadsoftInstance.BroadsoftInstance()
 
@@ -28,7 +23,7 @@ class TestBroadsoftUserGetListInGroupRequest(unittest.TestCase):
                 '<sessionId xmlns="">' + g.broadsoftinstance.session_id + '</sessionId>' +
                 '<command xmlns="" xsi:type="UserGetListInGroupRequest">' +
                     '<serviceProviderId>' + b.service_provider + '</serviceProviderId>' +
-                    '<GroupId>' + b.group_id + '</GroupId>' +
+                    '<GroupId>' + g.group_id + '</GroupId>' +
                     '<responseSizeLimit>' + str(g.response_size_limit) + '</responseSizeLimit>' +
                 '</command>' +
             '</BroadsoftDocument>',

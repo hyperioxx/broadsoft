@@ -6,12 +6,11 @@ class GroupAddRequest(BroadsoftRequest):
     command_name = 'GroupAddRequest'
     check_success = True
 
-    def __init__(self, group_id=None, group_name=None, default_domain=None, **kwargs):
+    def __init__(self, group_id=None, group_name=None, **kwargs):
         self.calling_line_id_name = None
         self.contact_email = None
         self.contact_name = None
         self.contact_number = None
-        self.default_domain = default_domain
         self.group_id = group_id
         self.group_name = group_name
         self.user_limit = 100000
@@ -23,16 +22,16 @@ class GroupAddRequest(BroadsoftRequest):
 
         cmd = self.build_command_shell()
 
-        if self.service_provider:
+        if self.broadsoftinstance.service_provider:
             sp = ET.SubElement(cmd, 'serviceProviderId')
-            sp.text = str(self.service_provider)
+            sp.text = str(self.broadsoftinstance.service_provider)
 
         if self.group_id:
             gid = ET.SubElement(cmd, 'groupId')
             gid.text = self.group_id
 
         dd = ET.SubElement(cmd, 'defaultDomain')
-        dd.text = self.default_domain
+        dd.text = self.broadsoftinstance.default_domain
 
         if self.user_limit is not None:
             ul = ET.SubElement(cmd, 'userLimit')

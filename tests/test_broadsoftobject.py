@@ -11,15 +11,6 @@ def return_none(*args, **kwargs):
     return None
 
 class TestBroadsoftObject(unittest.TestCase):
-    def test_derive_domain_based_on_test_and_prod(self):
-        i = BroadsoftInstance.factory(use_test=False)
-        b = BroadsoftObject(use_test=False)
-        self.assertEqual(i.default_domain, b.default_domain)
-
-        i = BroadsoftInstance.factory(use_test=True)
-        b = BroadsoftObject(use_test=True)
-        self.assertEqual(i.default_domain, b.default_domain)
-
     @unittest.mock.patch.object(BroadsoftObject, 'prep_attributes')
     def test_pass_broadsoftinstance(
             self, prep_attributes_patch
@@ -62,21 +53,6 @@ class TestBroadsoftObject(unittest.TestCase):
         args, kwargs = call
         self.assertFalse(kwargs['use_test'])
         derive_broadsoft_instance_patch.called = False
-
-    def test_injected_broadsoftinstance_overrides_prior_settings_in_child_object(self):
-        u = UserAddRequest()
-        # set each of the defined broadsoftinstance related properties to garbage
-        for p in BroadsoftRequest.broadsoftinstance_properties:
-            setattr(u, p, 'garbanzo')
-
-        i = BroadsoftInstance.factory()
-        o = BroadsoftObject(broadsoftinstance=i)
-        o.inject_broadsoftinstance(child=u)
-
-        # for each of the defined broadsoftinstance related properties, check to see now matches value in broadsoft
-        # instance
-        for p in BroadsoftRequest.broadsoftinstance_properties:
-            self.assertEqual(getattr(u, p), getattr(i, p))
 
     @unittest.mock.patch.object(BroadsoftRequest, 'authenticate_and_login')
     @unittest.mock.patch.object(BroadsoftRequest, '__init__', side_effect=return_none)

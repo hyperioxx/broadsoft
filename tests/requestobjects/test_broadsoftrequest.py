@@ -373,7 +373,6 @@ class TestBroadsoftRequest(unittest.TestCase):
     def test_to_xml_with_attached_commands(self):
         gg = GroupGetListInServiceProviderRequest(broadsoftinstance=BroadsoftInstance.factory())
         ga = GroupAddRequest(broadsoftinstance=BroadsoftInstance.factory())
-        ga.default_domain = 'broadsoft.mit.edu'
         ga.group_id = 'newgroup'
 
         b = BroadsoftRequest(broadsoftinstance=BroadsoftInstance.factory())
@@ -384,15 +383,15 @@ class TestBroadsoftRequest(unittest.TestCase):
             '<BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
             '<sessionId xmlns="">' + b.broadsoftinstance.session_id + '</sessionId>' +
             '<command xmlns="" xsi:type="GroupAddRequest">' +
-                '<serviceProviderId>' + ga.service_provider + '</serviceProviderId>' +
+                '<serviceProviderId>' + ga.broadsoftinstance.service_provider + '</serviceProviderId>' +
                 '<groupId>newgroup</groupId>' +
-                '<defaultDomain>' + ga.default_domain + '</defaultDomain>' +
+                '<defaultDomain>' + ga.broadsoftinstance.default_domain + '</defaultDomain>' +
                 '<userLimit>' + str(ga.user_limit) + '</userLimit>' +
                 '<callingLineIdName>newgroup Line</callingLineIdName>' +
                 '<timeZone>' + ga.timezone + '</timeZone>' +
             '</command>' +
             '<command xmlns="" xsi:type="GroupGetListInServiceProviderRequest">' +
-                '<serviceProviderId>' + gg.service_provider + '</serviceProviderId>' +
+                '<serviceProviderId>' + gg.broadsoftinstance.service_provider + '</serviceProviderId>' +
                 '<responseSizeLimit>' + str(gg.response_size_limit) + '</responseSizeLimit>' +
             '</command>' +
             '</BroadsoftDocument>',
@@ -542,54 +541,10 @@ class TestBroadsoftRequest(unittest.TestCase):
         # two nested commands
         self.assertEqual(3, len(convert_booleans_patch.call_args_list))
 
-    def test_apply_broadsoft_instance(self):
-        # none of the BroadsoftInstance properties set
-        bi = BroadsoftInstance.BroadsoftInstance()
-        b = BroadsoftRequest(broadsoftinstance=bi)
-        self.assertEqual(b.broadsoftinstance.api_url, bi.api_url)
-        self.assertEqual(b.broadsoftinstance.creds_member, bi.creds_member)
-        self.assertEqual(b.service_provider, bi.service_provider)
-        self.assertEqual(b.group_id, bi.group_id)
-
-        # all of the BroadsoftInstance properties set
-        bi = BroadsoftInstance.BroadsoftInstance()
-        b = BroadsoftRequest(broadsoftinstance=bi, service_provider='3', group_id='4')
-        self.assertEqual(b.service_provider, '3')
-        self.assertEqual(b.group_id, '4')
-
-        # when forced should overwrite
-        bi = BroadsoftInstance.BroadsoftInstance()
-        b = BroadsoftRequest(broadsoftinstance=bi, service_provider='3', group_id='4')
-        b.apply_broadsoftinstance(force=True)
-        self.assertEqual(b.service_provider, bi.service_provider)
-        self.assertEqual(b.group_id, bi.group_id)
-
-    @unittest.mock.patch.object(BroadsoftRequest, 'apply_broadsoftinstance')
-    def test_apply_broadsoft_instance_in_prep_attributes(
-            self, apply_broadsoftinstance_patch):
-        bi = BroadsoftInstance.BroadsoftInstance()
-        b = BroadsoftRequest(broadsoftinstance=bi)
-        apply_broadsoftinstance_patch.called = False
-        b.prep_attributes()
-        self.assertTrue(apply_broadsoftinstance_patch.called)
-
     def test_broadsoftinstance_needed(self):
         # has broadsoftinstance set
         b = BroadsoftRequest(broadsoftinstance=BroadsoftInstance.factory())
         self.assertFalse(b.broadsoftinstance_needed())
-
-        # has a relevant property set
-        for p in BroadsoftRequest.broadsoftinstance_properties:
-            b = BroadsoftRequest()
-            setattr(b, p, 'blah')
-            self.assertFalse(b.broadsoftinstance_needed())
-
-        # otherwise
-        b = BroadsoftRequest()
-        b.broadsoftinstance = None
-        for p in BroadsoftRequest.broadsoftinstance_properties:
-            setattr(b, p, None)
-        self.assertTrue(b.broadsoftinstance_needed())
 
     def test_when_no_broadsoftinstance_or_relevant_attributes_set_use_default_broadsoft_instance(self):
         b = BroadsoftRequest()

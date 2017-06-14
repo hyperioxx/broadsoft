@@ -21,7 +21,7 @@ class TestBroadsoftGroupAccessDeviceDeleteRequest(unittest.TestCase):
             '<BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
                 '<sessionId xmlns="">' + d.broadsoftinstance.session_id + '</sessionId>' +
                 '<command xmlns="" xsi:type="GroupAccessDeviceDeleteRequest">' +
-                    '<serviceProviderId>' + d.service_provider + '</serviceProviderId>' +
+                    '<serviceProviderId>' + d.broadsoftinstance.service_provider + '</serviceProviderId>' +
                     '<groupId>' + d.group_id + '</groupId>' +
                     '<deviceName>' + d.device_name + '</deviceName>' +
                 '</command>' +

@@ -44,7 +44,7 @@ class GroupAccessDeviceModifyRequest(BroadsoftRequest):
         cmd = self.build_command_shell()
 
         spid = ET.SubElement(cmd, 'serviceProviderId')
-        spid.text = self.service_provider
+        spid.text = self.broadsoftinstance.service_provider
 
         gid = ET.SubElement(cmd, 'groupId')
         gid.text = self.group_id

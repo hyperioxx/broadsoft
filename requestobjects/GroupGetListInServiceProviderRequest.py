@@ -7,8 +7,7 @@ from broadsoft.requestobjects.lib.SearchRequest import SearchRequest
 class GroupGetListInServiceProviderRequest(SearchRequest):
     command_name = 'GroupGetListInServiceProviderRequest'
 
-    def __init__(self, service_provider=None, **kwargs):
-        self.service_provider = service_provider
+    def __init__(self, **kwargs):
         SearchRequest.__init__(self, **kwargs)
 
     def build_command_xml(self):
@@ -16,7 +15,7 @@ class GroupGetListInServiceProviderRequest(SearchRequest):
         cmd = self.build_command_shell()
 
         sid = ET.SubElement(cmd, 'serviceProviderId')
-        sid.text = self.service_provider
+        sid.text = self.broadsoftinstance.service_provider
 
         rsl = ET.SubElement(cmd, 'responseSizeLimit')
         rsl.text = str(self.response_size_limit)

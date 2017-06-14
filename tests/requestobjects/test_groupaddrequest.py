@@ -70,7 +70,6 @@ class TestBroadsoftGroupAddRequest(unittest.TestCase):
         gar.contact_email = 'beaver@mit.edu'
         gar.contact_name = 'Tim Beaver'
         gar.contact_number = '617 555 1212'
-        gar.default_domain = 'broadsoft.mit.edu'
         gar.group_id = 'testgroup'
         gar.group_name = 'test group'
         gar.user_limit = 100
@@ -80,9 +79,9 @@ class TestBroadsoftGroupAddRequest(unittest.TestCase):
             '<BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
             '<sessionId xmlns="">' + gar.broadsoftinstance.session_id + '</sessionId>' +
             '<command xmlns="" xsi:type="' + gar.command_name + '">' +
-            '<serviceProviderId>' + gar.service_provider + '</serviceProviderId>' +
+            '<serviceProviderId>' + gar.broadsoftinstance.service_provider + '</serviceProviderId>' +
             '<groupId>' + gar.group_id + '</groupId>' +
-            '<defaultDomain>' + gar.default_domain + '</defaultDomain>' +
+            '<defaultDomain>' + gar.broadsoftinstance.default_domain + '</defaultDomain>' +
             '<userLimit>' + str(gar.user_limit) + '</userLimit>' +
             '<groupName>' + gar.group_name + '</groupName>' +
             '<callingLineIdName>' + gar.calling_line_id_name + '</callingLineIdName>' +

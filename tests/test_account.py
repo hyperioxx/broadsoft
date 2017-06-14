@@ -302,7 +302,7 @@ class TestBroadsoftAccount(unittest.TestCase):
         cmd = b.commands[0]
         self.assertIsInstance(cmd, UserModifyRequest)
         self.assertEqual(cmd.did, str(a.did))
-        self.assertEqual(cmd.sip_user_id, str(a.did) + '@' + a.default_domain)
+        self.assertEqual(cmd.sip_user_id, str(a.did) + '@' + a.broadsoftinstance.default_domain)
         self.assertEqual(cmd.device_name, d1.name)
 
     def test_link_sca_device(self):
@@ -313,7 +313,7 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertEqual(1, len(b.commands))
         cmd = b.commands[0]
         self.assertIsInstance(cmd, UserSharedCallAppearanceAddEndpointRequest)
-        self.assertEqual(cmd.sip_user_id, str(a.did) + '@' + a.default_domain)
+        self.assertEqual(cmd.sip_user_id, str(a.did) + '@' + a.broadsoftinstance.default_domain)
         self.assertEqual(cmd.device_name, d1.name)
 
     def test_add_devices(self):
@@ -803,7 +803,7 @@ class TestBroadsoftAccount(unittest.TestCase):
 
     def test_account_derives_sip_user_id_at_init(self):
         a = Account(did=6175551212)
-        self.assertEqual('6175551212@' + a.default_domain, a.sip_user_id)
+        self.assertEqual('6175551212@' + a.broadsoftinstance.default_domain, a.sip_user_id)
 
     @unittest.mock.patch.object(Account, 'set_device_passwords')
     @unittest.mock.patch.object(BroadsoftObject, 'provision')
@@ -814,12 +814,12 @@ class TestBroadsoftAccount(unittest.TestCase):
         a = Account(email='beaver@mit.edu')
         a.did = 6175551212
         a.provision()
-        self.assertEqual('6175551212@' + a.default_domain, a.sip_user_id)
+        self.assertEqual('6175551212@' + a.broadsoftinstance.default_domain, a.sip_user_id)
 
         a = Account(email='beaver@mit.edu')
         a.did = '617 555 1212'
         a.provision()
-        self.assertEqual('6175551212@' + a.default_domain, a.sip_user_id)
+        self.assertEqual('6175551212@' + a.broadsoftinstance.default_domain, a.sip_user_id)
 
     def test_inject_broadsoftinstance(self):
         prod_i = BroadsoftInstance.factory()
@@ -1249,7 +1249,7 @@ class TestBroadsoftAccount(unittest.TestCase):
         request = requests[0]
         cmd = request.commands[0]
 
-        self.assertEqual('6175551212@' + a.default_domain, cmd.sip_user_id)
+        self.assertEqual('6175551212@' + a.broadsoftinstance.default_domain, cmd.sip_user_id)
 
     @unittest.mock.patch.object(BroadsoftRequest, 'post')
     def test_delete_barfs_when_no_sip_user_id(
@@ -1427,8 +1427,6 @@ class TestBroadsoftAccount(unittest.TestCase):
         a = Account.thaw_from_db(user_record=u, device_records=[d], broadsoftinstance=i)
         self.assertIsInstance(a.broadsoftinstance, BroadsoftInstance.BroadsoftInstance)
 
-        self.assertFalse("once implement passing auth object, login object, session id into BroadsoftObject test those")
-
     @unittest.mock.patch('mitroles.MitRoles.MitRoles.get_owners_for_did', side_effect=roles_mock)
     @unittest.mock.patch.object(BroadsoftRequest, 'post')
     def test_thaw_from_db_skips_inactive_devices(self, post_patch, roles_patch):
@@ -1507,7 +1505,7 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertEqual(d.name, 'd1')
         self.assertEqual(d.type, 'batphone')
         self.assertEqual(d.mac_address, 'aabbcc112233')
-        self.assertEqual(d.line_port, d.did + '_' + d.mac_address + '_' + str(d.index) + '@' + d.default_domain)
+        self.assertEqual(d.line_port, d.did + '_' + d.mac_address + '_' + str(d.index) + '@' + d.broadsoftinstance.default_domain)
 
         # d2
         d = a.devices[1]
@@ -1517,4 +1515,4 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertEqual(d.name, 'd2')
         self.assertEqual(d.type, 'hamburger')
         self.assertEqual(d.mac_address, 'ddeeff445566')
-        self.assertEqual(d.line_port, d.did + '_' + d.mac_address + '_' + str(d.index) + '@' + d.default_domain)
+        self.assertEqual(d.line_port, d.did + '_' + d.mac_address + '_' + str(d.index) + '@' + d.broadsoftinstance.default_domain)

@@ -7,9 +7,8 @@ from broadsoft.requestobjects.lib.SearchRequest import SearchRequest
 class UserGetListInGroupRequest(SearchRequest):
     command_name = 'UserGetListInGroupRequest'
 
-    def __init__(self, service_provider=None, group_id=None, **kwargs):
+    def __init__(self, group_id=None, **kwargs):
         self.group_id = group_id
-        self.service_provider = service_provider
         SearchRequest.__init__(self, **kwargs)
 
     def build_command_xml(self):
@@ -17,7 +16,7 @@ class UserGetListInGroupRequest(SearchRequest):
         cmd = self.build_command_shell()
 
         sid = ET.SubElement(cmd, 'serviceProviderId')
-        sid.text = self.service_provider
+        sid.text = self.broadsoftinstance.service_provider
 
         gid = ET.SubElement(cmd, 'GroupId')
         gid.text = self.group_id

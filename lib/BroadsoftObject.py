@@ -6,9 +6,8 @@ from broadsoft.requestobjects.lib.BroadsoftRequest import LogoutRequest
 
 
 class BroadsoftObject:
-    def __init__(self, xml=None, use_test=False, broadsoftinstance=None, default_domain=None):
+    def __init__(self, xml=None, use_test=False, broadsoftinstance=None):
         self.broadsoftinstance = broadsoftinstance
-        self.default_domain = default_domain
         self.use_test = use_test
         self.xml = xml
         self.prep_attributes()
@@ -19,14 +18,10 @@ class BroadsoftObject:
         if not did:
             raise ValueError("can't run BroadsoftObject.derive_sip_user_id without a value for did")
 
-        if not self.default_domain:
+        if not self.broadsoftinstance.default_domain:
             raise ValueError("can't run BroadsoftObject.derive_sip_user_id without a value for default_domain")
 
-        return did + '@' + self.default_domain
-
-    def derive_default_domain(self):
-        if self.broadsoftinstance:
-            self.default_domain = self.broadsoftinstance.default_domain
+        return did + '@' + self.broadsoftinstance.default_domain
 
     def from_xml(self):
         self.prep_attributes()
@@ -41,10 +36,6 @@ class BroadsoftObject:
     def inject_broadsoftinstance(self, child):
         if self.broadsoftinstance:
             child.broadsoftinstance = self.broadsoftinstance
-            try:
-                child.apply_broadsoftinstance(force=True)
-            except AttributeError:
-                pass
 
     def login(self):
         r = BroadsoftRequest(broadsoftinstance=self.broadsoftinstance)
@@ -56,8 +47,6 @@ class BroadsoftObject:
     def prep_attributes(self):
         if self.broadsoftinstance is None:
             self.broadsoftinstance = self.derive_broadsoft_instance(use_test=self.use_test)
-
-        self.derive_default_domain()
 
         if hasattr(self, 'did') and self.did:
             self.did = BroadsoftRequest.convert_phone_number(number=self.did)

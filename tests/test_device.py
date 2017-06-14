@@ -179,7 +179,7 @@ class TestBroadsoftDevice(unittest.TestCase):
 
         call = device_mod_patch.call_args_list[0]
         args, kwargs = call
-        self.assertEqual('6175551212@' + d.default_domain, kwargs['sip_user_name'])
+        self.assertEqual('6175551212@' + d.broadsoftinstance.default_domain, kwargs['sip_user_name'])
 
         # just a sip_user_name
         d = Device(name='devicename')
@@ -262,7 +262,7 @@ class TestBroadsoftDevice(unittest.TestCase):
     def test_derive_line_port(self):
         # implicit broadsoftinstance
         d = Device(did=6175551212, mac_address='aa:bb:cc:11:22:33')
-        self.assertEqual('6175551212_aabbcc112233_' + str(d.index) + '@' + d.default_domain, d.line_port)
+        self.assertEqual('6175551212_aabbcc112233_' + str(d.index) + '@' + d.broadsoftinstance.default_domain, d.line_port)
 
         # not test broadsoftinstance
         i = BroadsoftInstance.factory(use_test=False)
@@ -277,12 +277,12 @@ class TestBroadsoftDevice(unittest.TestCase):
         # use_test arg True
         i = BroadsoftInstance.factory(use_test=True)
         d = Device(did=6175551212, mac_address='aa:bb:cc:11:22:33', use_test=True)
-        self.assertEqual('6175551212_aabbcc112233_' + str(d.index) + '@' + d.default_domain, d.line_port)
+        self.assertEqual('6175551212_aabbcc112233_' + str(d.index) + '@' + d.broadsoftinstance.default_domain, d.line_port)
 
         # use_test arg False
         i = BroadsoftInstance.factory(use_test=False)
         d = Device(did=6175551212, mac_address='aa:bb:cc:11:22:33', use_test=False)
-        self.assertEqual('6175551212_aabbcc112233_' + str(d.index) + '@' + d.default_domain, d.line_port)
+        self.assertEqual('6175551212_aabbcc112233_' + str(d.index) + '@' + d.broadsoftinstance.default_domain, d.line_port)
 
     @unittest.mock.patch.object(BroadsoftRequest, 'post')
     def test_delete_device_barfs_if_no_name(

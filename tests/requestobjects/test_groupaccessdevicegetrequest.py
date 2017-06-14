@@ -25,7 +25,7 @@ class TestBroadsoftGroupAccessDeviceGetRequest(unittest.TestCase):
             '<BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
                 '<sessionId xmlns="">' + g.broadsoftinstance.session_id + '</sessionId>' +
                 '<command xmlns="" xsi:type="GroupAccessDeviceGetRequest18sp1">' +
-                    '<serviceProviderId>' + g.service_provider + '</serviceProviderId>' +
+                    '<serviceProviderId>' + g.broadsoftinstance.service_provider + '</serviceProviderId>' +
                     '<groupId>' + g.group_id + '</groupId>' +
                     '<deviceName>' + g.name + '</deviceName>' +
                 '</command>' +

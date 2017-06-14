@@ -10,11 +10,6 @@ def return_groups_list(**kwargs):
 
 
 class TestBroadsoftGroupGetListInServiceProviderRequest(unittest.TestCase):
-    def test_inherits_service_provider_from_broadsoftinstance(self):
-        b = BroadsoftInstance.BroadsoftInstance()
-        g = GroupGetListInServiceProviderRequest(broadsoftinstance=b)
-        self.assertEqual(g.service_provider, b.service_provider)
-
     def test_to_xml(self):
         b = BroadsoftInstance.BroadsoftInstance()
 
