@@ -560,8 +560,25 @@ class TestBroadsoftRequest(unittest.TestCase):
         self.assertEqual('Polycom Soundpoint IP 650',
                          BroadsoftRequest.map_phone_type(phone_type='Polycom SoundPoint 650'))
         # straight mapping
-        self.assertEqual('Linksys SPA-2102',
-                         BroadsoftRequest.map_phone_type(phone_type='Linksys SPA2102'))
+        self.assertEqual(' Generic', BroadsoftRequest.map_phone_type(phone_type='Cisco SPA232D'))
+        self.assertEqual(' Generic', BroadsoftRequest.map_phone_type(phone_type='Hitachi Wireless IP 5000'))
+        self.assertEqual('Linksys SPA-2102', BroadsoftRequest.map_phone_type(phone_type='Linksys SPA2102'))
+        self.assertEqual('Linksys SPA-3102', BroadsoftRequest.map_phone_type(phone_type='Linksys SPA3102'))
+        self.assertEqual('Polycom_Trio8800',
+                         BroadsoftRequest.map_phone_type(phone_type='Polycom RealPresence Trio 8800'))
+        self.assertEqual('Polycom Soundpoint IP 320 330',
+                         BroadsoftRequest.map_phone_type(phone_type='Polycom Soundpoint IP 320'))
+        self.assertEqual('Polycom-560', BroadsoftRequest.map_phone_type(phone_type='Polycom Soundpoint IP 560'))
+        self.assertEqual('Polycom-670', BroadsoftRequest.map_phone_type(phone_type='Polycom Soundpoint IP 670'))
+        self.assertEqual('Polycom-4000', BroadsoftRequest.map_phone_type(phone_type='Polycom SoundStation IP 4000'))
+        self.assertEqual('Polycom-5000', BroadsoftRequest.map_phone_type(phone_type='Polycom SoundStation IP 5000'))
+        self.assertEqual('Polycom-6000', BroadsoftRequest.map_phone_type(phone_type='Polycom SoundStation IP 6000'))
+        self.assertEqual('Polycom-7000', BroadsoftRequest.map_phone_type(phone_type='Polycom SoundStation IP 7000'))
+        self.assertEqual('Polycom Soundpoint IP 601',
+                         BroadsoftRequest.map_phone_type(phone_type='Polycom Soundpoint IP 600/601'))
+        self.assertEqual('Polycom-VVX1500', BroadsoftRequest.map_phone_type(phone_type='Polycom VVX 1500'))
+        self.assertEqual('Polycom-VVX400', BroadsoftRequest.map_phone_type(phone_type='Polycom VVX 400'))
+        self.assertEqual('Polycom-VVX600', BroadsoftRequest.map_phone_type(phone_type='Polycom VVX 600'))
 
         # should not be mapped
         self.assertEqual('hamburger',

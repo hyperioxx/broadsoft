@@ -429,7 +429,22 @@ class BroadsoftRequest(XmlDocument):
 
         # otherwise, may be a straightforward mapping
         phone_map = {
-            'Linksys SPA2102':  'Linksys SPA-2102'
+            'Cisco SPA232D': ' Generic',
+            'Hitachi Wireless IP 5000': ' Generic',
+            'Linksys SPA2102': 'Linksys SPA-2102',
+            'Linksys SPA3102': 'Linksys SPA-3102',
+            'Polycom RealPresence Trio 8800': 'Polycom_Trio8800',
+            'Polycom Soundpoint IP 320': 'Polycom Soundpoint IP 320 330',
+            'Polycom Soundpoint IP 560': 'Polycom-560',
+            'Polycom Soundpoint IP 670': 'Polycom-670',
+            'Polycom SoundStation IP 4000': 'Polycom-4000',
+            'Polycom SoundStation IP 5000': 'Polycom-5000',
+            'Polycom SoundStation IP 6000': 'Polycom-6000',
+            'Polycom SoundStation IP 7000': 'Polycom-7000',
+            'Polycom Soundpoint IP 600/601': 'Polycom Soundpoint IP 601',
+            'Polycom VVX 1500': 'Polycom-VVX1500',
+            'Polycom VVX 400': 'Polycom-VVX400',
+            'Polycom VVX 600': 'Polycom-VVX600'
         }
 
         if phone_type in phone_map:
