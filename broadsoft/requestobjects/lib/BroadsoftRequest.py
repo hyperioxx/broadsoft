@@ -422,6 +422,11 @@ class BroadsoftRequest(XmlDocument):
         if 'Polycom SoundPoint' in phone_type and phone_type != 'Polycom SoundPoint IP 550':
             phone_type = re.sub(r'SoundPoint', 'Soundpoint', phone_type)
 
+        # if it's "Polycom Soundpoint 650" should be "Polycom Soundpoint IP 650"
+        m = re.search(r'^(Polycom Sound[pP]oint) (\d+)$', phone_type)
+        if m:
+            phone_type = m.group(1) + ' IP ' + m.group(2)
+
         # otherwise, may be a straightforward mapping
         phone_map = {
         }

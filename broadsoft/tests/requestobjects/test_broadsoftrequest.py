@@ -554,6 +554,8 @@ class TestBroadsoftRequest(unittest.TestCase):
         self.assertEqual('Polycom Soundpoint IP 450', BroadsoftRequest.map_phone_type(phone_type='Polycom SoundPoint IP 450'))
         self.assertEqual('Polycom Soundpoint IP 450',
                          BroadsoftRequest.map_phone_type(phone_type='Polycom SoundPoint IP 450 + Expansion Module(1)'))
+        self.assertEqual('Polycom Soundpoint IP 650',
+                         BroadsoftRequest.map_phone_type(phone_type='Polycom SoundPoint 650'))
 
         # should not be mapped
         self.assertEqual('hamburger',
