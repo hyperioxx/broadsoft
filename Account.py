@@ -278,6 +278,9 @@ class Account(BroadsoftObject):
         if not new_sip_password and self.sip_password:
             new_sip_password = self.sip_password
 
+        if new_sip_password is None:
+            raise ValueError("can't run Account.set_device_passwords() with providing a password")
+
         if not self.devices or len(self.devices) == 0:
             self.load_devices()
 

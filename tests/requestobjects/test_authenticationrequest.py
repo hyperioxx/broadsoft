@@ -22,12 +22,13 @@ def return_xml(*args, **kwargs):
 
 class TestBroadsoftAuthenticationRequest(unittest.TestCase):
     def test_authenticationrequest_to_xml_call(self):
-        a = AuthenticationRequest(broadsoftinstance=BroadsoftInstance.factory())
-        a.session_id = 'sesh'
+        i = BroadsoftInstance.factory()
+        i.session_id = 'sesh'
+        a = AuthenticationRequest(broadsoftinstance=i)
         xml = a.to_xml()
         self.assertEqual(
             '<BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
-            '<sessionId xmlns="">' + a.session_id + '</sessionId>' +
+            '<sessionId xmlns="">' + a.broadsoftinstance.session_id + '</sessionId>' +
             '<command xmlns="" xsi:type="' + a.command_name + '">' +
             '<userId>' + a.api_user_id + '</userId>' +
             '</command>' +
@@ -42,25 +43,6 @@ class TestBroadsoftAuthenticationRequest(unittest.TestCase):
             '1493647455426',
             AuthenticationRequest.extract_auth_token(payload=payload)
         )
-
-    @unittest.mock.patch('requests.post', side_effect=return_xml)
-    def test_authenticate_call_passes_session_id(
-            self,
-            post_patch
-    ):
-        session_id = 'test_authenticate_call_passes_session_id'
-        AuthenticationRequest.authenticate(session_id=session_id, broadsoftinstance=BroadsoftInstance.factory())
-
-        call = post_patch.call_args_list[0]
-        args, kwargs = call
-
-        self.assertTrue(
-            '&lt;sessionId xmlns=""&gt;' + session_id + '&lt;/sessionId&gt;' in kwargs['data']
-        )
-
-    def test_can_pass_session_id(self):
-        a = AuthenticationRequest(session_id='sesh')
-        self.assertEqual('sesh', a.session_id)
 
     @unittest.mock.patch('requests.post', side_effect=return_xml)
     def test_authenticate_call_stores_jsession_cookie(

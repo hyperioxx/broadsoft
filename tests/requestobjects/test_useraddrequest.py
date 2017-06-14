@@ -13,61 +13,61 @@ class TestBroadsoftUserAddRequest(unittest.TestCase):
             validate_patch,
             convert_phone_number_patch
     ):
-        u = UserAddRequest(group_id='testgroup', session_id='sesh', kname='beaver', last_name='Beaver',
+        i = BroadsoftInstance.factory()
+        i.session_id = 'sesh'
+        u = UserAddRequest(group_id='testgroup', kname='beaver', last_name='Beaver',
                            first_name='Tim', email='beaver@mit.edu',
-                           did='617 555 1212', sip_password='123456789')
+                           did='617 555 1212', sip_password='123456789', broadsoftinstance=i)
         u.to_xml()
         self.assertTrue(convert_phone_number_patch.called)
 
     def test_did_format_gets_validated(self):
-        u = UserAddRequest(group_id='testgroup', session_id='sesh', kname='beaver', last_name='Beaver',
+        i = BroadsoftInstance.factory()
+        i.session_id = 'sesh'
+        u = UserAddRequest(group_id='testgroup', kname='beaver', last_name='Beaver',
                            first_name='Tim', email='beaver@mit.edu',
-                           did='617555121', sip_password='123456789')
+                           did='617555121', sip_password='123456789', broadsoftinstance=i)
         with self.assertRaises(ValueError):
             u.validate()
 
-        u = UserAddRequest(group_id='testgroup', session_id='sesh', kname='beaver', last_name='Beaver',
+        u = UserAddRequest(group_id='testgroup', kname='beaver', last_name='Beaver',
                            first_name='Tim', email='beaver@mit.edu',
-                           did='61755512111', sip_password='123456789')
+                           did='61755512111', sip_password='123456789', broadsoftinstance=i)
         with self.assertRaises(ValueError):
             u.validate()
 
-        u = UserAddRequest(group_id='testgroup', session_id='sesh', kname='beaver', last_name='Beaver',
+        u = UserAddRequest(group_id='testgroup', kname='beaver', last_name='Beaver',
                            first_name='Tim', email='beaver@mit.edu',
-                           did='617555121x', sip_password='123456789')
+                           did='617555121x', sip_password='123456789', broadsoftinstance=i)
         with self.assertRaises(ValueError):
             u.validate()
 
     def test_validation(self):
-        """
-        u = UserAddRequest(group_id='testgroup', session_id='sesh', last_name='Beaver',
-                           first_name='Tim', email='beaver@mit.edu', sip_user_id='beaver@broadsoft-dev.mit.edu',
-                           did='6175551212')
-        """
-
+        i = BroadsoftInstance.factory()
+        i.session_id = 'sesh'
         # no last_name
-        u = UserAddRequest(group_id='testgroup', session_id='sesh',
+        u = UserAddRequest(group_id='testgroup', broadsoftinstance=i,
                            first_name='Tim', email='beaver@mit.edu', sip_user_id='beaver@broadsoft-dev.mit.edu',
                            did='6175551212', sip_password='password')
         with self.assertRaises(ValueError):
             u.validate()
 
         # no first_name
-        u = UserAddRequest(group_id='testgroup', session_id='sesh', last_name='Beaver',
+        u = UserAddRequest(group_id='testgroup', broadsoftinstance=i, last_name='Beaver',
                            email='beaver@mit.edu', sip_user_id='beaver@broadsoft-dev.mit.edu',
                            did='6175551212', sip_password='password')
         with self.assertRaises(ValueError):
             u.validate()
 
         # no did
-        u = UserAddRequest(group_id='testgroup', session_id='sesh', last_name='Beaver',
+        u = UserAddRequest(group_id='testgroup', broadsoftinstance=i, last_name='Beaver',
                            first_name='Tim', email='beaver@mit.edu', sip_user_id='beaver@broadsoft-dev.mit.edu',
                            sip_password='password')
         with self.assertRaises(ValueError):
             u.validate()
 
         # no password
-        u = UserAddRequest(group_id='testgroup', session_id='sesh', last_name='Beaver',
+        u = UserAddRequest(group_id='testgroup', broadsoftinstance=i, last_name='Beaver',
                            first_name='Tim', email='beaver@mit.edu', sip_user_id='beaver@broadsoft-dev.mit.edu',
                            did=6175551212)
         with self.assertRaises(ValueError):
@@ -99,10 +99,13 @@ class TestBroadsoftUserAddRequest(unittest.TestCase):
         self.assertEqual('blah', u.timezone)
 
     def test_to_xml(self):
+        i = BroadsoftInstance.factory()
+        i.session_id = 'sesh'
+
         # with sip_password
-        u = UserAddRequest(group_id='testgroup', session_id='sesh', kname='beaver', last_name='Beaver',
+        u = UserAddRequest(group_id='testgroup', kname='beaver', last_name='Beaver',
                            first_name='Tim', email='beaver@mit.edu', sip_user_id='6175551212@broadsoft.mit.edu',
-                           did='617 555 1212', sip_password='123456789', broadsoftinstance=BroadsoftInstance.factory())
+                           did='617 555 1212', sip_password='123456789', broadsoftinstance=i)
 
         target_xml = \
             '<command xmlns="" xsi:type="UserAddRequest17sp4">' + \
@@ -123,10 +126,3 @@ class TestBroadsoftUserAddRequest(unittest.TestCase):
         command = xml.findall('.//command')[0]
         self.maxDiff = None
         self.assertEqual(target_xml, ET.tostring(command).decode('utf-8'))
-
-    def test_did_can_be_integer(self):
-        def test_to_xml(self):
-            u = UserAddRequest(group_id='testgroup', session_id='sesh', kname='beaver', last_name='Beaver',
-                               first_name='Tim', email='beaver@mit.edu',
-                               did=6175551212, sip_password='123456789')
-            xml = u.to_xml()

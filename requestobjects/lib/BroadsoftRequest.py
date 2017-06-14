@@ -24,29 +24,24 @@ class BroadsoftRequest(XmlDocument):
     logging_fname = 'api.log'
     default_timezone = 'America/New_York'
     check_success = False
-    broadsoftinstance_properties = ['api_url', 'creds_member', 'service_provider', 'group_id']
+    # attributes of other objects set by broadsoftinstance
+    broadsoftinstance_properties = ['service_provider', 'group_id']
 
-    def __init__(self, session_id=None, require_logging=True, auth_object=None,
-                 login_object=None, timezone=None, broadsoftinstance=None, api_url=None,
-                 creds_member=None, service_provider=None, group_id=None):
-        self.api_url = api_url
-        self.auth_object = auth_object
+    def __init__(self, require_logging=True, timezone=None, broadsoftinstance=None, service_provider=None,
+                 group_id=None):
         self.broadsoftinstance = broadsoftinstance
-        self.creds_member = creds_member
         self.commands = []
         self.group_id = group_id
         self.last_response = None
-        self.login_object = login_object
         self.service_provider = service_provider
-        self.session_id = session_id
 
         if timezone:
             self.timezone = timezone
         else:
             self.timezone = self.default_timezone
 
-        self.build_session_id()
         self.prep_attributes()
+        self.build_session_id()
 
         # now that we're done setting up shop, start the logging
         self.default_logging(require_logging)
@@ -64,24 +59,20 @@ class BroadsoftRequest(XmlDocument):
                 setattr(self, p, bi_attr)
 
     def authenticate_and_login(self):
-        logging.info("running authenticate request", extra={'session_id': self.session_id})
-        a = AuthenticationRequest.authenticate(broadsoftinstance=self.broadsoftinstance, session_id=self.session_id)
-        self.auth_object = a
+        logging.info("running authenticate request", extra={'session_id': self.broadsoftinstance.session_id})
+        a = AuthenticationRequest.authenticate(broadsoftinstance=self.broadsoftinstance)
+        self.broadsoftinstance.auth_object = a
 
-        logging.info("running login request", extra={'session_id': self.session_id})
-        l = LoginRequest.login(broadsoftinstance=self.broadsoftinstance, auth_object=a)
-        self.login_object = l
-        logging.info("continuing with request", extra={'session_id': self.session_id})
+        logging.info("running login request", extra={'session_id': self.broadsoftinstance.session_id})
+        self.broadsoftinstance.auth_object = a
+        l = LoginRequest.login(broadsoftinstance=self.broadsoftinstance)
+        self.broadsoftinstance.login_object = l
+        logging.info("continuing with request", extra={'session_id': self.broadsoftinstance.session_id})
 
     def broadsoftinstance_needed(self):
         # value for broadsoftinstance? not needed.
         if self.broadsoftinstance is not None:
             return False
-
-        # any of the broadsoftinstance-related properties set? not needed.
-        for p in self.broadsoftinstance_properties:
-            if getattr(self, p) is not None:
-                return False
 
         return True
 
@@ -92,17 +83,17 @@ class BroadsoftRequest(XmlDocument):
         return cmd
 
     def build_session_id(self):
-        if self.session_id is None:
+        if self.broadsoftinstance.session_id is None:
             # if there's an attached auth object, use that session id
-            if self.auth_object:
+            if self.broadsoftinstance.auth_object:
                 try:
-                    self.session_id = self.auth_object.session_id
+                    self.broadsoftinstance.session_id = self.broadsoftinstance.auth_object.broadsoftinstance.session_id
                 except AttributeError:
                     pass
 
             # otherwise, build a fresh one
-            if self.session_id is None:
-                self.session_id = \
+            if self.broadsoftinstance.session_id is None:
+                self.broadsoftinstance.session_id = \
                     socket.gethostname() + ',' + \
                     str(datetime.datetime.utcnow()) + ',' + \
                     str(random.randint(1000000000, 9999999999))
@@ -131,7 +122,7 @@ class BroadsoftRequest(XmlDocument):
 
         # found fault/error? log and raise exception
         if error_msg:
-            logging.error(error_msg, extra={'session_id': self.session_id})
+            logging.error(error_msg, extra={'session_id': self.broadsoftinstance.session_id})
             raise RuntimeError(error_msg)
 
     def convert_booleans(self):
@@ -210,7 +201,7 @@ class BroadsoftRequest(XmlDocument):
 
     def need_login(self):
         # not part of the login/logout suite, and no login/auth object attached? need to login.
-        if not self.is_auth_suite() and (not self.login_object or not self.auth_object):
+        if not self.is_auth_suite() and (not self.broadsoftinstance.login_object or not self.broadsoftinstance.auth_object):
             return True
 
         return False
@@ -231,16 +222,16 @@ class BroadsoftRequest(XmlDocument):
         except AttributeError:
             pass
 
-        logging.info("running " + command_name + " request", extra={'session_id': self.session_id})
+        logging.info("running " + command_name + " request", extra={'session_id': self.broadsoftinstance.session_id})
 
         # if this isn't an auth/login request, check for login object. none? need to login.
         if self.need_login():
-            logging.info("auth/login needed. auto_login is " + str(auto_login), extra={'session_id': self.session_id})
+            logging.info("auth/login needed. auto_login is " + str(auto_login), extra={'session_id': self.broadsoftinstance.session_id})
             if auto_login:
                 self.authenticate_and_login()
             else:
                 logging.error("need an AuthenticationRequest and associated LoginRequest to continue, or set auto_login to True",
-                             extra={'session_id': self.session_id})
+                             extra={'session_id': self.broadsoftinstance.session_id})
                 raise RuntimeError("need an AuthenticationRequest and associated LoginRequest to continue, or set auto_login to True")
 
         # first, convert self into string representation
@@ -251,23 +242,23 @@ class BroadsoftRequest(XmlDocument):
         e = SoapEnvelope(body=payload)
         envelope = e.to_string()
 
-        logging.info("url: " + self.api_url, extra={'session_id': self.session_id})
+        logging.info("url: " + self.broadsoftinstance.api_url, extra={'session_id': self.broadsoftinstance.session_id})
 
         # if there's an attached auth object, grab cookies
         cookies = None
-        if self.auth_object:
+        if self.broadsoftinstance.auth_object:
             try:
-                cookies = self.auth_object.auth_cookie_jar
-                logging.info("cookies: " + str(cookies), extra={'session_id': self.session_id})
+                cookies = self.broadsoftinstance.auth_object.auth_cookie_jar
+                logging.info("cookies: " + str(cookies), extra={'session_id': self.broadsoftinstance.session_id})
                 pass
             except AttributeError:
                 pass
 
-        logging.info("payload: " + envelope, extra={'session_id': self.session_id})
+        logging.info("payload: " + envelope, extra={'session_id': self.broadsoftinstance.session_id})
 
         # post to server
         headers = {'content-type': 'text/xml', 'SOAPAction': ''}
-        response = requests.post(url=self.api_url, data=envelope, headers=headers, cookies=cookies)
+        response = requests.post(url=self.broadsoftinstance.api_url, data=envelope, headers=headers, cookies=cookies)
         self.last_response = response
 
         # massage the response and check for errors
@@ -278,13 +269,13 @@ class BroadsoftRequest(XmlDocument):
         except AttributeError:
             pass
 
-        logging.info("response: " + content, extra={'session_id': self.session_id})
+        logging.info("response: " + content, extra={'session_id': self.broadsoftinstance.session_id})
         self.check_error(string_response=content)
 
         # if we're managing login behavior, also do an implicit logout
         if self.need_logout(auto_login):
-            logging.info("automatically running logout request", extra={'session_id': self.session_id})
-            l = LogoutRequest.logout(broadsoftinstance=self.broadsoftinstance, auth_object=self.auth_object)
+            logging.info("automatically running logout request", extra={'session_id': self.broadsoftinstance.session_id})
+            l = LogoutRequest.logout(broadsoftinstance=self.broadsoftinstance)
 
         # if requested, dig actual message out of SOAP envelope it came in (and return as XML object)
         if extract_payload:
@@ -324,7 +315,7 @@ class BroadsoftRequest(XmlDocument):
 
         sid = ET.SubElement(doc, 'sessionId')
         sid.set('xmlns', '')
-        sid.text = str(self.session_id)
+        sid.text = str(self.broadsoftinstance.session_id)
 
         # inject command XML
         commands = self.derive_commands()
@@ -506,7 +497,7 @@ class LoginRequest(BroadsoftRequest):
         sha_pwd = s.hexdigest()
 
         # now, combine the SHA passwd with the "nonce" value returned by the AuthenticationRequest and md5 it
-        concat_pwd = self.auth_object.nonce + ':' + sha_pwd
+        concat_pwd = self.broadsoftinstance.auth_object.nonce + ':' + sha_pwd
         m = md5()
         m.update(concat_pwd.encode())
         signed_pwd = m.hexdigest()

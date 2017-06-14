@@ -20,7 +20,7 @@ class TestBroadsoftLogoutRequest(unittest.TestCase):
         xml = l.to_xml()
         self.assertEqual(
             '<BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
-            '<sessionId xmlns="">' + l.session_id + '</sessionId>'
+            '<sessionId xmlns="">' + l.broadsoftinstance.session_id + '</sessionId>'
             '<command xmlns="" xsi:type="LogoutRequest">' +
             '<userId>' + l.api_user_id + '</userId>' +
             '</command>' +

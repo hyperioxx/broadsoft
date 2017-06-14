@@ -62,7 +62,7 @@ class TestBroadsoftObject(unittest.TestCase):
 
     def test_injected_broadsoftinstance_overrides_prior_settings_in_child_object(self):
 
-        u = UserAddRequest(broadsoftinstance=False)
+        u = UserAddRequest()
         # set each of the defined broadsoftinstance related properties to garbage
         for p in BroadsoftRequest.broadsoftinstance_properties:
             setattr(u, p, 'garbanzo')
@@ -75,7 +75,3 @@ class TestBroadsoftObject(unittest.TestCase):
         # instance
         for p in BroadsoftRequest.broadsoftinstance_properties:
             self.assertEqual(getattr(u, p), getattr(i, p))
-
-    def test_check_api_vars_get_passed_in_relevant_methods(self):
-        # auth_object, login_object, session_id
-        self.assertFalse("write this")

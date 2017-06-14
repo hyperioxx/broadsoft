@@ -25,7 +25,7 @@ class TestBroadsoftUserGetListInGroupRequest(unittest.TestCase):
         self.maxDiff = None
         self.assertEqual(
             '<BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
-                '<sessionId xmlns="">' + g.session_id + '</sessionId>' +
+                '<sessionId xmlns="">' + g.broadsoftinstance.session_id + '</sessionId>' +
                 '<command xmlns="" xsi:type="UserGetListInGroupRequest">' +
                     '<serviceProviderId>' + b.service_provider + '</serviceProviderId>' +
                     '<GroupId>' + b.group_id + '</GroupId>' +
@@ -34,25 +34,3 @@ class TestBroadsoftUserGetListInGroupRequest(unittest.TestCase):
             '</BroadsoftDocument>',
             ET.tostring(x).decode('utf-8')
         )
-
-    def test_can_pass_session_id(self):
-        g = UserGetListInGroupRequest(session_id='sesh')
-        self.assertEqual('sesh', g.session_id)
-
-    def test_can_pass_auth_object(self):
-        class FakeAuthObject:
-            def __init__(self):
-                self.foo = 'var'
-
-        f = FakeAuthObject()
-        g = UserGetListInGroupRequest(auth_object=f)
-        self.assertEqual(f, g.auth_object)
-
-    def test_can_pass_login_object(self):
-        class FakeLoginObject:
-            def __init__(self):
-                self.foo = 'var'
-
-        f = FakeLoginObject()
-        g = UserGetListInGroupRequest(login_object=f)
-        self.assertEqual(f, g.login_object)

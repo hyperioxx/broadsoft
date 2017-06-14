@@ -63,7 +63,9 @@ class TestBroadsoftGroupAddRequest(unittest.TestCase):
         self.assertTrue(convert_phone_number_patch.called)
 
     def test_groupaddrequest_to_xml_call(self):
-        gar = GroupAddRequest(broadsoftinstance=BroadsoftInstance.factory())
+        i = BroadsoftInstance.factory()
+        i.session_id = 'seshy'
+        gar = GroupAddRequest(broadsoftinstance=i)
         gar.calling_line_id_name = 'test line id'
         gar.contact_email = 'beaver@mit.edu'
         gar.contact_name = 'Tim Beaver'
@@ -72,12 +74,11 @@ class TestBroadsoftGroupAddRequest(unittest.TestCase):
         gar.group_id = 'testgroup'
         gar.group_name = 'test group'
         gar.user_limit = 100
-        gar.session_id = 'seshy'
 
         xml = gar.to_xml()
         self.assertEqual(
             '<BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
-            '<sessionId xmlns="">' + gar.session_id + '</sessionId>' +
+            '<sessionId xmlns="">' + gar.broadsoftinstance.session_id + '</sessionId>' +
             '<command xmlns="" xsi:type="' + gar.command_name + '">' +
             '<serviceProviderId>' + gar.service_provider + '</serviceProviderId>' +
             '<groupId>' + gar.group_id + '</groupId>' +
@@ -95,25 +96,3 @@ class TestBroadsoftGroupAddRequest(unittest.TestCase):
             '</BroadsoftDocument>',
             ET.tostring(element=xml).decode("utf-8")
         )
-
-    def test_can_pass_session_id(self):
-        g = GroupAddRequest(session_id='sesh')
-        self.assertEqual('sesh', g.session_id)
-
-    def test_can_pass_auth_object(self):
-        class FakeAuthObject:
-            def __init__(self):
-                self.foo = 'var'
-
-        f = FakeAuthObject()
-        g = GroupAddRequest(auth_object=f)
-        self.assertEqual(f, g.auth_object)
-
-    def test_can_pass_login_object(self):
-        class FakeLoginObject:
-            def __init__(self):
-                self.foo = 'var'
-
-        f = FakeLoginObject()
-        g = GroupAddRequest(login_object=f)
-        self.assertEqual(f, g.login_object)

@@ -47,11 +47,12 @@ class TestBroadsoftGroupAccessDeviceAddRequest(unittest.TestCase):
         # defaults to default set in BroadsoftRequest
         i = BroadsoftInstance.factory()
         g = GroupAccessDeviceAddRequest(broadsoftinstance=i)
-        self.assertEqual(i.group_id, g.group_id)
+        self.assertEqual(i.group_id, g.broadsoftinstance.group_id)
 
         # can also override
-        g = GroupAccessDeviceAddRequest(group_id='gid')
-        self.assertEqual('gid', g.group_id)
+        #g = GroupAccessDeviceAddRequest(group_id='gid')
+        #self.assertEqual('gid', g.group_id)
+        self.assertFalse("need to work out means of overriding group_id set by Broadsoft instance; maybe should be something that remains in other objects")
 
     def test_convert_mac_address(self):
         g = GroupAccessDeviceAddRequest()

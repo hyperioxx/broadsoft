@@ -187,20 +187,3 @@ class TestBroadsoftUserModifyRequest(unittest.TestCase):
     ):
         u = UserModifyRequest()
         self.assertTrue(derive_extension_patch.called)
-
-    @unittest.mock.patch.object(BroadsoftRequest, 'extract_payload')
-    @unittest.mock.patch('broadsoft.requestobjects.lib.BroadsoftRequest.LogoutRequest.logout')
-    @unittest.mock.patch.object(BroadsoftRequest, 'check_error')
-    @unittest.mock.patch('requests.post')
-    @unittest.mock.patch('broadsoft.requestobjects.lib.SoapEnvelope.SoapEnvelope.to_string')
-    @unittest.mock.patch.object(BroadsoftRequest, 'to_string')
-    @unittest.mock.patch.object(BroadsoftRequest, 'authenticate_and_login')
-    def test_set_password_passes_auth_object(
-            self, login_patch, ro_to_string_patch, envelop_to_string_patch, requests_post_patch, check_error_patch,
-            logout_patch, extract_payload_patch
-    ):
-        g = UserModifyRequest.set_password(sip_user_id='6175551212@broadsoft.mit.edu', did=6175551212,
-                                           new_password='password', auth_object='a', login_object='b',
-                                           broadsoftinstance=BroadsoftInstance.factory())
-        # passed auth and login object, so authenticate_and_login patch should not have been called
-        self.assertFalse(login_patch.called)

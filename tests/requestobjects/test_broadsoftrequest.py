@@ -49,18 +49,15 @@ class TestBroadsoftRequest(unittest.TestCase):
 
     def test_generate_session_id(self):
         b = BroadsoftRequest()
-        self.assertRegex(b.session_id, r'^.+?,\d{4}\-\d{2}\-\d{2} \d{2}:\d{2}:\d{2}\.\d+,\d{10}$')
-
-    def test_pass_session_id(self):
-        b = BroadsoftRequest(session_id='sesh')
-        self.assertEqual('sesh', b.session_id)
+        self.assertRegex(b.broadsoftinstance.session_id, r'^.+?,\d{4}\-\d{2}\-\d{2} \d{2}:\d{2}:\d{2}\.\d+,\d{10}$')
 
     def test_to_string(self):
         # to_string() lives in XmlRequest, but can never be called by it since there's no to_xml() for this parent
         # object. so we test with AuthenticationRequest
 
-        a = AuthenticationRequest(broadsoftinstance=BroadsoftInstance.factory())
-        a.session_id = 'sesh'
+        i = BroadsoftInstance.factory()
+        i.session_id = 'sesh'
+        a = AuthenticationRequest(broadsoftinstance=i)
 
         # without urlencoding
         s = a.to_string(html_encode=False)
@@ -104,10 +101,11 @@ class TestBroadsoftRequest(unittest.TestCase):
 
         # with extract_payload True
         self.maxDiff = None
-        a = AuthenticationRequest(broadsoftinstance=BroadsoftInstance.factory())
+        i = BroadsoftInstance.factory()
+        i.session_id = 'sesh'
+        a = AuthenticationRequest(broadsoftinstance=i)
         # last_response should start out unpopulated
         self.assertIsNone(a.last_response)
-        a.session_id = 'sesh'
         p = a.post(extract_payload=True)
         self.assertEqual(
             '<ns0:BroadsoftDocument xmlns:ns0="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" protocol="OCI"><sessionId>None</sessionId><command echo="" xsi:type="AuthenticationResponse"><userId>admMITapi</userId><nonce>1493661742798</nonce><passwordAlgorithm>MD5</passwordAlgorithm></command></ns0:BroadsoftDocument>',
@@ -117,8 +115,9 @@ class TestBroadsoftRequest(unittest.TestCase):
         self.assertIsNotNone(a.last_response)
 
         # with extract_payload False
-        a = AuthenticationRequest(broadsoftinstance=BroadsoftInstance.factory())
-        a.session_id = 'sesh'
+        i = BroadsoftInstance.factory()
+        i.session_id = 'sesh'
+        a = AuthenticationRequest(broadsoftinstance=i)
         p = a.post(extract_payload=False)
         self.assertEqual(
             '<ns0:Envelope xmlns:ns0="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="urn:com:broadsoft:webservice"><ns0:Body><processOCIMessageResponse><ns1:processOCIMessageReturn>&lt;?xml version="1.0" encoding="UTF-8"?&gt;\n&lt;BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;&lt;sessionId xmlns=""&gt;None&lt;/sessionId&gt;&lt;command echo="" xsi:type="AuthenticationResponse" xmlns=""&gt;&lt;userId&gt;admMITapi&lt;/userId&gt;&lt;nonce&gt;1493661742798&lt;/nonce&gt;&lt;passwordAlgorithm&gt;MD5&lt;/passwordAlgorithm&gt;&lt;/command&gt;&lt;/BroadsoftDocument&gt;</ns1:processOCIMessageReturn></processOCIMessageResponse></ns0:Body></ns0:Envelope>',
@@ -156,8 +155,9 @@ class TestBroadsoftRequest(unittest.TestCase):
     ):
         # to_string() lives in XmlRequest, but can never be called by it since there's no to_xml() for this parent
         # object. so we test with AuthenticationRequest
-        a = AuthenticationRequest(broadsoftinstance=BroadsoftInstance.factory())
-        a.session_id = 'sesh'
+        i = BroadsoftInstance.factory()
+        i.session_id = 'sesh'
+        a = AuthenticationRequest(broadsoftinstance=i)
         with self.assertRaises(RuntimeError):
             a.post()
 
@@ -168,15 +168,15 @@ class TestBroadsoftRequest(unittest.TestCase):
 
         # use_test is default
         b = BroadsoftRequest(broadsoftinstance=default_i)
-        self.assertEqual(b.api_url, default_i.api_url)
+        self.assertEqual(b.broadsoftinstance.api_url, default_i.api_url)
 
         # use_test is False
         b = BroadsoftRequest(broadsoftinstance=prod_i)
-        self.assertEqual(b.api_url, prod_i.api_url)
+        self.assertEqual(b.broadsoftinstance.api_url, prod_i.api_url)
 
         # use_test is True
         b = BroadsoftRequest(broadsoftinstance=test_i)
-        self.assertEqual(b.api_url, test_i.api_url)
+        self.assertEqual(b.broadsoftinstance.api_url, test_i.api_url)
 
     @unittest.mock.patch('requests.post', side_effect=return_xml)
     def test_passing_cookies_when_present(
@@ -189,7 +189,10 @@ class TestBroadsoftRequest(unittest.TestCase):
                 self.auth_cookie_jar = http.cookiejar.CookieJar()
 
         f = FakeAuth()
-        g = GroupGetListInServiceProviderRequest(auth_object=f, login_object=f, broadsoftinstance=BroadsoftInstance.factory())
+        i = BroadsoftInstance.factory()
+        i.auth_object = f
+        i.login_object = f
+        g = GroupGetListInServiceProviderRequest(broadsoftinstance=i)
         g.post()
 
         call = post_patch.call_args_list[0]
@@ -201,9 +204,11 @@ class TestBroadsoftRequest(unittest.TestCase):
             self,
             post_patch
     ):
-        a = AuthenticationRequest.authenticate(broadsoftinstance=BroadsoftInstance.factory())
-        b = BroadsoftRequest(auth_object=a, broadsoftinstance=BroadsoftInstance.factory())
-        self.assertEqual(a.session_id, b.session_id)
+        i = BroadsoftInstance.factory()
+        a = AuthenticationRequest.authenticate(broadsoftinstance=i)
+        i.auth_object = a
+        b = BroadsoftRequest(broadsoftinstance=i)
+        self.assertEqual(a.broadsoftinstance.session_id, b.broadsoftinstance.session_id)
 
     def test_convert_results_table(self):
         xml = '<groupTable><colHeading>Group Id</colHeading><colHeading>Group Name</colHeading><colHeading>User Limit</colHeading><row><col>anothertestgroup</col><col>Another Test Group</col><col>25</col></row><row><col>sandbox</col><col /><col>25</col></row></groupTable>'
@@ -220,24 +225,27 @@ class TestBroadsoftRequest(unittest.TestCase):
         self.assertTrue(g.need_login())
 
         # with no attached auth object, needs login
-        g = GroupGetListInServiceProviderRequest()
-        g.login_object = 'test'
+        i = BroadsoftInstance.factory()
+        i.login_object = 'test'
+        g = GroupGetListInServiceProviderRequest(broadsoftinstance=i)
         self.assertTrue(g.need_login())
 
         # with no attached login object, needs login
-        g = GroupGetListInServiceProviderRequest()
-        g.auth_object = 'test'
+        i = BroadsoftInstance.factory()
+        i.auth_object = 'test'
+        g = GroupGetListInServiceProviderRequest(broadsoftinstance=i)
         self.assertTrue(g.need_login())
 
         # with attached login/auth objects, don't need login
-        g = GroupGetListInServiceProviderRequest()
-        g.auth_object = 'test'
-        g.login_object = 'test'
+        i = BroadsoftInstance.factory()
+        i.auth_object = 'test'
+        i.login_object = 'test'
+        g = GroupGetListInServiceProviderRequest(broadsoftinstance=i)
         self.assertFalse(g.need_login())
 
         # when command name is AuthenticationRequest, don't need login
         a = AuthenticationRequest()
-        self.assertFalse(g.need_login())
+        self.assertFalse(a.need_login())
 
         # when command name is LoginRequest14sp4, don't need login
         l = LoginRequest()
@@ -252,9 +260,10 @@ class TestBroadsoftRequest(unittest.TestCase):
         self.assertTrue(b.need_login())
 
         # when command is BroadsoftRequest, and is auth/login object, don't need login
-        b = BroadsoftRequest()
-        b.auth_object = 'test'
-        b.login_object = 'test'
+        i = BroadsoftInstance.factory()
+        i.auth_object = 'test'
+        i.login_object = 'test'
+        b = BroadsoftRequest(broadsoftinstance=i)
         self.assertFalse(b.need_login())
 
     @unittest.mock.patch.object(AuthenticationRequest, 'authenticate')
@@ -296,7 +305,10 @@ class TestBroadsoftRequest(unittest.TestCase):
                 self.auth_cookie_jar = http.cookiejar.CookieJar()
         a = FakeAuth()
         l = FakeAuth()
-        g = GroupGetListInServiceProviderRequest(auth_object=a, login_object=l, broadsoftinstance=BroadsoftInstance.factory())
+        i = BroadsoftInstance.factory()
+        i.auth_object = a
+        i.login_object = l
+        g = GroupGetListInServiceProviderRequest(broadsoftinstance=i)
         g.post(auto_login=True)
         self.assertFalse(login_patch.called)
         login_patch.called = False
@@ -309,7 +321,10 @@ class TestBroadsoftRequest(unittest.TestCase):
 
         a = FakeAuth()
         l = FakeAuth()
-        g = GroupGetListInServiceProviderRequest(auth_object=a, login_object=l, broadsoftinstance=BroadsoftInstance.factory())
+        i = BroadsoftInstance.factory()
+        i.auth_object = a
+        i.login_object = l
+        g = GroupGetListInServiceProviderRequest(broadsoftinstance=i)
         g.post(auto_login=False)
         self.assertFalse(login_patch.called)
         login_patch.called = False
@@ -352,7 +367,7 @@ class TestBroadsoftRequest(unittest.TestCase):
         x = b.to_xml()
         self.assertEqual(
             '<BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
-            '<sessionId xmlns="">' + b.session_id + '</sessionId>' +
+            '<sessionId xmlns="">' + b.broadsoftinstance.session_id + '</sessionId>' +
             '</BroadsoftDocument>',
             ET.tostring(x).decode('utf-8')
         )
@@ -390,7 +405,7 @@ class TestBroadsoftRequest(unittest.TestCase):
         x = b.to_xml()
         self.assertEqual(
             '<BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
-            '<sessionId xmlns="">' + b.session_id + '</sessionId>' +
+            '<sessionId xmlns="">' + b.broadsoftinstance.session_id + '</sessionId>' +
             '<command xmlns="" xsi:type="GroupAddRequest">' +
                 '<serviceProviderId>' + ga.service_provider + '</serviceProviderId>' +
                 '<groupId>newgroup</groupId>' +
@@ -544,25 +559,21 @@ class TestBroadsoftRequest(unittest.TestCase):
         # none of the BroadsoftInstance properties set
         bi = BroadsoftInstance.BroadsoftInstance()
         b = BroadsoftRequest(broadsoftinstance=bi)
-        self.assertEqual(b.api_url, bi.api_url)
-        self.assertEqual(b.creds_member, bi.creds_member)
+        self.assertEqual(b.broadsoftinstance.api_url, bi.api_url)
+        self.assertEqual(b.broadsoftinstance.creds_member, bi.creds_member)
         self.assertEqual(b.service_provider, bi.service_provider)
         self.assertEqual(b.group_id, bi.group_id)
 
         # all of the BroadsoftInstance properties set
         bi = BroadsoftInstance.BroadsoftInstance()
-        b = BroadsoftRequest(broadsoftinstance=bi, api_url='1', creds_member='2', service_provider='3', group_id='4')
-        self.assertEqual(b.api_url, '1')
-        self.assertEqual(b.creds_member, '2')
+        b = BroadsoftRequest(broadsoftinstance=bi, service_provider='3', group_id='4')
         self.assertEqual(b.service_provider, '3')
         self.assertEqual(b.group_id, '4')
 
         # when forced should overwrite
         bi = BroadsoftInstance.BroadsoftInstance()
-        b = BroadsoftRequest(broadsoftinstance=bi, api_url='1', creds_member='2', service_provider='3', group_id='4')
+        b = BroadsoftRequest(broadsoftinstance=bi, service_provider='3', group_id='4')
         b.apply_broadsoftinstance(force=True)
-        self.assertEqual(b.api_url, bi.api_url)
-        self.assertEqual(b.creds_member, bi.creds_member)
         self.assertEqual(b.service_provider, bi.service_provider)
         self.assertEqual(b.group_id, bi.group_id)
 
@@ -587,7 +598,7 @@ class TestBroadsoftRequest(unittest.TestCase):
             self.assertFalse(b.broadsoftinstance_needed())
 
         # otherwise
-        b = BroadsoftRequest(broadsoftinstance=b)
+        b = BroadsoftRequest()
         b.broadsoftinstance = None
         for p in BroadsoftRequest.broadsoftinstance_properties:
             setattr(b, p, None)

@@ -25,7 +25,7 @@ class TestBroadsoftGroupGetListInServiceProviderRequest(unittest.TestCase):
         self.maxDiff = None
         self.assertEqual(
             '<BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
-                '<sessionId xmlns="">' + g.session_id + '</sessionId>' +
+                '<sessionId xmlns="">' + g.broadsoftinstance.session_id + '</sessionId>' +
                 '<command xmlns="" xsi:type="GroupGetListInServiceProviderRequest">' +
                     '<serviceProviderId>' + b.service_provider + '</serviceProviderId>' +
                     '<responseSizeLimit>' + str(g.response_size_limit) + '</responseSizeLimit>' +
@@ -34,24 +34,3 @@ class TestBroadsoftGroupGetListInServiceProviderRequest(unittest.TestCase):
             ET.tostring(x).decode('utf-8')
         )
 
-    def test_can_pass_session_id(self):
-        g = GroupGetListInServiceProviderRequest(session_id='sesh')
-        self.assertEqual('sesh', g.session_id)
-
-    def test_can_pass_auth_object(self):
-        class FakeAuthObject:
-            def __init__(self):
-                self.foo = 'var'
-
-        f = FakeAuthObject()
-        g = GroupGetListInServiceProviderRequest(auth_object=f)
-        self.assertEqual(f, g.auth_object)
-
-    def test_can_pass_login_object(self):
-        class FakeLoginObject:
-            def __init__(self):
-                self.foo = 'var'
-
-        f = FakeLoginObject()
-        g = GroupGetListInServiceProviderRequest(login_object=f)
-        self.assertEqual(f, g.login_object)

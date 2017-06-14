@@ -25,7 +25,9 @@ class TestBroadsoftLoginRequest(unittest.TestCase):
                 self.nonce = 'nonce'
 
         a = FakeAuth()
-        l = LoginRequest(auth_object=a)
+        i = BroadsoftInstance.factory()
+        i.auth_object = a
+        l = LoginRequest(broadsoftinstance=i)
         l.api_password = 'password'
 
         from hashlib import sha1, md5
@@ -51,7 +53,9 @@ class TestBroadsoftLoginRequest(unittest.TestCase):
                 self.nonce = 'nonce'
 
         a = FakeAuth()
-        l = LoginRequest(auth_object=a)
+        i = BroadsoftInstance.factory()
+        i.auth_object = a
+        l = LoginRequest(broadsoftinstance=i)
         # want to override fetching of uid/pw via creds
         l.api_user_id = 'userid'
         l.api_password = 'password'
@@ -72,7 +76,7 @@ class TestBroadsoftLoginRequest(unittest.TestCase):
         xml = l.to_xml()
         self.assertEqual(
             '<BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
-            '<sessionId xmlns="">' + l.session_id + '</sessionId>'
+            '<sessionId xmlns="">' + l.broadsoftinstance.session_id + '</sessionId>'
             '<command xmlns="" xsi:type="LoginRequest14sp4">' +
             '<userId>' + l.api_user_id + '</userId>' +
             '<signedPassword>' + signed_pwd + '</signedPassword>' +

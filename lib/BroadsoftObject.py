@@ -5,13 +5,9 @@ from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 
 
 class BroadsoftObject:
-    def __init__(self, xml=None, use_test=False, broadsoftinstance=None, default_domain=None, session_id=None,
-                 auth_object=None, login_object=None):
-        self.auth_object = auth_object
+    def __init__(self, xml=None, use_test=False, broadsoftinstance=None, default_domain=None):
         self.broadsoftinstance = broadsoftinstance
         self.default_domain = default_domain
-        self.login_object = login_object
-        self.session_id = session_id
         self.use_test = use_test
         self.xml = xml
         self.prep_attributes()
