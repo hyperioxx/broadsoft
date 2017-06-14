@@ -366,13 +366,13 @@ class Account(BroadsoftObject):
             d.did = user_record.did
             d.description = device_record.description
             d.is_primary = is_primary
-            is_primary = False
             d.name = device_record.description
             d.type = device_record.phone_type
             d.mac_address = device_record.hwaddr
             d.derive_line_port()
 
             a.devices.append(d)
+            is_primary = False
 
         if len(a.devices) > 0 or force_when_no_devices:
             a.provision()
