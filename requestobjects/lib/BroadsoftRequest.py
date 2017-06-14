@@ -527,6 +527,15 @@ class LogoutRequest(BroadsoftRequest):
 
         return cmd
 
+    def post(self, **kwargs):
+        BroadsoftRequest.post(self, **kwargs)
+
+        # now that we've logged out, blank out auth related attrs of broadsoftinstance, which clears the way for another
+        # auth session should it be needed
+        self.broadsoftinstance.auth_object = None
+        self.broadsoftinstance.login_object = None
+        self.broadsoftinstance.session_id = None
+
     @staticmethod
     def logout(**kwargs):
         l = LogoutRequest(**kwargs)
