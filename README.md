@@ -23,7 +23,11 @@ broadsoftinstance
     child objects will always inherit from parent, even if set explicitly otherwise
     can pass attrs individually but not recc
 
-passing around auth/login object/session id in Account, Device when doing big jobs to save connections 
+passing around auth/login object/session id in Account, Device when doing big jobs to save connections
+
+if you depend on auto login, auto logout will also happen
+if you want to manage login (such as to keep session open for multiple requests), build broadsoft instance, set auto_login to False, and pass in
+good form to do a logout when you're done
     
 how the requestobjects work, how to create a new one
     discuss login fuctionality
