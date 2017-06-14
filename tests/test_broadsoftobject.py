@@ -7,6 +7,9 @@ from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 from broadsoft.requestobjects.UserAddRequest import UserAddRequest
 
 
+def return_none(*args, **kwargs):
+    return None
+
 class TestBroadsoftObject(unittest.TestCase):
     def test_derive_domain_based_on_test_and_prod(self):
         i = BroadsoftInstance.factory(use_test=False)
@@ -61,7 +64,6 @@ class TestBroadsoftObject(unittest.TestCase):
         derive_broadsoft_instance_patch.called = False
 
     def test_injected_broadsoftinstance_overrides_prior_settings_in_child_object(self):
-
         u = UserAddRequest()
         # set each of the defined broadsoftinstance related properties to garbage
         for p in BroadsoftRequest.broadsoftinstance_properties:
@@ -75,3 +77,24 @@ class TestBroadsoftObject(unittest.TestCase):
         # instance
         for p in BroadsoftRequest.broadsoftinstance_properties:
             self.assertEqual(getattr(u, p), getattr(i, p))
+
+    @unittest.mock.patch.object(BroadsoftRequest, 'authenticate_and_login')
+    @unittest.mock.patch.object(BroadsoftRequest, '__init__', side_effect=return_none)
+    def test_login_passes_broadsoftinstance(self, init_patch, auth_patch):
+        i = BroadsoftInstance.factory(use_test=True)
+        o = BroadsoftObject(broadsoftinstance=i)
+        o.login()
+
+        call = init_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertIsInstance(kwargs['broadsoftinstance'], BroadsoftInstance.TestBroadsoftInstance)
+
+    @unittest.mock.patch('broadsoft.requestobjects.lib.BroadsoftRequest.LogoutRequest.logout')
+    def test_login_passes_broadsoftinstance(self, logout_patch):
+        i = BroadsoftInstance.factory(use_test=True)
+        o = BroadsoftObject(broadsoftinstance=i)
+        o.logout()
+
+        call = logout_patch.call_args_list[0]
+        args, kwargs = call
+        self.assertIsInstance(kwargs['broadsoftinstance'], BroadsoftInstance.TestBroadsoftInstance)

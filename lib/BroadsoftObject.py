@@ -2,6 +2,7 @@ import xml.etree.ElementTree as ET
 
 from broadsoft.lib import BroadsoftInstance
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
+from broadsoft.requestobjects.lib.BroadsoftRequest import LogoutRequest
 
 
 class BroadsoftObject:
@@ -44,6 +45,13 @@ class BroadsoftObject:
                 child.apply_broadsoftinstance(force=True)
             except AttributeError:
                 pass
+
+    def login(self):
+        r = BroadsoftRequest(broadsoftinstance=self.broadsoftinstance)
+        r.authenticate_and_login()
+
+    def logout(self):
+        l = LogoutRequest.logout(broadsoftinstance=self.broadsoftinstance)
 
     def prep_attributes(self):
         if self.broadsoftinstance is None:
