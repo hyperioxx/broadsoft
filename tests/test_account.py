@@ -1517,3 +1517,7 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertEqual(d.type, 'hamburger')
         self.assertEqual(d.mac_address, 'ddeeff445566')
         self.assertEqual(d.line_port, d.did + '_' + d.mac_address + '_' + str(d.index) + '@' + d.default_domain)
+
+    def test_check_api_vars_get_passed_in_relevant_methods(self):
+        # auth_object, login_object, session_id
+        self.assertFalse("write this")

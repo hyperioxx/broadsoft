@@ -330,3 +330,7 @@ class TestBroadsoftDevice(unittest.TestCase):
 
     def test_type_gets_mapped_on_init(self):
         self.assertFalse("write this")
+
+    def test_check_api_vars_get_passed_in_relevant_methods(self):
+        # auth_object, login_object, session_id
+        self.assertFalse("write this")
