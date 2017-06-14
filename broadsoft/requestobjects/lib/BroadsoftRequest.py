@@ -4,6 +4,7 @@ import datetime
 import socket
 import random
 import logging
+import re
 from broadsoft.lib import BroadsoftInstance
 from broadsoft.requestobjects.lib.SoapEnvelope import SoapEnvelope
 from hashlib import sha1, md5
@@ -414,6 +415,9 @@ class BroadsoftRequest(XmlDocument):
 
     @staticmethod
     def map_phone_type(phone_type):
+        # strip any reference to Expansion Modules
+        phone_type = re.sub(r' \+ Expansion Module\(\d+\)$', '', phone_type)
+
         phone_map = {
             'Polycom SoundPoint IP 450': 'Polycom Soundpoint IP 450'
         }
