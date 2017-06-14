@@ -22,6 +22,8 @@ provisioning a user
 broadsoftinstance
     child objects will always inherit from parent, even if set explicitly otherwise
     can pass attrs individually but not recc
+
+passing around auth/login object/session id in Account, Device when doing big jobs to save connections 
     
 how the requestobjects work, how to create a new one
     discuss login fuctionality
