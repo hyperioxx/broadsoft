@@ -2,14 +2,13 @@ import http.cookiejar
 import unittest
 import unittest.mock
 import xml.etree.ElementTree as ET
-
 from broadsoft.lib import BroadsoftInstance
 from broadsoft.requestobjects.GroupAddRequest import GroupAddRequest
 from broadsoft.requestobjects.GroupGetListInServiceProviderRequest import GroupGetListInServiceProviderRequest
 from broadsoft.requestobjects.UserAddRequest import UserAddRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest, AuthenticationRequest, LoginRequest, \
     LogoutRequest
-
+from broadsoft.requestobjects.GroupAccessDeviceAddRequest import GroupAccessDeviceAddRequest
 
 def return_none(*args, **kwargs):
     return None
@@ -549,3 +548,32 @@ class TestBroadsoftRequest(unittest.TestCase):
     def test_when_no_broadsoftinstance_or_relevant_attributes_set_use_default_broadsoft_instance(self):
         b = BroadsoftRequest()
         self.assertIsInstance(b.broadsoftinstance, BroadsoftInstance.BroadsoftInstance)
+
+    def test_map_phone_type_results(self):
+        # should be mapped
+        self.assertEqual('Polycom Soundpoint IP 450', BroadsoftRequest.map_phone_type(phone_type='Polycom SoundPoint IP 450'))
+
+        # should not be mapped
+        self.assertEqual('hamburger',
+                         BroadsoftRequest.map_phone_type(phone_type='hamburger'))
+
+    @unittest.mock.patch.object(BroadsoftRequest, 'map_phone_type')
+    def test_map_phone_type_called_by_prep_attributes(self, map_patch):
+        # when phone_type is present but not populated
+        g = GroupAccessDeviceAddRequest()
+        map_patch.called = False
+        g.prep_attributes()
+        self.assertFalse(map_patch.called)
+
+        # when phone_type is present and populated
+        g = GroupAccessDeviceAddRequest()
+        g.phone_type = 'hamburger'
+        map_patch.called = False
+        g.prep_attributes()
+        self.assertTrue(map_patch.called)
+
+        # when phone_type is not present
+        b = BroadsoftRequest()
+        map_patch.called = False
+        b.prep_attributes()
+        self.assertFalse(map_patch.called)

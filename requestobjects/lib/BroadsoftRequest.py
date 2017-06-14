@@ -275,6 +275,9 @@ class BroadsoftRequest(XmlDocument):
         if hasattr(self, 'clid_did') and self.clid_did:
             self.clid_did = BroadsoftRequest.convert_phone_number(number=self.clid_did)
 
+        if hasattr(self, 'phone_type') and self.phone_type:
+            self.phone_type = BroadsoftRequest.map_phone_type(phone_type=self.phone_type)
+
         if self.broadsoftinstance_needed():
             self.broadsoftinstance = BroadsoftInstance.factory()
 
@@ -408,6 +411,18 @@ class BroadsoftRequest(XmlDocument):
             if payload:
                 return ET.fromstring(text=payload)
         return None
+
+    @staticmethod
+    def map_phone_type(phone_type):
+        phone_map = {
+            'Polycom SoundPoint IP 450': 'Polycom Soundpoint IP 450'
+        }
+
+        if phone_type in phone_map:
+            return phone_map[phone_type]
+
+        else:
+            return phone_type
 
 
 class AuthenticationRequest(BroadsoftRequest):
