@@ -551,11 +551,17 @@ class TestBroadsoftRequest(unittest.TestCase):
 
     def test_map_phone_type_results(self):
         # should be mapped
+        # normalizing capitalization
         self.assertEqual('Polycom Soundpoint IP 450', BroadsoftRequest.map_phone_type(phone_type='Polycom SoundPoint IP 450'))
+        # drop "+ Expansion Module(1)"
         self.assertEqual('Polycom Soundpoint IP 450',
                          BroadsoftRequest.map_phone_type(phone_type='Polycom SoundPoint IP 450 + Expansion Module(1)'))
+        # insert "IP"
         self.assertEqual('Polycom Soundpoint IP 650',
                          BroadsoftRequest.map_phone_type(phone_type='Polycom SoundPoint 650'))
+        # straight mapping
+        self.assertEqual('Linksys SPA-2102',
+                         BroadsoftRequest.map_phone_type(phone_type='Linksys SPA2102'))
 
         # should not be mapped
         self.assertEqual('hamburger',

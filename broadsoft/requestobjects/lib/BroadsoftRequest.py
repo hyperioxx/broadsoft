@@ -429,6 +429,7 @@ class BroadsoftRequest(XmlDocument):
 
         # otherwise, may be a straightforward mapping
         phone_map = {
+            'Linksys SPA2102':  'Linksys SPA-2102'
         }
 
         if phone_type in phone_map:
