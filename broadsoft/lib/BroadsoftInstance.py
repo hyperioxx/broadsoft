@@ -1,3 +1,7 @@
+from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
+from broadsoft.requestobjects.lib.BroadsoftRequest import LogoutRequest
+
+
 class BroadsoftInstance:
     default_group_id = 'mit'
 
@@ -14,6 +18,12 @@ class BroadsoftInstance:
         self.default_domain = 'broadsoft.mit.edu'
         self.service_provider = 'ENT136'
 
+    def login(self):
+        r = BroadsoftRequest(broadsoftinstance=self)
+        r.authenticate_and_login()
+
+    def logout(self):
+        l = LogoutRequest.logout(broadsoftinstance=self)
 
 class TestBroadsoftInstance(BroadsoftInstance):
     def __init__(self, **kwargs):
