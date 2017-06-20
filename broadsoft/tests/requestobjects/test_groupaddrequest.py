@@ -1,7 +1,7 @@
 import unittest.mock
 import xml.etree.ElementTree as ET
 
-from broadsoft.lib import BroadsoftInstance
+import broadsoft.requestobjects.lib.BroadsoftRequest
 from broadsoft.requestobjects.GroupAddRequest import GroupAddRequest
 
 
@@ -63,7 +63,7 @@ class TestBroadsoftGroupAddRequest(unittest.TestCase):
         self.assertTrue(convert_phone_number_patch.called)
 
     def test_groupaddrequest_to_xml_call(self):
-        i = BroadsoftInstance.factory()
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory()
         i.session_id = 'seshy'
         gar = GroupAddRequest(broadsoftinstance=i)
         gar.calling_line_id_name = 'test line id'

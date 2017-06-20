@@ -1,6 +1,6 @@
 import xml.etree.ElementTree as ET
 
-from broadsoft.lib import BroadsoftInstance
+import broadsoft.requestobjects.lib.BroadsoftRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import LogoutRequest
 
@@ -67,4 +67,4 @@ class BroadsoftObject:
 
     @staticmethod
     def derive_broadsoft_instance(use_test):
-        return BroadsoftInstance.factory(use_test=use_test)
+        return broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(use_test=use_test)

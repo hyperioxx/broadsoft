@@ -1,6 +1,7 @@
 import unittest
 import unittest.mock
-from broadsoft.lib import BroadsoftInstance
+
+import broadsoft.requestobjects.lib.BroadsoftRequest
 from broadsoft.lib.BroadsoftObject import BroadsoftObject
 from broadsoft.Device import Device
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
@@ -9,6 +10,7 @@ from broadsoft.requestobjects.UserAddRequest import UserAddRequest
 
 def return_none(*args, **kwargs):
     return None
+
 
 class TestBroadsoftObject(unittest.TestCase):
     @unittest.mock.patch.object(BroadsoftObject, 'prep_attributes')
@@ -21,11 +23,11 @@ class TestBroadsoftObject(unittest.TestCase):
     def test_derive_broadsoftinstance(self):
         self.assertIsInstance(
             BroadsoftObject.derive_broadsoft_instance(use_test=False),
-            BroadsoftInstance.BroadsoftInstance)
+            broadsoft.requestobjects.lib.BroadsoftRequest.BroadsoftInstance)
 
         self.assertIsInstance(
             BroadsoftObject.derive_broadsoft_instance(use_test=True),
-            BroadsoftInstance.TestBroadsoftInstance)
+            broadsoft.requestobjects.lib.BroadsoftRequest.TestBroadsoftInstance)
 
     @unittest.mock.patch.object(BroadsoftObject, 'derive_broadsoft_instance')
     def test_init_calls_derive_broadsoftinstance(
@@ -57,20 +59,22 @@ class TestBroadsoftObject(unittest.TestCase):
     @unittest.mock.patch.object(BroadsoftRequest, 'authenticate_and_login')
     @unittest.mock.patch.object(BroadsoftRequest, '__init__', side_effect=return_none)
     def test_login_passes_broadsoftinstance(self, init_patch, auth_patch):
-        i = BroadsoftInstance.factory(use_test=True)
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(use_test=True)
         o = BroadsoftObject(broadsoftinstance=i)
         o.login()
 
         call = init_patch.call_args_list[0]
         args, kwargs = call
-        self.assertIsInstance(kwargs['broadsoftinstance'], BroadsoftInstance.TestBroadsoftInstance)
+        self.assertIsInstance(kwargs['broadsoftinstance'],
+                              broadsoft.requestobjects.lib.BroadsoftRequest.TestBroadsoftInstance)
 
     @unittest.mock.patch('broadsoft.requestobjects.lib.BroadsoftRequest.LogoutRequest.logout')
     def test_login_passes_broadsoftinstance(self, logout_patch):
-        i = BroadsoftInstance.factory(use_test=True)
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(use_test=True)
         o = BroadsoftObject(broadsoftinstance=i)
         o.logout()
 
         call = logout_patch.call_args_list[0]
         args, kwargs = call
-        self.assertIsInstance(kwargs['broadsoftinstance'], BroadsoftInstance.TestBroadsoftInstance)
+        self.assertIsInstance(kwargs['broadsoftinstance'],
+                              broadsoft.requestobjects.lib.BroadsoftRequest.TestBroadsoftInstance)

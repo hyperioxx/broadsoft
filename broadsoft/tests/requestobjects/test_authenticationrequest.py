@@ -2,7 +2,7 @@ import http.cookiejar
 import unittest.mock
 import xml.etree.ElementTree as ET
 
-from broadsoft.lib import BroadsoftInstance
+import broadsoft.requestobjects.lib.BroadsoftRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import AuthenticationRequest
 
 
@@ -22,7 +22,7 @@ def return_xml(*args, **kwargs):
 
 class TestBroadsoftAuthenticationRequest(unittest.TestCase):
     def test_authenticationrequest_to_xml_call(self):
-        i = BroadsoftInstance.factory()
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory()
         i.session_id = 'sesh'
         a = AuthenticationRequest(broadsoftinstance=i)
         xml = a.to_xml()
@@ -49,7 +49,7 @@ class TestBroadsoftAuthenticationRequest(unittest.TestCase):
             self,
             post_patch
     ):
-        a = AuthenticationRequest.authenticate(broadsoftinstance=BroadsoftInstance.factory())
+        a = AuthenticationRequest.authenticate(broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory())
         self.assertIsNotNone(a.auth_cookie_jar)
         self.assertEqual('CookieJar', a.auth_cookie_jar.__class__.__name__)
 
@@ -59,14 +59,14 @@ class TestBroadsoftAuthenticationRequest(unittest.TestCase):
             creds_patch
     ):
         # use_test True
-        a = AuthenticationRequest(broadsoftinstance=BroadsoftInstance.factory(use_test=True))
+        a = AuthenticationRequest(broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(use_test=True))
         a.build_command_xml()
         call = creds_patch.call_args_list[0]
         args, kwargs = call
         self.assertEqual('test', kwargs['member'])
 
         # use_test False
-        a = AuthenticationRequest(broadsoftinstance=BroadsoftInstance.factory(use_test=False))
+        a = AuthenticationRequest(broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(use_test=False))
         a.build_command_xml()
         call = creds_patch.call_args_list[1]
         args, kwargs = call

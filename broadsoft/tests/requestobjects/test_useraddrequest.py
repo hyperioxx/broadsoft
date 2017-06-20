@@ -1,6 +1,7 @@
 import unittest.mock
 import xml.etree.ElementTree as ET
-from broadsoft.lib import BroadsoftInstance
+
+import broadsoft.requestobjects.lib.BroadsoftRequest
 from broadsoft.requestobjects.UserAddRequest import UserAddRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 
@@ -13,7 +14,7 @@ class TestBroadsoftUserAddRequest(unittest.TestCase):
             validate_patch,
             convert_phone_number_patch
     ):
-        i = BroadsoftInstance.factory()
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory()
         i.session_id = 'sesh'
         u = UserAddRequest(group_id='testgroup', kname='beaver', last_name='Beaver',
                            first_name='Tim', email='beaver@mit.edu',
@@ -22,7 +23,7 @@ class TestBroadsoftUserAddRequest(unittest.TestCase):
         self.assertTrue(convert_phone_number_patch.called)
 
     def test_did_format_gets_validated(self):
-        i = BroadsoftInstance.factory()
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory()
         i.session_id = 'sesh'
         u = UserAddRequest(group_id='testgroup', kname='beaver', last_name='Beaver',
                            first_name='Tim', email='beaver@mit.edu',
@@ -43,7 +44,7 @@ class TestBroadsoftUserAddRequest(unittest.TestCase):
             u.validate()
 
     def test_validation(self):
-        i = BroadsoftInstance.factory()
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory()
         i.session_id = 'sesh'
         # no last_name
         u = UserAddRequest(group_id='testgroup', broadsoftinstance=i,
@@ -74,7 +75,7 @@ class TestBroadsoftUserAddRequest(unittest.TestCase):
             u.validate()
 
     def test_can_override_default_group_id(self):
-        i = BroadsoftInstance.factory()
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory()
         u = UserAddRequest(group_id='blah', broadsoftinstance=i)
         self.assertEqual('blah', u.group_id)
 
@@ -99,7 +100,7 @@ class TestBroadsoftUserAddRequest(unittest.TestCase):
         self.assertEqual('blah', u.timezone)
 
     def test_to_xml(self):
-        i = BroadsoftInstance.factory()
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory()
         i.session_id = 'sesh'
 
         # with sip_password

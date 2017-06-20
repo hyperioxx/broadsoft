@@ -1,7 +1,6 @@
 import unittest.mock
 import xml.etree.ElementTree as ET
 
-from broadsoft.lib import BroadsoftInstance
 from broadsoft.requestobjects.UserModifyRequest import UserModifyRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 

@@ -1,7 +1,7 @@
 import unittest.mock
 import xml.etree.ElementTree as ET
 
-from broadsoft.lib import BroadsoftInstance
+import broadsoft.requestobjects.lib.BroadsoftRequest
 from broadsoft.requestobjects.GroupGetListInServiceProviderRequest import GroupGetListInServiceProviderRequest
 
 
@@ -11,7 +11,7 @@ def return_groups_list(**kwargs):
 
 class TestBroadsoftGroupGetListInServiceProviderRequest(unittest.TestCase):
     def test_to_xml(self):
-        b = BroadsoftInstance.BroadsoftInstance()
+        b = broadsoft.requestobjects.lib.BroadsoftRequest.BroadsoftInstance()
 
         # group id/case insensitive True
         g = GroupGetListInServiceProviderRequest(broadsoftinstance=b)

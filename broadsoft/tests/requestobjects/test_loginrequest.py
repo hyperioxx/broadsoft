@@ -1,7 +1,7 @@
 import unittest.mock
 import xml.etree.ElementTree as ET
 
-from broadsoft.lib import BroadsoftInstance
+import broadsoft.requestobjects.lib.BroadsoftRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import LoginRequest
 
 
@@ -25,7 +25,7 @@ class TestBroadsoftLoginRequest(unittest.TestCase):
                 self.nonce = 'nonce'
 
         a = FakeAuth()
-        i = BroadsoftInstance.factory()
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory()
         i.auth_object = a
         l = LoginRequest(broadsoftinstance=i)
         l.api_password = 'password'
@@ -53,7 +53,7 @@ class TestBroadsoftLoginRequest(unittest.TestCase):
                 self.nonce = 'nonce'
 
         a = FakeAuth()
-        i = BroadsoftInstance.factory()
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory()
         i.auth_object = a
         l = LoginRequest(broadsoftinstance=i)
         # want to override fetching of uid/pw via creds
@@ -91,7 +91,7 @@ class TestBroadsoftLoginRequest(unittest.TestCase):
             creds_patch
     ):
         # use_test True
-        l = LoginRequest(broadsoftinstance=BroadsoftInstance.factory(use_test=True))
+        l = LoginRequest(broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(use_test=True))
         # will throw error since mocking creds fetch
         try:
             l.build_command_xml()
@@ -102,7 +102,7 @@ class TestBroadsoftLoginRequest(unittest.TestCase):
         self.assertEqual('test', kwargs['member'])
 
         # use_test False
-        l = LoginRequest(broadsoftinstance=BroadsoftInstance.factory(use_test=False))
+        l = LoginRequest(broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(use_test=False))
         # will throw error since mocking creds fetch
         try:
             l.build_command_xml()

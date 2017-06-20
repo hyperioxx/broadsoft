@@ -5,7 +5,6 @@ import socket
 import random
 import logging
 import re
-from broadsoft.lib import BroadsoftInstance
 from broadsoft.requestobjects.lib.SoapEnvelope import SoapEnvelope
 from hashlib import sha1, md5
 from nettools.MACtools import MAC
@@ -280,7 +279,7 @@ class BroadsoftRequest(XmlDocument):
             self.phone_type = BroadsoftRequest.map_phone_type(phone_type=self.phone_type)
 
         if self.broadsoftinstance_needed():
-            self.broadsoftinstance = BroadsoftInstance.factory()
+            self.broadsoftinstance = instance_factory()
 
         if self.group_id is None:
             self.group_id = self.broadsoftinstance.default_group_id
@@ -564,3 +563,45 @@ class LogoutRequest(BroadsoftRequest):
         l = LogoutRequest(**kwargs)
         l.post()
         return l
+
+
+class BroadsoftInstance:
+    default_group_id = 'mit'
+
+    def __init__(self, group_id='mit', auth_object=None, login_object=None, session_id=None):
+        # these attrs relate to communicating with the Broadsoft API
+        self.api_url = '[unknown]'
+        self.auth_object = auth_object
+        self.auto_logout = True
+        self.creds_member = 'prod'
+        self.login_object = login_object
+        self.session_id = session_id
+
+        # these attrs are inherited by request objects
+        self.default_domain = 'broadsoft.mit.edu'
+        self.service_provider = 'ENT136'
+
+    def login(self):
+        r = BroadsoftRequest(broadsoftinstance=self)
+        r.authenticate_and_login()
+
+    def logout(self):
+        l = LogoutRequest.logout(broadsoftinstance=self)
+
+
+class TestBroadsoftInstance(BroadsoftInstance):
+    def __init__(self, **kwargs):
+        BroadsoftInstance.__init__(self, **kwargs)
+
+        # overwrite attrs that are different for test instance
+        self.api_url = 'https://web1.voiplogic.net/webservice/services/ProvisioningService'
+        self.creds_member = 'test'
+        self.default_domain = 'broadsoft-dev.mit.edu'
+        self.service_provider = 'ENT136'
+
+
+def instance_factory(use_test=False) -> object:
+    if use_test:
+        return TestBroadsoftInstance()
+
+    return BroadsoftInstance()

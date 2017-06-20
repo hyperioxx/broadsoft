@@ -1,7 +1,6 @@
 import unittest.mock
 from broadsoft.Voicemail import Voicemail
 from broadsoft.lib.BroadsoftObject import BroadsoftObject
-from broadsoft.lib import BroadsoftInstance
 from xml.etree.ElementTree import Element
 import xml.etree.ElementTree as ET
 from broadsoft.requestobjects.UserVoiceMessagingUserModifyVoiceManagementRequest import UserVoiceMessagingUserModifyVoiceManagementRequest

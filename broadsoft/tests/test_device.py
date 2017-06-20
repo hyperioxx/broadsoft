@@ -1,11 +1,12 @@
 import unittest.mock
+
+import broadsoft.requestobjects.lib.BroadsoftRequest
 from broadsoft.Device import Device
 from broadsoft.requestobjects.GroupAccessDeviceGetRequest import GroupAccessDeviceGetRequest
 from broadsoft.requestobjects.GroupAccessDeviceAddRequest import GroupAccessDeviceAddRequest
 from broadsoft.requestobjects.GroupAccessDeviceModifyRequest import GroupAccessDeviceModifyRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 from broadsoft.lib.BroadsoftObject import BroadsoftObject
-from broadsoft.lib import BroadsoftInstance
 from broadsoft.requestobjects.GroupAccessDeviceDeleteRequest import GroupAccessDeviceDeleteRequest
 from xml.etree.ElementTree import Element
 import xml.etree.ElementTree as ET
@@ -225,7 +226,7 @@ class TestBroadsoftDevice(unittest.TestCase):
     def test_build_provision_request_injects_broadsoftinstance(
             self, inject_broadsoftinstance_patch
     ):
-        d = Device(broadsoftinstance=BroadsoftInstance.factory())
+        d = Device(broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory())
         d.build_provision_request()
         self.assertTrue(inject_broadsoftinstance_patch.called)
         self.assertEqual(1, len(inject_broadsoftinstance_patch.call_args_list))
@@ -239,18 +240,19 @@ class TestBroadsoftDevice(unittest.TestCase):
     def test_fetch_passes_broadsoft_instance(
             self, get_device_patch, from_xml_patch
     ):
-        d = Device(broadsoftinstance=BroadsoftInstance.factory())
+        d = Device(broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory())
         d.fetch(target_name='dname')
         call = get_device_patch.call_args_list[0]
         args, kwargs = call
-        self.assertIsInstance(kwargs['broadsoftinstance'], BroadsoftInstance.BroadsoftInstance)
+        self.assertIsInstance(kwargs['broadsoftinstance'],
+                              broadsoft.requestobjects.lib.BroadsoftRequest.BroadsoftInstance)
 
     @unittest.mock.patch.object(BroadsoftRequest, 'post')
     @unittest.mock.patch.object(BroadsoftObject, 'inject_broadsoftinstance')
     def test_set_password_injects_broadsoftinstance(
             self, inject_broadsoftinstance_patch, post_patch
     ):
-        d = Device(broadsoftinstance=BroadsoftInstance.factory(), name='dname')
+        d = Device(broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(), name='dname')
         d.set_password(sip_password='pw', did=6175551212)
         self.assertTrue(inject_broadsoftinstance_patch.called)
         self.assertEqual(1, len(inject_broadsoftinstance_patch.call_args_list))
@@ -265,22 +267,22 @@ class TestBroadsoftDevice(unittest.TestCase):
         self.assertEqual('6175551212_aabbcc112233_' + str(d.index) + '@' + d.broadsoftinstance.default_domain, d.line_port)
 
         # not test broadsoftinstance
-        i = BroadsoftInstance.factory(use_test=False)
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(use_test=False)
         d = Device(did=6175551212, mac_address='aa:bb:cc:11:22:33', broadsoftinstance=i)
         self.assertEqual('6175551212_aabbcc112233_' + str(d.index) + '@' + i.default_domain, d.line_port)
 
         # test broadsoftinstance
-        i = BroadsoftInstance.factory(use_test=True)
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(use_test=True)
         d = Device(did=6175551212, mac_address='aa:bb:cc:11:22:33', broadsoftinstance=i)
         self.assertEqual('6175551212_aabbcc112233_' + str(d.index) + '@' + i.default_domain, d.line_port)
 
         # use_test arg True
-        i = BroadsoftInstance.factory(use_test=True)
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(use_test=True)
         d = Device(did=6175551212, mac_address='aa:bb:cc:11:22:33', use_test=True)
         self.assertEqual('6175551212_aabbcc112233_' + str(d.index) + '@' + d.broadsoftinstance.default_domain, d.line_port)
 
         # use_test arg False
-        i = BroadsoftInstance.factory(use_test=False)
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(use_test=False)
         d = Device(did=6175551212, mac_address='aa:bb:cc:11:22:33', use_test=False)
         self.assertEqual('6175551212_aabbcc112233_' + str(d.index) + '@' + d.broadsoftinstance.default_domain, d.line_port)
 
@@ -313,20 +315,22 @@ class TestBroadsoftDevice(unittest.TestCase):
             self, post_patch, delete_init_patch, delete_execute_patch
     ):
         # when bundle is True (check __init__ on GroupAccessDeviceDeleteRequest)
-        i = BroadsoftInstance.factory(use_test=True)
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(use_test=True)
         d = Device(name='dname', broadsoftinstance=i)
         d.delete(bundle=True)
         call = delete_init_patch.call_args_list[0]
         args, kwargs = call
-        self.assertIsInstance(kwargs['broadsoftinstance'], BroadsoftInstance.TestBroadsoftInstance)
+        self.assertIsInstance(kwargs['broadsoftinstance'],
+                              broadsoft.requestobjects.lib.BroadsoftRequest.TestBroadsoftInstance)
 
         # when bundle is False (check GroupAccessDeviceDeleteRequest.delete_device)
-        i = BroadsoftInstance.factory(use_test=True)
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(use_test=True)
         d = Device(name='dname', broadsoftinstance=i)
         d.delete(bundle=False)
         call = delete_execute_patch.call_args_list[0]
         args, kwargs = call
-        self.assertIsInstance(kwargs['broadsoftinstance'], BroadsoftInstance.TestBroadsoftInstance)
+        self.assertIsInstance(kwargs['broadsoftinstance'],
+                              broadsoft.requestobjects.lib.BroadsoftRequest.TestBroadsoftInstance)
 
     def test_type_gets_mapped_on_init(self):
         self.assertFalse("write this")

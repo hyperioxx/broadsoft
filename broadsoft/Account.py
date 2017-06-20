@@ -1,3 +1,4 @@
+import broadsoft.requestobjects.lib.BroadsoftRequest
 from broadsoft.Device import Device
 from broadsoft.lib.BroadsoftObject import BroadsoftObject
 from broadsoft.requestobjects.UserAddRequest import UserAddRequest
@@ -15,7 +16,6 @@ from broadsoft.requestobjects.UserThirdPartyVoiceMailSupportModifyRequest import
     UserThirdPartyVoiceMailSupportModifyRequest
 from broadsoft.requestobjects.UserDeleteRequest import UserDeleteRequest
 from broadsoft.requestobjects.UserGetListInGroupRequest import UserGetListInGroupRequest
-from broadsoft.lib import BroadsoftInstance
 import re
 
 
@@ -307,7 +307,7 @@ class Account(BroadsoftObject):
     @staticmethod
     def get_accounts(use_test=False, **kwargs):
         if 'broadsoftinstance' not in kwargs or kwargs['broadsoftinstance'] is None:
-            i = BroadsoftInstance.factory(use_test=use_test)
+            i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(use_test=use_test)
             kwargs['broadsoftinstance'] = i
 
         accounts = []

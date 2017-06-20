@@ -2,7 +2,8 @@ import http.cookiejar
 import unittest
 import unittest.mock
 import xml.etree.ElementTree as ET
-from broadsoft.lib import BroadsoftInstance
+
+import broadsoft.requestobjects.lib.BroadsoftRequest
 from broadsoft.requestobjects.GroupAddRequest import GroupAddRequest
 from broadsoft.requestobjects.GroupGetListInServiceProviderRequest import GroupGetListInServiceProviderRequest
 from broadsoft.requestobjects.UserAddRequest import UserAddRequest
@@ -54,7 +55,7 @@ class TestBroadsoftRequest(unittest.TestCase):
         # to_string() lives in XmlRequest, but can never be called by it since there's no to_xml() for this parent
         # object. so we test with AuthenticationRequest
 
-        i = BroadsoftInstance.factory()
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory()
         i.session_id = 'sesh'
         a = AuthenticationRequest(broadsoftinstance=i)
 
@@ -100,7 +101,7 @@ class TestBroadsoftRequest(unittest.TestCase):
 
         # with extract_payload True
         self.maxDiff = None
-        i = BroadsoftInstance.factory()
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory()
         i.session_id = 'sesh'
         a = AuthenticationRequest(broadsoftinstance=i)
         # last_response should start out unpopulated
@@ -114,7 +115,7 @@ class TestBroadsoftRequest(unittest.TestCase):
         self.assertIsNotNone(a.last_response)
 
         # with extract_payload False
-        i = BroadsoftInstance.factory()
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory()
         i.session_id = 'sesh'
         a = AuthenticationRequest(broadsoftinstance=i)
         p = a.post(extract_payload=False)
@@ -154,16 +155,16 @@ class TestBroadsoftRequest(unittest.TestCase):
     ):
         # to_string() lives in XmlRequest, but can never be called by it since there's no to_xml() for this parent
         # object. so we test with AuthenticationRequest
-        i = BroadsoftInstance.factory()
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory()
         i.session_id = 'sesh'
         a = AuthenticationRequest(broadsoftinstance=i)
         with self.assertRaises(RuntimeError):
             a.post()
 
     def test_derive_url_for_test_and_prod_envs(self):
-        test_i = BroadsoftInstance.factory(use_test=True)
-        prod_i = BroadsoftInstance.factory(use_test=False)
-        default_i = BroadsoftInstance.factory()
+        test_i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(use_test=True)
+        prod_i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(use_test=False)
+        default_i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory()
 
         # use_test is default
         b = BroadsoftRequest(broadsoftinstance=default_i)
@@ -188,7 +189,7 @@ class TestBroadsoftRequest(unittest.TestCase):
                 self.auth_cookie_jar = http.cookiejar.CookieJar()
 
         f = FakeAuth()
-        i = BroadsoftInstance.factory()
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory()
         i.auth_object = f
         i.login_object = f
         g = GroupGetListInServiceProviderRequest(broadsoftinstance=i)
@@ -203,7 +204,7 @@ class TestBroadsoftRequest(unittest.TestCase):
             self,
             post_patch
     ):
-        i = BroadsoftInstance.factory()
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory()
         a = AuthenticationRequest.authenticate(broadsoftinstance=i)
         i.auth_object = a
         b = BroadsoftRequest(broadsoftinstance=i)
@@ -224,19 +225,19 @@ class TestBroadsoftRequest(unittest.TestCase):
         self.assertTrue(g.need_login())
 
         # with no attached auth object, needs login
-        i = BroadsoftInstance.factory()
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory()
         i.login_object = 'test'
         g = GroupGetListInServiceProviderRequest(broadsoftinstance=i)
         self.assertTrue(g.need_login())
 
         # with no attached login object, needs login
-        i = BroadsoftInstance.factory()
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory()
         i.auth_object = 'test'
         g = GroupGetListInServiceProviderRequest(broadsoftinstance=i)
         self.assertTrue(g.need_login())
 
         # with attached login/auth objects, don't need login
-        i = BroadsoftInstance.factory()
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory()
         i.auth_object = 'test'
         i.login_object = 'test'
         g = GroupGetListInServiceProviderRequest(broadsoftinstance=i)
@@ -259,7 +260,7 @@ class TestBroadsoftRequest(unittest.TestCase):
         self.assertTrue(b.need_login())
 
         # when command is BroadsoftRequest, and is auth/login object, don't need login
-        i = BroadsoftInstance.factory()
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory()
         i.auth_object = 'test'
         i.login_object = 'test'
         b = BroadsoftRequest(broadsoftinstance=i)
@@ -272,7 +273,7 @@ class TestBroadsoftRequest(unittest.TestCase):
             login_patch,
             auth_patch
     ):
-        b = BroadsoftRequest(broadsoftinstance=BroadsoftInstance.factory())
+        b = BroadsoftRequest(broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory())
         b.authenticate_and_login()
         self.assertTrue(login_patch.called)
         self.assertTrue(auth_patch.called)
@@ -285,7 +286,7 @@ class TestBroadsoftRequest(unittest.TestCase):
             login_patch
     ):
         # with no attached auth objects, should auto login
-        g = GroupGetListInServiceProviderRequest(broadsoftinstance=BroadsoftInstance.factory())
+        g = GroupGetListInServiceProviderRequest(broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory())
         g.post()
         self.assertTrue(login_patch.called)
         login_patch.called = False
@@ -297,7 +298,7 @@ class TestBroadsoftRequest(unittest.TestCase):
                 self.auth_cookie_jar = http.cookiejar.CookieJar()
         a = FakeAuth()
         l = FakeAuth()
-        i = BroadsoftInstance.factory()
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory()
         i.auth_object = a
         i.login_object = l
         g = GroupGetListInServiceProviderRequest(broadsoftinstance=i)
@@ -331,7 +332,7 @@ class TestBroadsoftRequest(unittest.TestCase):
             b.check_error(string_response=regular_response)
 
     def test_default_group_id(self):
-        i = BroadsoftInstance.factory()
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory()
         b = BroadsoftRequest(group_id='blah', broadsoftinstance=i)
         self.assertEqual('blah', b.group_id)
 
@@ -349,12 +350,12 @@ class TestBroadsoftRequest(unittest.TestCase):
         )
 
     def test_derive_commands(self):
-        gg = GroupGetListInServiceProviderRequest(broadsoftinstance=BroadsoftInstance.factory())
-        ga = GroupAddRequest(broadsoftinstance=BroadsoftInstance.factory())
+        gg = GroupGetListInServiceProviderRequest(broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory())
+        ga = GroupAddRequest(broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory())
         ga.group_id = 'newgroup'
 
         # instantiated a BroadsoftRequest object; expect to see contents of BroadsoftRequest.commands
-        b = BroadsoftRequest(broadsoftinstance=BroadsoftInstance.factory())
+        b = BroadsoftRequest(broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory())
         b.commands = [ga, gg]
         self.assertEqual([ga, gg], b.derive_commands())
 
@@ -370,11 +371,11 @@ class TestBroadsoftRequest(unittest.TestCase):
         )
 
     def test_to_xml_with_attached_commands(self):
-        gg = GroupGetListInServiceProviderRequest(broadsoftinstance=BroadsoftInstance.factory())
-        ga = GroupAddRequest(broadsoftinstance=BroadsoftInstance.factory())
+        gg = GroupGetListInServiceProviderRequest(broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory())
+        ga = GroupAddRequest(broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory())
         ga.group_id = 'newgroup'
 
-        b = BroadsoftRequest(broadsoftinstance=BroadsoftInstance.factory())
+        b = BroadsoftRequest(broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory())
         b.commands = [ga, gg]
 
         x = b.to_xml()
@@ -451,10 +452,10 @@ class TestBroadsoftRequest(unittest.TestCase):
                 cmd = self.build_command_shell()
                 return cmd
 
-        logout_i = BroadsoftInstance.factory()
+        logout_i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory()
         logout_i.auto_logout = True
 
-        no_logout_i = BroadsoftInstance.factory()
+        no_logout_i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory()
         no_logout_i.auto_logout = False
 
         # with a non-login related function, need_logout() depends on broadsoftinstance.auto_logout
@@ -487,25 +488,25 @@ class TestBroadsoftRequest(unittest.TestCase):
             logout_patch
     ):
         # should call need_logout
-        g = GroupGetListInServiceProviderRequest(broadsoftinstance=BroadsoftInstance.factory())
+        g = GroupGetListInServiceProviderRequest(broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory())
         g.post()
         self.assertTrue(need_logout_patch.called)
 
     def test_is_auth_suite(self):
         # BroadsoftRequest is no
-        b = BroadsoftRequest(broadsoftinstance=BroadsoftInstance.factory())
+        b = BroadsoftRequest(broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory())
         self.assertFalse(b.is_auth_suite())
 
         # LoginRequest is yes
-        lo = LoginRequest(broadsoftinstance=BroadsoftInstance.factory())
+        lo = LoginRequest(broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory())
         self.assertTrue(lo.is_auth_suite())
 
         # LogoutRequest is yes
-        lo = LogoutRequest(broadsoftinstance=BroadsoftInstance.factory())
+        lo = LogoutRequest(broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory())
         self.assertTrue(lo.is_auth_suite())
 
         # AuthenticationRequest is yes
-        a = AuthenticationRequest(broadsoftinstance=BroadsoftInstance.factory())
+        a = AuthenticationRequest(broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory())
         self.assertTrue(a.is_auth_suite())
 
         # new one with command_name is no
@@ -529,10 +530,10 @@ class TestBroadsoftRequest(unittest.TestCase):
             self,
             convert_booleans_patch
     ):
-        b = BroadsoftRequest(broadsoftinstance=BroadsoftInstance.factory())
-        g = GroupGetListInServiceProviderRequest(broadsoftinstance=BroadsoftInstance.factory())
+        b = BroadsoftRequest(broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory())
+        g = GroupGetListInServiceProviderRequest(broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory())
         u = UserAddRequest(did=6175551212, sip_user_id='6175551212@broadsoft.mit.edu', first_name='tim',
-                           last_name='beaver', sip_password='password', broadsoftinstance=BroadsoftInstance.factory())
+                           last_name='beaver', sip_password='password', broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory())
         b.commands = [g,u]
         b.to_xml()
 
@@ -542,12 +543,12 @@ class TestBroadsoftRequest(unittest.TestCase):
 
     def test_broadsoftinstance_needed(self):
         # has broadsoftinstance set
-        b = BroadsoftRequest(broadsoftinstance=BroadsoftInstance.factory())
+        b = BroadsoftRequest(broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory())
         self.assertFalse(b.broadsoftinstance_needed())
 
     def test_when_no_broadsoftinstance_or_relevant_attributes_set_use_default_broadsoft_instance(self):
         b = BroadsoftRequest()
-        self.assertIsInstance(b.broadsoftinstance, BroadsoftInstance.BroadsoftInstance)
+        self.assertIsInstance(b.broadsoftinstance, broadsoft.requestobjects.lib.BroadsoftRequest.BroadsoftInstance)
 
     def test_map_phone_type_results(self):
         # should be mapped

@@ -1,7 +1,7 @@
 import unittest.mock
 import xml.etree.ElementTree as ET
 
-from broadsoft.lib import BroadsoftInstance
+import broadsoft.requestobjects.lib.BroadsoftRequest
 from broadsoft.requestobjects.GroupAccessDeviceAddRequest import GroupAccessDeviceAddRequest
 
 
@@ -45,7 +45,7 @@ class TestBroadsoftGroupAccessDeviceAddRequest(unittest.TestCase):
 
     def test_group_id_inheritance(self):
         # defaults to default set in BroadsoftRequest
-        i = BroadsoftInstance.factory()
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory()
         g = GroupAccessDeviceAddRequest(broadsoftinstance=i)
         self.assertEqual(i.default_group_id, g.group_id)
 
@@ -97,7 +97,7 @@ class TestBroadsoftGroupAccessDeviceAddRequest(unittest.TestCase):
         # with a mac address
         g = GroupAccessDeviceAddRequest(device_name='dname', mac_address='aabbcc112233',
                                         device_type='dtype', description='desc', group_id='testgroup',
-                                        broadsoftinstance=BroadsoftInstance.factory())
+                                        broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory())
 
         target_xml = \
             '<command xmlns="" xsi:type="GroupAccessDeviceAddRequest14">' + \
@@ -116,7 +116,7 @@ class TestBroadsoftGroupAccessDeviceAddRequest(unittest.TestCase):
         # without a mac address
         g = GroupAccessDeviceAddRequest(device_name='dname',
                                         device_type='dtype', description='desc', group_id='testgroup',
-                                        broadsoftinstance=BroadsoftInstance.factory())
+                                        broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory())
 
         target_xml = \
             '<command xmlns="" xsi:type="GroupAccessDeviceAddRequest14">' + \

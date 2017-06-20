@@ -1,7 +1,7 @@
 import unittest.mock
 import xml.etree.ElementTree as ET
 
-from broadsoft.lib import BroadsoftInstance
+import broadsoft.requestobjects.lib.BroadsoftRequest
 from broadsoft.requestobjects.GroupAccessDeviceGetRequest import GroupAccessDeviceGetRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 
@@ -17,7 +17,7 @@ class TestBroadsoftGroupAccessDeviceGetRequest(unittest.TestCase):
             g.validate()
 
     def test_to_xml(self):
-        g = GroupAccessDeviceGetRequest(name='beaverphone', broadsoftinstance=BroadsoftInstance.factory())
+        g = GroupAccessDeviceGetRequest(name='beaverphone', broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory())
 
         x = g.to_xml()
         self.maxDiff = None
