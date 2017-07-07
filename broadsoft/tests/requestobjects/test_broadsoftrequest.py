@@ -605,3 +605,6 @@ class TestBroadsoftRequest(unittest.TestCase):
         map_patch.called = False
         b.prep_attributes()
         self.assertFalse(map_patch.called)
+
+    def test_non_200_post_raises_error(self):
+        self.assertFalse("write this")

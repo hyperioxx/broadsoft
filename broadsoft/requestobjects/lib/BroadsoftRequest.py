@@ -83,7 +83,6 @@ class BroadsoftRequest(XmlDocument):
                     str(random.randint(1000000000, 9999999999))
 
     def check_error(self, string_response):
-        response = string_response
         if type(string_response) is str:
             response = ET.fromstring(text=string_response)
         else:
@@ -239,6 +238,12 @@ class BroadsoftRequest(XmlDocument):
         headers = {'content-type': 'text/xml', 'SOAPAction': ''}
         response = requests.post(url=self.broadsoftinstance.api_url, data=envelope, headers=headers, cookies=cookies)
         self.last_response = response
+
+        # get a non-200 response?
+        if int(response.status_code) > 299:
+            error_msg = "got " + str(response.status_code) + " running request"
+            logging.error(error_msg, extra={'session_id': self.broadsoftinstance.session_id})
+            raise RuntimeError(error_msg)
 
         # massage the response and check for errors
         content = response.content
@@ -496,6 +501,10 @@ class LoginRequest(BroadsoftRequest):
         self.api_user_id = api_user_id
         self.api_password = api_password
         BroadsoftRequest.__init__(self, **kwargs)
+        if self.broadsoftinstance and self.broadsoftinstance.api_username:
+            self.api_user_id = self.broadsoftinstance.api_username
+        if self.broadsoftinstance and self.broadsoftinstance.api_password:
+            self.api_password = self.broadsoftinstance.api_password
 
     def build_command_xml(self):
         if not self.api_user_id or not self.api_password:
@@ -570,7 +579,9 @@ class BroadsoftInstance:
 
     def __init__(self, group_id='mit', auth_object=None, login_object=None, session_id=None):
         # these attrs relate to communicating with the Broadsoft API
+        self.api_password = None
         self.api_url = '[unknown]'
+        self.api_username = None
         self.auth_object = auth_object
         self.auto_logout = True
         self.creds_member = 'prod'
@@ -587,6 +598,18 @@ class BroadsoftInstance:
 
     def logout(self):
         l = LogoutRequest.logout(broadsoftinstance=self)
+
+
+class SandboxBroadsoftInstance(BroadsoftInstance):
+    def __init__(self, **kwargs):
+        BroadsoftInstance.__init__(self, **kwargs)
+
+        # overwrite attrs that are different for test instance
+        self.api_url = 'https://toolbox-us99.bwks.io/webservice/services/ProvisioningService'
+        self.api_username = 'resMIT_lab'
+        self.api_password = 'PmitAlaSb01'
+        self.default_domain = 'broadsoft-dev.mit.edu'
+        self.service_provider = 'ENT136'
 
 
 class TestBroadsoftInstance(BroadsoftInstance):
