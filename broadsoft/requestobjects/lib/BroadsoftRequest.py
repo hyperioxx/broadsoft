@@ -605,7 +605,7 @@ class SandboxBroadsoftInstance(BroadsoftInstance):
         BroadsoftInstance.__init__(self, **kwargs)
 
         # overwrite attrs that are different for test instance
-        self.api_url = 'https://toolbox-us99.bwks.io/webservice/services/ProvisioningService'
+        self.api_url = 'https://mit-lab.oci-us99.bwks.io/webservice/services/ProvisioningService'
         self.api_username = 'resMIT_lab'
         self.api_password = 'PmitAlaSb01'
         self.default_domain = 'broadsoft-dev.mit.edu'
