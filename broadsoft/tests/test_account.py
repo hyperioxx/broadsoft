@@ -233,7 +233,7 @@ class TestBroadsoftAccount(unittest.TestCase):
         d2 = Device(description='beaver phone 2', name='beaverphone2', type='hamburger', line_port='lp2')
         a = Account(did=6175551212, extension=51212, last_name='beaver', first_name='tim',
                     sip_user_id='beaver@broadsoft.mit.edu', kname='beaver', email='beaver@mit.edu',
-                    use_test=True, services=['a'])
+                    instance='test', services=['a'])
         a.devices = [d1, d2]
         ro = a.build_provision_request()
 
@@ -297,7 +297,7 @@ class TestBroadsoftAccount(unittest.TestCase):
     def test_link_primary_device(self):
         b = BroadsoftRequest()
         a = Account(did=6175551212)
-        d1 = Device(description='beaver phone 1', name='beaverphone1', type='iphone', use_test=False)
+        d1 = Device(description='beaver phone 1', name='beaverphone1', type='iphone', instance='prod')
         a.link_primary_device(req_object=b, device=d1)
         self.assertEqual(1, len(b.commands))
         cmd = b.commands[0]
@@ -309,7 +309,7 @@ class TestBroadsoftAccount(unittest.TestCase):
     def test_link_sca_device(self):
         a = Account(did=6175551212)
         b = BroadsoftRequest()
-        d1 = Device(description='beaver phone 1', name='beaverphone1', type='iphone', use_test=False)
+        d1 = Device(description='beaver phone 1', name='beaverphone1', type='iphone', instance='prod')
         a.link_sca_device(req_object=b, device=d1)
         self.assertEqual(1, len(b.commands))
         cmd = b.commands[0]
@@ -320,8 +320,8 @@ class TestBroadsoftAccount(unittest.TestCase):
     def test_add_devices(self):
         a = Account(did=6175551212)
         b = BroadsoftRequest()
-        d1 = Device(description='beaver phone 1', name='beaverphone1', type='iphone', use_test=False, line_port='lp1')
-        d2 = Device(description='beaver phone 2', name='beaverphone2', type='cisco', use_test=False, line_port='lp2')
+        d1 = Device(description='beaver phone 1', name='beaverphone1', type='iphone', instance='prod', line_port='lp1')
+        d2 = Device(description='beaver phone 2', name='beaverphone2', type='cisco', instance='prod', line_port='lp2')
         a.devices = [d1, d2]
         a.add_devices(req_object=b)
 
@@ -824,7 +824,7 @@ class TestBroadsoftAccount(unittest.TestCase):
 
     def test_inject_broadsoftinstance(self):
         prod_i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory()
-        test_i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(use_test=True)
+        test_i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(instance='test')
 
         # using prod instance (device has none)
         d = Device(name='dname')
@@ -1141,7 +1141,7 @@ class TestBroadsoftAccount(unittest.TestCase):
     def test_activate_voicemail_passes_broadsoftinstance(
             self, post_patch, inject_broadsoftinstance_patch
     ):
-        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(use_test=True)
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(instance='test')
         a = Account(sip_user_id='6175551212@mit.edu', email='beaver@mit.edu', broadsoftinstance=i)
         a.activate_voicemail()
 
@@ -1270,7 +1270,7 @@ class TestBroadsoftAccount(unittest.TestCase):
     def test_delete_injects_broadsoftinstance(
             self, post_patch, inject_patch
     ):
-        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(use_test=True)
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(instance='test')
         a = Account(sip_user_id='6175551212@mit.edu', broadsoftinstance=i)
         a.delete()
 
@@ -1357,14 +1357,14 @@ class TestBroadsoftAccount(unittest.TestCase):
 
     @unittest.mock.patch('broadsoft.requestobjects.UserGetListInGroupRequest.UserGetListInGroupRequest.list_users')
     def test_get_accounts_passes_broadsoftinstance_to_list_users(self, list_users_patch):
-        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(use_test=True)
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(instance='test')
         Account.get_accounts(broadsoftinstance=i)
         call = list_users_patch.call_args_list[0]
         args, kwargs = call
         self.assertIsInstance(kwargs['broadsoftinstance'],
                               broadsoft.requestobjects.lib.BroadsoftRequest.TestBroadsoftInstance)
 
-        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(use_test=False)
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(instance='prod')
         Account.get_accounts(broadsoftinstance=i)
         call = list_users_patch.call_args_list[0]
         args, kwargs = call
@@ -1374,13 +1374,13 @@ class TestBroadsoftAccount(unittest.TestCase):
     @unittest.mock.patch('broadsoft.requestobjects.UserGetListInGroupRequest.UserGetListInGroupRequest.post',
                          side_effect=list_users_mock)
     def test_get_accounts_passes_broadsoftinstance_to_results(self, post_patch):
-        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(use_test=True)
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(instance='test')
         accounts = Account.get_accounts(broadsoftinstance=i)
         for a in accounts:
             self.assertIsInstance(a.broadsoftinstance,
                                   broadsoft.requestobjects.lib.BroadsoftRequest.TestBroadsoftInstance)
 
-        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(use_test=False)
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(instance='prod')
         accounts = Account.get_accounts(broadsoftinstance=i)
         for a in accounts:
             self.assertIsInstance(a.broadsoftinstance, broadsoft.requestobjects.lib.BroadsoftRequest.BroadsoftInstance)
@@ -1420,19 +1420,19 @@ class TestBroadsoftAccount(unittest.TestCase):
         u = fake_users_db_record()
         d = fake_phone_db_record()
 
-        # use_test (True and False)
-        a = Account.thaw_from_db(user_record=u, device_records=[d], use_test=True)
+        # Device instance (test and prod)
+        a = Account.thaw_from_db(user_record=u, device_records=[d], instance='test')
         self.assertIsInstance(a.broadsoftinstance, broadsoft.requestobjects.lib.BroadsoftRequest.TestBroadsoftInstance)
 
-        a = Account.thaw_from_db(user_record=u, device_records=[d], use_test=False)
+        a = Account.thaw_from_db(user_record=u, device_records=[d], instance='prod')
         self.assertIsInstance(a.broadsoftinstance, broadsoft.requestobjects.lib.BroadsoftRequest.BroadsoftInstance)
 
         # broadsoft instance (test and prod)
-        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(use_test=True)
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(instance='test')
         a = Account.thaw_from_db(user_record=u, device_records=[d], broadsoftinstance=i)
         self.assertIsInstance(a.broadsoftinstance, broadsoft.requestobjects.lib.BroadsoftRequest.TestBroadsoftInstance)
 
-        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(use_test=True)
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(instance='prod')
         a = Account.thaw_from_db(user_record=u, device_records=[d], broadsoftinstance=i)
         self.assertIsInstance(a.broadsoftinstance, broadsoft.requestobjects.lib.BroadsoftRequest.BroadsoftInstance)
 

@@ -90,8 +90,9 @@ class TestBroadsoftLoginRequest(unittest.TestCase):
             self,
             creds_patch
     ):
-        # use_test True
-        l = LoginRequest(broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(use_test=True))
+        # default (prod) instance
+        l = LoginRequest(
+            broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory())
         # will throw error since mocking creds fetch
         try:
             l.build_command_xml()
@@ -99,10 +100,10 @@ class TestBroadsoftLoginRequest(unittest.TestCase):
             pass
         call = creds_patch.call_args_list[0]
         args, kwargs = call
-        self.assertEqual('test', kwargs['member'])
+        self.assertEqual('prod', kwargs['member'])
 
-        # use_test False
-        l = LoginRequest(broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(use_test=False))
+        # prod instance
+        l = LoginRequest(broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(instance='prod'))
         # will throw error since mocking creds fetch
         try:
             l.build_command_xml()
@@ -111,6 +112,29 @@ class TestBroadsoftLoginRequest(unittest.TestCase):
         call = creds_patch.call_args_list[1]
         args, kwargs = call
         self.assertEqual('prod', kwargs['member'])
+
+        # test instance
+        l = LoginRequest(broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(instance='test'))
+        # will throw error since mocking creds fetch
+        try:
+            l.build_command_xml()
+        except AttributeError:
+            pass
+        call = creds_patch.call_args_list[2]
+        args, kwargs = call
+        self.assertEqual('test', kwargs['member'])
+
+        # test instance
+        l = LoginRequest(
+            broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(instance='dev'))
+        # will throw error since mocking creds fetch
+        try:
+            l.build_command_xml()
+        except AttributeError:
+            pass
+        call = creds_patch.call_args_list[3]
+        args, kwargs = call
+        self.assertEqual('dev', kwargs['member'])
 
     def test_can_pass_userid_and_pw_from_broadsoft_instance_and_avoid_using_creds(self):
         self.assertFalse("write this")

@@ -20,6 +20,7 @@ def return_xml(*args, **kwargs):
         def __init__(self):
             self.content = '<ns0:Envelope xmlns:ns0="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="urn:com:broadsoft:webservice"><ns0:Body><processOCIMessageResponse><ns1:processOCIMessageReturn>&lt;?xml version="1.0" encoding="UTF-8"?&gt;\n&lt;BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;&lt;sessionId xmlns=""&gt;None&lt;/sessionId&gt;&lt;command echo="" xsi:type="AuthenticationResponse" xmlns=""&gt;&lt;userId&gt;admMITapi&lt;/userId&gt;&lt;nonce&gt;1493661742798&lt;/nonce&gt;&lt;passwordAlgorithm&gt;MD5&lt;/passwordAlgorithm&gt;&lt;/command&gt;&lt;/BroadsoftDocument&gt;</ns1:processOCIMessageReturn></processOCIMessageResponse></ns0:Body></ns0:Envelope>'
             self.cookies = http.cookiejar.CookieJar()
+            self.status_code = 200
 
     r = Response()
     return r
@@ -30,6 +31,7 @@ def return_xml_error(*args, **kwargs):
         def __init__(self):
             self.content = '<ns0:Envelope xmlns:ns0="http://schemas.xmlsoap.org/soap/envelope/"><ns0:Body><ns0:Fault><faultcode>soapenv:Server.generalException</faultcode><faultstring>INVALID_REQUEST</faultstring><faultactor>ProvisioningService</faultactor><detail><string>Cannot process any request before user is logged in.</string></detail></ns0:Fault></ns0:Body></ns0:Envelope>'
             self.cookies = http.cookiejar.CookieJar()
+            self.status_code = 200
 
     r = Response()
     return r
@@ -161,22 +163,27 @@ class TestBroadsoftRequest(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             a.post()
 
-    def test_derive_url_for_test_and_prod_envs(self):
-        test_i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(use_test=True)
-        prod_i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(use_test=False)
+    def test_derive_url_for_instances(self):
+        dev_i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(instance='dev')
+        test_i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(instance='test')
+        prod_i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(instance='prod')
         default_i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory()
 
-        # use_test is default
+        # default
         b = BroadsoftRequest(broadsoftinstance=default_i)
         self.assertEqual(b.broadsoftinstance.api_url, default_i.api_url)
 
-        # use_test is False
+        # prod
         b = BroadsoftRequest(broadsoftinstance=prod_i)
-        self.assertEqual(b.broadsoftinstance.api_url, prod_i.api_url)
+        self.assertEqual(b.broadsoftinstance.api_url, default_i.api_url)
 
-        # use_test is True
+        # test
         b = BroadsoftRequest(broadsoftinstance=test_i)
         self.assertEqual(b.broadsoftinstance.api_url, test_i.api_url)
+
+        # dev
+        b = BroadsoftRequest(broadsoftinstance=dev_i)
+        self.assertEqual(b.broadsoftinstance.api_url, dev_i.api_url)
 
     @unittest.mock.patch('requests.post', side_effect=return_xml)
     def test_passing_cookies_when_present(
@@ -287,7 +294,11 @@ class TestBroadsoftRequest(unittest.TestCase):
     ):
         # with no attached auth objects, should auto login
         g = GroupGetListInServiceProviderRequest(broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory())
-        g.post()
+        # will throw exception since mocking the post
+        try:
+            g.post()
+        except:
+            pass
         self.assertTrue(login_patch.called)
         login_patch.called = False
 
@@ -302,7 +313,11 @@ class TestBroadsoftRequest(unittest.TestCase):
         i.auth_object = a
         i.login_object = l
         g = GroupGetListInServiceProviderRequest(broadsoftinstance=i)
-        g.post()
+        # will throw exception since mocking the post
+        try:
+            g.post()
+        except:
+            pass
         self.assertFalse(login_patch.called)
         login_patch.called = False
 
@@ -607,4 +622,7 @@ class TestBroadsoftRequest(unittest.TestCase):
         self.assertFalse(map_patch.called)
 
     def test_non_200_post_raises_error(self):
+        self.assertFalse("write this")
+
+    def test_can_pass_creds_via_creds_or_instance(self):
         self.assertFalse("write this")

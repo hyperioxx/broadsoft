@@ -7,8 +7,11 @@ class TestBroadsoftInstance(unittest.TestCase):
         b = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory()
         self.assertIsInstance(b, broadsoft.requestobjects.lib.BroadsoftRequest.BroadsoftInstance)
 
-        b = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(use_test=False)
+        b = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(instance='prod')
         self.assertIsInstance(b, broadsoft.requestobjects.lib.BroadsoftRequest.BroadsoftInstance)
 
-        b = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(use_test=True)
+        b = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(instance='dev')
+        self.assertIsInstance(b, broadsoft.requestobjects.lib.BroadsoftRequest.DevBroadsoftInstance)
+
+        b = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(instance='test')
         self.assertIsInstance(b, broadsoft.requestobjects.lib.BroadsoftRequest.TestBroadsoftInstance)

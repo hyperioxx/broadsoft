@@ -6,9 +6,9 @@ from broadsoft.requestobjects.lib.BroadsoftRequest import LogoutRequest
 
 
 class BroadsoftObject:
-    def __init__(self, xml=None, use_test=False, broadsoftinstance=None):
+    def __init__(self, xml=None, instance='prod', broadsoftinstance=None):
         self.broadsoftinstance = broadsoftinstance
-        self.use_test = use_test
+        self.instance = instance
         self.xml = xml
         self.prep_attributes()
 
@@ -46,7 +46,7 @@ class BroadsoftObject:
 
     def prep_attributes(self):
         if self.broadsoftinstance is None:
-            self.broadsoftinstance = self.derive_broadsoft_instance(use_test=self.use_test)
+            self.broadsoftinstance = self.derive_broadsoft_instance(instance=self.instance)
 
         if hasattr(self, 'did') and self.did:
             self.did = BroadsoftRequest.convert_phone_number(number=self.did)
@@ -66,5 +66,5 @@ class BroadsoftObject:
         return results
 
     @staticmethod
-    def derive_broadsoft_instance(use_test):
-        return broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(use_test=use_test)
+    def derive_broadsoft_instance(instance='prod'):
+        return broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(instance=instance)

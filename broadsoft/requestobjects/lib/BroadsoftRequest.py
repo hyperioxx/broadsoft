@@ -39,6 +39,12 @@ class BroadsoftRequest(XmlDocument):
         self.prep_attributes()
         self.build_session_id()
 
+        if self.broadsoftinstance:
+            if self.broadsoftinstance.api_username:
+                self.api_user_id = self.broadsoftinstance.api_username
+            if self.broadsoftinstance.api_password:
+                self.api_password = self.broadsoftinstance.api_password
+
         # now that we're done setting up shop, start the logging
         self.default_logging(require_logging)
 
@@ -497,7 +503,7 @@ class AuthenticationRequest(BroadsoftRequest):
 class LoginRequest(BroadsoftRequest):
     command_name = 'LoginRequest14sp4'
 
-    def __init__(self, use_test=False, api_user_id=None, api_password=None, **kwargs):
+    def __init__(self, instance='prod', api_user_id=None, api_password=None, **kwargs):
         self.api_user_id = api_user_id
         self.api_password = api_password
         BroadsoftRequest.__init__(self, **kwargs)
@@ -600,14 +606,11 @@ class BroadsoftInstance:
         l = LogoutRequest.logout(broadsoftinstance=self)
 
 
-class SandboxBroadsoftInstance(BroadsoftInstance):
+class DevBroadsoftInstance(BroadsoftInstance):
     def __init__(self, **kwargs):
         BroadsoftInstance.__init__(self, **kwargs)
-
-        # overwrite attrs that are different for test instance
-        self.api_url = 'https://mit-lab.oci-us99.bwks.io/webservice/services/ProvisioningService'
-        self.api_username = 'resMIT_lab'
-        self.api_password = 'PmitAlaSb01'
+        self.api_url = 'https://web1.voiplogic.net/webservice/services/ProvisioningService'
+        self.creds_member = 'dev'
         self.default_domain = 'broadsoft-dev.mit.edu'
         self.service_provider = 'ENT136'
 
@@ -615,16 +618,18 @@ class SandboxBroadsoftInstance(BroadsoftInstance):
 class TestBroadsoftInstance(BroadsoftInstance):
     def __init__(self, **kwargs):
         BroadsoftInstance.__init__(self, **kwargs)
-
-        # overwrite attrs that are different for test instance
-        self.api_url = 'https://web1.voiplogic.net/webservice/services/ProvisioningService'
+        self.api_url = 'https://mit-lab.oci-us99.bwks.io/webservice/services/ProvisioningService'
         self.creds_member = 'test'
         self.default_domain = 'broadsoft-dev.mit.edu'
-        self.service_provider = 'ENT136'
+        self.service_provider = 'MIT-SP'
+        self.default_group_id = 'MIT-GP'
 
 
-def instance_factory(use_test=False) -> object:
-    if use_test:
+def instance_factory(instance='prod') -> object:
+    if instance == 'dev':
+        return DevBroadsoftInstance()
+
+    elif instance == 'test':
         return TestBroadsoftInstance()
 
     return BroadsoftInstance()

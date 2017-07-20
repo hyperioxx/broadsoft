@@ -305,9 +305,9 @@ class Account(BroadsoftObject):
                                        broadsoftinstance=self.broadsoftinstance)
 
     @staticmethod
-    def get_accounts(use_test=False, **kwargs):
+    def get_accounts(instance='prod', **kwargs):
         if 'broadsoftinstance' not in kwargs or kwargs['broadsoftinstance'] is None:
-            i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(use_test=use_test)
+            i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(instance=instance)
             kwargs['broadsoftinstance'] = i
 
         accounts = []

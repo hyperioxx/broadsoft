@@ -8,7 +8,7 @@ provisioning a user
     ```python3
     from broadsoft.Device import Device
     from broadsoft.Account import Account
-    a = Account(use_test=True)
+    a = Account(instance='test')
     a.did = 2212221100
     a.last_name = 'Braiotta'
     a.first_name = 'Chris'
