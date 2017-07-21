@@ -243,6 +243,7 @@ class BroadsoftRequest(XmlDocument):
         # post to server
         headers = {'content-type': 'text/xml', 'SOAPAction': ''}
         response = requests.post(url=self.broadsoftinstance.api_url, data=envelope, headers=headers, cookies=cookies)
+        response.close()
         self.last_response = response
 
         # get a non-200 response?
