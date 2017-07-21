@@ -8,11 +8,25 @@ from broadsoft.requestobjects.GroupAddRequest import GroupAddRequest
 from broadsoft.requestobjects.GroupGetListInServiceProviderRequest import GroupGetListInServiceProviderRequest
 from broadsoft.requestobjects.UserAddRequest import UserAddRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest, AuthenticationRequest, LoginRequest, \
-    LogoutRequest
+    LogoutRequest, BroadsoftInstance
 from broadsoft.requestobjects.GroupAccessDeviceAddRequest import GroupAccessDeviceAddRequest
 
 def return_none(*args, **kwargs):
     return None
+
+
+def return_500_error(*args, **kwargs):
+    class Response:
+        def __init__(self):
+            self.content = 'error'
+            self.cookies = http.cookiejar.CookieJar()
+            self.status_code = 500
+
+        def close(self):
+            pass
+
+    r = Response()
+    return r
 
 
 def return_xml(*args, **kwargs):
@@ -21,6 +35,9 @@ def return_xml(*args, **kwargs):
             self.content = '<ns0:Envelope xmlns:ns0="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="urn:com:broadsoft:webservice"><ns0:Body><processOCIMessageResponse><ns1:processOCIMessageReturn>&lt;?xml version="1.0" encoding="UTF-8"?&gt;\n&lt;BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;&lt;sessionId xmlns=""&gt;None&lt;/sessionId&gt;&lt;command echo="" xsi:type="AuthenticationResponse" xmlns=""&gt;&lt;userId&gt;admMITapi&lt;/userId&gt;&lt;nonce&gt;1493661742798&lt;/nonce&gt;&lt;passwordAlgorithm&gt;MD5&lt;/passwordAlgorithm&gt;&lt;/command&gt;&lt;/BroadsoftDocument&gt;</ns1:processOCIMessageReturn></processOCIMessageResponse></ns0:Body></ns0:Envelope>'
             self.cookies = http.cookiejar.CookieJar()
             self.status_code = 200
+
+        def close(self):
+            pass
 
     r = Response()
     return r
@@ -32,6 +49,9 @@ def return_xml_error(*args, **kwargs):
             self.content = '<ns0:Envelope xmlns:ns0="http://schemas.xmlsoap.org/soap/envelope/"><ns0:Body><ns0:Fault><faultcode>soapenv:Server.generalException</faultcode><faultstring>INVALID_REQUEST</faultstring><faultactor>ProvisioningService</faultactor><detail><string>Cannot process any request before user is logged in.</string></detail></ns0:Fault></ns0:Body></ns0:Envelope>'
             self.cookies = http.cookiejar.CookieJar()
             self.status_code = 200
+
+        def close(self):
+            pass
 
     r = Response()
     return r
@@ -621,8 +641,49 @@ class TestBroadsoftRequest(unittest.TestCase):
         b.prep_attributes()
         self.assertFalse(map_patch.called)
 
-    def test_non_200_post_raises_error(self):
-        self.assertFalse("write this")
+    @unittest.mock.patch('requests.post', side_effect=return_500_error)
+    def test_non_200_post_raises_error(self, post_patch):
+        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory()
+        i.session_id = 'sesh'
+        a = AuthenticationRequest(broadsoftinstance=i)
+        with self.assertRaises(RuntimeError):
+            a.post()
 
-    def test_can_pass_creds_via_creds_or_instance(self):
-        self.assertFalse("write this")
+    @unittest.mock.patch('requests.post', side_effect=return_xml)
+    def test_can_pass_creds_via_instance_skipping_derive_creds(self, post_patch):
+        from hashlib import sha1, md5
+
+        username = 'hamburger'
+        password = 'clams'
+
+        i = BroadsoftInstance()
+        i.api_username = username
+        i.api_password = password
+        g = GroupGetListInServiceProviderRequest(broadsoftinstance=i)
+        g.post()
+        args, kwargs = post_patch.call_args_list[1]
+
+        # get the XML passed to the API
+        xml = ET.fromstring(text=kwargs['data'])
+        msg = xml.findall('.//processOCIMessage/arg0')[0]
+        payload = msg.text
+
+        # convert that to an XML object so we can extract elements
+        payload = ET.fromstring(text=payload)
+        xml_userid = payload.findall('.//userId')[0].text
+        xml_signed_password = payload.findall('.//signedPassword')[0].text
+
+        self.assertEqual(username, xml_userid)
+
+        # build the signed password as happens in function; should match
+        # the nonce is passed from our mocked request call
+        nonce = '1493661742798'
+        s = sha1()
+        s.update(password.encode())
+        sha_pwd = s.hexdigest()
+        concat_pwd = nonce + ':' + sha_pwd
+        m = md5()
+        m.update(concat_pwd.encode())
+        signed_pwd = m.hexdigest()
+
+        self.assertEqual(signed_pwd, xml_signed_password)

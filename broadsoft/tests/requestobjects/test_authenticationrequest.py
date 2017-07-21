@@ -17,6 +17,9 @@ def return_xml(*args, **kwargs):
             self.cookies = http.cookiejar.CookieJar()
             self.status_code = 200
 
+        def close(self):
+            pass
+
     r = Response()
     return r
 

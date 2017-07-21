@@ -332,6 +332,3 @@ class TestBroadsoftDevice(unittest.TestCase):
         args, kwargs = call
         self.assertIsInstance(kwargs['broadsoftinstance'],
                               broadsoft.requestobjects.lib.BroadsoftRequest.BroadsoftInstance)
-
-    def test_type_gets_mapped_on_init(self):
-        self.assertFalse("write this")

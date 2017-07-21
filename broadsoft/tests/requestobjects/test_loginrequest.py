@@ -135,6 +135,3 @@ class TestBroadsoftLoginRequest(unittest.TestCase):
         call = creds_patch.call_args_list[3]
         args, kwargs = call
         self.assertEqual('dev', kwargs['member'])
-
-    def test_can_pass_userid_and_pw_from_broadsoft_instance_and_avoid_using_creds(self):
-        self.assertFalse("write this")
