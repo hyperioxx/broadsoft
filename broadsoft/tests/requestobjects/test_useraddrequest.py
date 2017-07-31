@@ -80,7 +80,7 @@ class TestBroadsoftUserAddRequest(unittest.TestCase):
         self.assertEqual('blah', u.group_id)
 
         u = UserAddRequest(broadsoftinstance=i)
-        self.assertEqual(i.default_group_id, u.group_id)
+        self.assertEqual(i.group_id, u.group_id)
 
     def test_derive_email(self):
         u = UserAddRequest(kname='beaver')
@@ -127,3 +127,15 @@ class TestBroadsoftUserAddRequest(unittest.TestCase):
         command = xml.findall('.//command')[0]
         self.maxDiff = None
         self.assertEqual(target_xml, ET.tostring(command).decode('utf-8'))
+
+    def test_names_get_truncated(self):
+        u = UserAddRequest()
+        # 43 chars in name, should get cut down to 40 (per bsoft API rules)
+        u.first_name = '1234567890123456789012345678901234567890123'
+        u.last_name = '1234567890123456789012345678901234567890123'
+        u.did = 6175551212
+        u.sip_user_id = 'blah'
+        u.sip_password = 'blah'
+        u.build_command_xml()
+        self.assertEqual('1234567890123456789012345678901234567890', u.first_name)
+        self.assertEqual('1234567890123456789012345678901234567890', u.last_name)

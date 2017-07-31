@@ -47,7 +47,7 @@ class TestBroadsoftGroupAccessDeviceAddRequest(unittest.TestCase):
         # defaults to default set in BroadsoftRequest
         i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory()
         g = GroupAccessDeviceAddRequest(broadsoftinstance=i)
-        self.assertEqual(i.default_group_id, g.group_id)
+        self.assertEqual(i.group_id, g.group_id)
 
         # can also override
         g = GroupAccessDeviceAddRequest(group_id='gid')

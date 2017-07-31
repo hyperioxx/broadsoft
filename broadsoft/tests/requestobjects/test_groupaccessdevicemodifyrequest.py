@@ -16,7 +16,7 @@ class TestBroadsoftGroupAccessDeviceModifyRequest(unittest.TestCase):
 
         # defaults to default set in BroadsoftRequest
         g = GroupAccessDeviceModifyRequest(broadsoftinstance=i)
-        self.assertEqual(i.default_group_id, g.group_id)
+        self.assertEqual(i.group_id, g.group_id)
 
         # can also override
         g = GroupAccessDeviceModifyRequest(group_id='gid')
@@ -114,7 +114,7 @@ class TestBroadsoftGroupAccessDeviceModifyRequest(unittest.TestCase):
         target_xml = \
             '<command xmlns="" xsi:type="GroupAccessDeviceModifyRequest14">' + \
             '<serviceProviderId>ENT136</serviceProviderId>' + \
-            '<groupId>mit</groupId>' + \
+            '<groupId>MIT-GP</groupId>' + \
             '<deviceName>dname</deviceName>' + \
             '<protocol>SIP 2.0</protocol>' + \
             '<configurationMode>Default</configurationMode>' + \

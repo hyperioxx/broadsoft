@@ -11,7 +11,6 @@ def return_users_list(**kwargs):
 class TestBroadsoftUserGetListInGroupRequest(unittest.TestCase):
     def test_to_xml(self):
         b = broadsoft.requestobjects.lib.BroadsoftRequest.BroadsoftInstance()
-        print(b.group_id)
 
         # group id/case insensitive True
         g = UserGetListInGroupRequest(broadsoftinstance=b)

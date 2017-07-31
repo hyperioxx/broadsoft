@@ -302,6 +302,13 @@ class BroadsoftRequest(XmlDocument):
         if hasattr(self, 'device_type') and self.device_type:
             self.device_type = BroadsoftRequest.map_phone_type(phone_type=self.device_type)
 
+        # per the Broadsoft API, names can't be longer than 40 chars
+        if hasattr(self, 'first_name') and self.first_name:
+            self.first_name = self.first_name[0:40]
+            
+        if hasattr(self, 'last_name') and self.last_name:
+            self.last_name = self.last_name[0:40]
+
     def prep_for_xml(self):
         self.prep_attributes()
         self.convert_booleans()

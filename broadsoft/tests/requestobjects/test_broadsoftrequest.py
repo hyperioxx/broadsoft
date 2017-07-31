@@ -366,14 +366,6 @@ class TestBroadsoftRequest(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             b.check_error(string_response=regular_response)
 
-    def test_default_group_id(self):
-        i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory()
-        b = BroadsoftRequest(group_id='blah', broadsoftinstance=i)
-        self.assertEqual('blah', b.group_id)
-
-        b = BroadsoftRequest(broadsoftinstance=i)
-        self.assertEqual(i.default_group_id, b.group_id)
-
     def test_to_xml_with_no_contents(self):
         b = BroadsoftRequest()
         x = b.to_xml()
