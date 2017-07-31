@@ -198,11 +198,16 @@ class Account(BroadsoftObject):
         self.devices = list()
         if self.xml:
             cmd = self.xml.findall('command')[0]
-            self.did = cmd.findall('phoneNumber')[0].text
-            self.first_name = cmd.findall('firstName')[0].text
-            self.last_name = cmd.findall('lastName')[0].text
-            self.extension = cmd.findall('extension')[0].text
-            self.sip_user_id = cmd.findall('defaultAlias')[0].text
+            if cmd.findall('phoneNumber'):
+                self.did = cmd.findall('phoneNumber')[0].text
+            if cmd.findall('firstName'):
+                self.first_name = cmd.findall('firstName')[0].text
+            if cmd.findall('lastName'):
+                self.last_name = cmd.findall('lastName')[0].text
+            if cmd.findall('extension'):
+                self.extension = cmd.findall('extension')[0].text
+            if cmd.findall('defaultAlias'):
+                self.sip_user_id = cmd.findall('defaultAlias')[0].text
         self.load_devices()
 
     def generate_sip_password(self):
