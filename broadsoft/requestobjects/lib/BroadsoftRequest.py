@@ -297,7 +297,7 @@ class BroadsoftRequest(XmlDocument):
             self.broadsoftinstance = instance_factory()
 
         if self.group_id is None:
-            self.group_id = self.broadsoftinstance.default_group_id
+            self.group_id = self.broadsoftinstance.group_id
 
         if hasattr(self, 'device_type') and self.device_type:
             self.device_type = BroadsoftRequest.map_phone_type(phone_type=self.device_type)
@@ -588,9 +588,7 @@ class LogoutRequest(BroadsoftRequest):
 
 
 class BroadsoftInstance:
-    default_group_id = 'mit'
-
-    def __init__(self, group_id='mit', auth_object=None, login_object=None, session_id=None):
+    def __init__(self, group_id='MIT-GP', auth_object=None, login_object=None, session_id=None):
         # these attrs relate to communicating with the Broadsoft API
         self.api_password = None
         self.api_url = '[unknown]'
@@ -604,6 +602,7 @@ class BroadsoftInstance:
         # these attrs are inherited by request objects
         self.default_domain = 'broadsoft.mit.edu'
         self.service_provider = 'ENT136'
+        self.group_id=group_id
 
     def login(self):
         r = BroadsoftRequest(broadsoftinstance=self)
@@ -629,7 +628,6 @@ class TestBroadsoftInstance(BroadsoftInstance):
         self.creds_member = 'test'
         self.default_domain = 'broadsoft-dev.mit.edu'
         self.service_provider = 'MIT-SP'
-        self.group_id = 'MIT-GP'
 
 
 def instance_factory(instance='prod') -> object:
