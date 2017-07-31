@@ -332,3 +332,12 @@ class TestBroadsoftDevice(unittest.TestCase):
         args, kwargs = call
         self.assertIsInstance(kwargs['broadsoftinstance'],
                               broadsoft.requestobjects.lib.BroadsoftRequest.BroadsoftInstance)
+
+    @unittest.mock.patch.object(BroadsoftRequest, 'prep_attributes')
+    def test_build_provision_request_calls_prep_attributes(self, prep_attributes_patch):
+        d = Device()
+        d.name = 'test'
+        d.type = 'Polycom SoundPoint IP 650 + Expansion Module(1)'
+        g = d.build_provision_request()
+        # expect to see two calls
+        self.assertEqual(2, len(prep_attributes_patch.call_args_list))

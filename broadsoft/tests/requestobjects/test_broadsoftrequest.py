@@ -687,3 +687,11 @@ class TestBroadsoftRequest(unittest.TestCase):
         signed_pwd = m.hexdigest()
 
         self.assertEqual(signed_pwd, xml_signed_password)
+
+    @unittest.mock.patch('broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory')
+    def test_build_session_id_bootstraps_broadsoftinstance_as_needed(self, instance_factory_patch):
+        b = BroadsoftRequest()
+        b.broadsoftinstance = None
+        instance_factory_patch.called = False
+        b.build_session_id()
+        self.assertTrue(instance_factory_patch)

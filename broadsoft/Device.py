@@ -55,6 +55,7 @@ class Device(BroadsoftObject):
             g.protocol = self.protocol
         if self.transport_protocol:
             g.transport_protocol = self.transport_protocol
+        g.prep_attributes()
         return g
 
     def delete(self, bundle=False):

@@ -73,6 +73,9 @@ class BroadsoftRequest(XmlDocument):
         return cmd
 
     def build_session_id(self):
+        if self.broadsoftinstance is None:
+            self.broadsoftinstance = instance_factory()
+
         if self.broadsoftinstance.session_id is None:
             # if there's an attached auth object, use that session id
             if self.broadsoftinstance.auth_object:
@@ -295,6 +298,9 @@ class BroadsoftRequest(XmlDocument):
 
         if self.group_id is None:
             self.group_id = self.broadsoftinstance.default_group_id
+
+        if hasattr(self, 'device_type') and self.device_type:
+            self.device_type = BroadsoftRequest.map_phone_type(phone_type=self.device_type)
 
     def prep_for_xml(self):
         self.prep_attributes()
