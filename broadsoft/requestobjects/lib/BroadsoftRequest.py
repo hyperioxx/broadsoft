@@ -629,7 +629,7 @@ class TestBroadsoftInstance(BroadsoftInstance):
         self.creds_member = 'test'
         self.default_domain = 'broadsoft-dev.mit.edu'
         self.service_provider = 'MIT-SP'
-        self.default_group_id = 'MIT-GP'
+        self.group_id = 'MIT-GP'
 
 
 def instance_factory(instance='prod') -> object:
