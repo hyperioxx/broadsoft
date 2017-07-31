@@ -345,7 +345,7 @@ class Account(BroadsoftObject):
         (firstname, lastname) = Account.split_name(name=user_record.display_name)
 
         r = MitRoles()
-        owners = r.get_owners_for_did(did='6177154956')
+        owners = r.get_owners_for_did(did=user_record.did)
         owner = owners[0]
 
         # build the user
@@ -361,21 +361,22 @@ class Account(BroadsoftObject):
 
         # build the devices
         is_primary = True
-        for device_record in device_records:
-            if device_record.active != 'Y':
-                continue
+        if device_records is not None:
+            for device_record in device_records:
+                if device_record.active != 'Y':
+                    continue
 
-            d = Device(**kwargs)
-            d.did = user_record.did
-            d.description = device_record.description
-            d.is_primary = is_primary
-            d.name = device_record.description
-            d.type = device_record.phone_type
-            d.mac_address = device_record.hwaddr
-            d.derive_line_port()
+                d = Device(**kwargs)
+                d.did = user_record.did
+                d.description = device_record.description
+                d.is_primary = is_primary
+                d.name = device_record.description
+                d.type = device_record.phone_type
+                d.mac_address = device_record.hwaddr
+                d.derive_line_port()
 
-            a.devices.append(d)
-            is_primary = False
+                a.devices.append(d)
+                is_primary = False
 
         if len(a.devices) > 0 or force_when_no_devices:
             a.provision()
