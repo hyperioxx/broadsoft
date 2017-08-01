@@ -352,31 +352,31 @@ class BroadsoftRequest(XmlDocument):
         if payload:
             cmd_container = payload.findall('./command')
             if len(cmd_container) > 0:
-                cmd = cmd_container[0]
-                summary_container = cmd.findall('./summary')
-                summary_english_container = cmd.findall('./summaryEnglish')
-                detail_container = cmd.findall('./detail')
+                for cmd in cmd_container:
+                    summary_container = cmd.findall('./summary')
+                    summary_english_container = cmd.findall('./summaryEnglish')
+                    detail_container = cmd.findall('./detail')
 
-                summary = None
-                summary_english = None
-                detail = None
-                error = False
+                    summary = None
+                    summary_english = None
+                    detail = None
+                    error = False
 
-                if len(summary_container) > 0:
-                    summary = summary_container[0].text
-                    error = True
-                if len(summary_english_container) > 0:
-                    summary_english = summary_english_container[0].text
-                    error = True
-                if len(detail_container) > 0:
-                    detail = detail_container[0].text
-                    error = True
+                    if len(summary_container) > 0:
+                        summary = summary_container[0].text
+                        error = True
+                    if len(summary_english_container) > 0:
+                        summary_english = summary_english_container[0].text
+                        error = True
+                    if len(detail_container) > 0:
+                        detail = detail_container[0].text
+                        error = True
 
-                if error:
-                    error_msg = "the SOAP server threw an error: "
-                    error_msg += str(summary)
-                    error_msg += ' :: ' + str(summary_english)
-                    error_msg += ' :: ' + str(detail)
+                    if error:
+                        error_msg = "the SOAP server threw an error: "
+                        error_msg += str(summary)
+                        error_msg += ' :: ' + str(summary_english)
+                        error_msg += ' :: ' + str(detail)
 
         return error_msg
 
@@ -384,11 +384,14 @@ class BroadsoftRequest(XmlDocument):
     def check_error__success(payload):
         error_msg = None
 
-        command = payload.findall('./command')[0]
-        command_name = command.get('{http://www.w3.org/2001/XMLSchema-instance}type')
-        if command_name != 'c:SuccessResponse':
-            error_msg = "we were expecting an explicit success message from the SOAP server, but got " + ET.tostring(
-                payload).decode('utf-8')
+        commands = payload.findall('./command')
+        print(payload)
+        for command in commands:
+            command_name = command.get('{http://www.w3.org/2001/XMLSchema-instance}type')
+            print(command_name)
+            if command_name != 'c:SuccessResponse':
+                error_msg = "we were expecting an explicit success message from the SOAP server, but got " + ET.tostring(
+                    payload).decode('utf-8')
 
         return error_msg
 
