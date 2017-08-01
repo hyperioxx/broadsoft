@@ -440,7 +440,8 @@ class BroadsoftRequest(XmlDocument):
 
     @staticmethod
     def map_phone_type(phone_type):
-
+        # just going with sip generic for now; their mapping is chaotic and undependable
+        return 'Generic SIP Phone'
 
         # strip any reference to Expansion Modules
         phone_type = re.sub(r' \+ Expansion Module\(\d+\)$', '', phone_type)

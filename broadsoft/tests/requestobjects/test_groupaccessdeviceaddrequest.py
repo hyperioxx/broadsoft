@@ -104,7 +104,7 @@ class TestBroadsoftGroupAccessDeviceAddRequest(unittest.TestCase):
             '<serviceProviderId>ENT136</serviceProviderId>' + \
             '<groupId>testgroup</groupId>' + \
             '<deviceName>dname</deviceName>' + \
-            '<deviceType>dtype</deviceType>' + \
+            '<deviceType>Generic SIP Phone</deviceType>' + \
             '<macAddress>aabbcc112233</macAddress>' + \
             '<description>desc</description>' + \
             '</command>'
@@ -123,7 +123,7 @@ class TestBroadsoftGroupAccessDeviceAddRequest(unittest.TestCase):
             '<serviceProviderId>ENT136</serviceProviderId>' + \
             '<groupId>testgroup</groupId>' + \
             '<deviceName>dname</deviceName>' + \
-            '<deviceType>dtype</deviceType>' + \
+            '<deviceType>Generic SIP Phone</deviceType>' + \
             '<description>desc</description>' + \
             '</command>'
 

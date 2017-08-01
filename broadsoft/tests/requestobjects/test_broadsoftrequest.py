@@ -592,6 +592,7 @@ class TestBroadsoftRequest(unittest.TestCase):
         b = BroadsoftRequest()
         self.assertIsInstance(b.broadsoftinstance, broadsoft.requestobjects.lib.BroadsoftRequest.BroadsoftInstance)
 
+    @unittest.skip
     def test_map_phone_type_results(self):
         # should be mapped
         # normalizing capitalization
