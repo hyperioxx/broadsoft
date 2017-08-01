@@ -93,7 +93,7 @@ class UserModifyRequest(BroadsoftRequest):
 
         return cmd
 
-    def derive_extension(self, digits=4):
+    def derive_extension(self, digits=5):
         if not self.extension and self.did:
             self.did = BroadsoftRequest.convert_phone_number(number=self.did)
             self.extension = str(self.did)[-digits:]

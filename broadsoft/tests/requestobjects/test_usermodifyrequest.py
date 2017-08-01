@@ -142,30 +142,30 @@ class TestBroadsoftUserModifyRequest(unittest.TestCase):
         u = UserModifyRequest()
         u.did = '6175551212'
         u.derive_extension()
-        self.assertEqual('1212', u.extension)
+        self.assertEqual('51212', u.extension)
 
         u = UserModifyRequest()
         u.did = '617-555-1212'
         u.derive_extension()
-        self.assertEqual('1212', u.extension)
+        self.assertEqual('51212', u.extension)
 
         u = UserModifyRequest()
         u.did = 6175551212
         u.derive_extension()
-        self.assertEqual('1212', u.extension)
+        self.assertEqual('51212', u.extension)
 
         # doesn't clobber extension when explicitly set
         u = UserModifyRequest()
         u.did = '617-555-1212'
-        u.extension = '1234'
+        u.extension = '551234'
         u.derive_extension()
-        self.assertEqual('1234', u.extension)
+        self.assertEqual('551234', u.extension)
 
         # can override number of digits
         u = UserModifyRequest()
         u.did = 6175551212
-        u.derive_extension(digits=5)
-        self.assertEqual('51212', u.extension)
+        u.derive_extension(digits=6)
+        self.assertEqual('551212', u.extension)
 
     @unittest.mock.patch.object(UserModifyRequest, 'derive_extension')
     def test_build_command_xml_calls_derive_extension(
