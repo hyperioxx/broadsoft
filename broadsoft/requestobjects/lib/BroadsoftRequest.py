@@ -385,10 +385,8 @@ class BroadsoftRequest(XmlDocument):
         error_msg = None
 
         commands = payload.findall('./command')
-        print(payload)
         for command in commands:
             command_name = command.get('{http://www.w3.org/2001/XMLSchema-instance}type')
-            print(command_name)
             if command_name != 'c:SuccessResponse':
                 error_msg = "we were expecting an explicit success message from the SOAP server, but got " + ET.tostring(
                     payload).decode('utf-8')
