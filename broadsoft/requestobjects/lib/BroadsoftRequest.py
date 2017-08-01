@@ -442,11 +442,13 @@ class BroadsoftRequest(XmlDocument):
 
     @staticmethod
     def map_phone_type(phone_type):
+
+
         # strip any reference to Expansion Modules
         phone_type = re.sub(r' \+ Expansion Module\(\d+\)$', '', phone_type)
 
-        # if it's not "Polycom SoundPoint IP 550", all "Polycom Soundpoint" devices should be de-camel-cased
-        if 'Polycom SoundPoint' in phone_type and phone_type != 'Polycom SoundPoint IP 550':
+        # all "Polycom Soundpoint" devices should be de-camel-cased
+        if 'Polycom SoundPoint' in phone_type:
             phone_type = re.sub(r'SoundPoint', 'Soundpoint', phone_type)
 
         # if it's "Polycom Soundpoint 650" should be "Polycom Soundpoint IP 650"
