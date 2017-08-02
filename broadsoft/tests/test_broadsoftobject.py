@@ -1,11 +1,11 @@
 import unittest
 import unittest.mock
-
 import broadsoft.requestobjects.lib.BroadsoftRequest
 from broadsoft.lib.BroadsoftObject import BroadsoftObject
 from broadsoft.Device import Device
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 from broadsoft.requestobjects.UserAddRequest import UserAddRequest
+import xml.etree.ElementTree as ET
 
 
 def return_none(*args, **kwargs):
@@ -78,3 +78,33 @@ class TestBroadsoftObject(unittest.TestCase):
         args, kwargs = call
         self.assertIsInstance(kwargs['broadsoftinstance'],
                               broadsoft.requestobjects.lib.BroadsoftRequest.TestBroadsoftInstance)
+
+    @unittest.mock.patch.object(BroadsoftObject, 'check_if_object_fetched')
+    @unittest.mock.patch.object(BroadsoftObject, 'prep_attributes')
+    def test_from_xml_calls_prep_attributes_and_check_if_object_fetched(
+            self, prep_attributes_patch, check_if_object_fetched_patch
+    ):
+        b = BroadsoftObject()
+        prep_attributes_patch.called = False
+        check_if_object_fetched_patch.called = False
+
+        b.from_xml()
+        self.assertTrue(prep_attributes_patch.called)
+        self.assertTrue(check_if_object_fetched_patch.called)
+
+    def test_check_if_object_fetched_call(self):
+        # failed call, should be set to False
+        xml = """<ns0:BroadsoftDocument xmlns:ns0="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" protocol="OCI"><sessionId>VPN-18-101-101-100.MIT.EDU,2017-08-02 21:54:52.755707,2221805120</sessionId><command echo="" type="Error" xsi:type="c:ErrorResponse"><summary>[Error 4008] User not found: 6175551212@broadsoft-dev.mit.edu</summary><summaryEnglish>[Error 4008] User not found: 6175551212@broadsoft-dev.mit.edu</summaryEnglish></command></ns0:BroadsoftDocument>"""
+        xml = ET.fromstring(xml)
+        b = BroadsoftObject()
+        b.xml = xml
+        b.check_if_object_fetched()
+        self.assertFalse(b.fetched)
+
+        # successful call, should be set to True
+        xml = """<ns0:BroadsoftDocument xmlns:ns0="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" protocol="OCI"><sessionId>VPN-18-101-101-100.MIT.EDU,2017-08-02 22:15:09.487547,7641180547</sessionId><command echo="" xsi:type="UserGetResponse21"><serviceProviderId>MIT-SP</serviceProviderId><groupId>MIT-GP</groupId><lastName>Hall</lastName><firstName>Lecture</firstName><callingLineIdLastName>Hall</callingLineIdLastName><callingLineIdFirstName>Lecture</callingLineIdFirstName><hiraganaLastName>Hall</hiraganaLastName><hiraganaFirstName>Lecture</hiraganaFirstName><phoneNumber>6172251563</phoneNumber><extension>51563</extension><language>English</language><timeZone>America/New_York</timeZone><timeZoneDisplayName>(GMT-04:00) (US) Eastern Time</timeZoneDisplayName><defaultAlias>6172251563@broadsoft-dev.mit.edu</defaultAlias><accessDeviceEndpoint><accessDevice><deviceLevel>Group</deviceLevel><deviceName>E51-335</deviceName></accessDevice><linePort>6172251563_64167f01b5a0_1@broadsoft-dev.mit.edu</linePort><staticRegistrationCapable>true</staticRegistrationCapable><useDomain>true</useDomain><supportVisualDeviceManagement>false</supportVisualDeviceManagement></accessDeviceEndpoint><emailAddress>peterb@mit.edu</emailAddress><countryCode>1</countryCode></command></ns0:BroadsoftDocument>"""
+        xml = ET.fromstring(xml)
+        b = BroadsoftObject()
+        b.xml = xml
+        b.check_if_object_fetched()
+        self.assertTrue(b.fetched)

@@ -9,6 +9,7 @@ from broadsoft.lib.BroadsoftObject import BroadsoftObject
 from broadsoft.requestobjects.GroupAccessDeviceAddRequest import GroupAccessDeviceAddRequest
 from broadsoft.requestobjects.UserAddRequest import UserAddRequest
 from broadsoft.requestobjects.UserModifyRequest import UserModifyRequest
+from broadsoft.requestobjects.UserGetRequest import UserGetRequest
 from broadsoft.requestobjects.UserServiceAssignListRequest import UserServiceAssignListRequest
 from broadsoft.requestobjects.UserSharedCallAppearanceAddEndpointRequest import \
     UserSharedCallAppearanceAddEndpointRequest

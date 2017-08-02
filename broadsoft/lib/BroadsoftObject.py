@@ -1,5 +1,4 @@
 import xml.etree.ElementTree as ET
-
 import broadsoft.requestobjects.lib.BroadsoftRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import LogoutRequest
@@ -8,9 +7,22 @@ from broadsoft.requestobjects.lib.BroadsoftRequest import LogoutRequest
 class BroadsoftObject:
     def __init__(self, xml=None, instance='prod', broadsoftinstance=None):
         self.broadsoftinstance = broadsoftinstance
+        self.fetched = None
         self.instance = instance
         self.xml = xml
         self.prep_attributes()
+
+    def check_if_object_fetched(self):
+        if self.xml:
+            commands = self.xml.findall('./command')
+            for command in commands:
+                command_name = command.get('{http://www.w3.org/2001/XMLSchema-instance}type')
+                if 'ErrorResponse' in command_name:
+                    self.fetched = False
+                elif 'GetResponse' in command_name:
+                    self.fetched = True
+        else:
+            self.fetched = False
 
     def derive_sip_user_id(self, did):
         did = BroadsoftRequest.convert_phone_number(number=did)
@@ -25,6 +37,7 @@ class BroadsoftObject:
 
     def from_xml(self):
         self.prep_attributes()
+        self.check_if_object_fetched()
 
     # Ensures that child objects inherit same BroadsoftInstance as parent (sets parameters like URL, enterprise name,
     # creds group, etc).
