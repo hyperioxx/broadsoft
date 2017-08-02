@@ -703,3 +703,32 @@ class TestBroadsoftRequest(unittest.TestCase):
         instance_factory_patch.called = False
         b.build_session_id()
         self.assertTrue(instance_factory_patch)
+
+    def test_derive_skip_error(self):
+        class SkippableRequestObject(BroadsoftRequest):
+            skip_fetch_error = True
+            skip_fetch_error_head = '[Error 4008] User not found: '
+
+            def __init__(self):
+                BroadsoftRequest.__init__(self=self)
+        s = SkippableRequestObject()
+
+        class UnskippableRequestObject(BroadsoftRequest):
+            def __init__(self):
+                BroadsoftRequest.__init__(self=self)
+        u = UnskippableRequestObject()
+
+        matching_error_msg = '[Error 4008] User not found: 6172251560@broadsoft-dev.mit.edu'
+        not_matching_error_msg = '[Error 4009] Things just got screwy, mang'
+
+        # with a request object that allows skipping and a matching error message, should return True
+        self.assertTrue(s.derive_skip_error(error_msg=matching_error_msg))
+
+        # with a request object that allows skipping and a non-matching error message, should return False
+        self.assertFalse(s.derive_skip_error(error_msg=not_matching_error_msg))
+
+        # with a request object that does not allow skipping and a matching error message, should return False
+        self.assertFalse(u.derive_skip_error(error_msg=matching_error_msg))
+
+        # with a request object that does not allow skipping and a non-matching error message, should return False
+        self.assertFalse(u.derive_skip_error(error_msg=not_matching_error_msg))

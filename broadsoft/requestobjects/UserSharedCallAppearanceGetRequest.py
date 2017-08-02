@@ -4,6 +4,8 @@ from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 
 class UserSharedCallAppearanceGetRequest(BroadsoftRequest):
     command_name = 'UserSharedCallAppearanceGetRequest16sp2'
+    skip_fetch_error = True
+    skip_fetch_error_head = '[Error 4008] User not found: '
 
     def __init__(self, sip_user_id=None, **kwargs):
         self.sip_user_id = sip_user_id

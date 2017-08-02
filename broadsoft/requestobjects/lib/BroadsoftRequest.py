@@ -24,6 +24,8 @@ class BroadsoftRequest(XmlDocument):
     logging_fname = 'api.log'
     default_timezone = 'America/New_York'
     check_success = False
+    skip_fetch_error = False
+    skip_fetch_error_head = None
 
     def __init__(self, require_logging=True, timezone=None, broadsoftinstance=None, group_id=None):
         self.broadsoftinstance = broadsoftinstance
@@ -113,7 +115,7 @@ class BroadsoftRequest(XmlDocument):
             error_msg = self.check_error__success(payload=payload)
 
         # found fault/error? log and raise exception
-        if error_msg:
+        if error_msg and not self.derive_skip_error(error_msg=error_msg):
             logging.error(error_msg, extra={'session_id': self.broadsoftinstance.session_id})
             raise RuntimeError(error_msg)
 
@@ -176,6 +178,15 @@ class BroadsoftRequest(XmlDocument):
         creds = NistCreds(group='broadsoft', member=self.broadsoftinstance.creds_member)
         self.api_user_id = creds.username
         self.api_password = creds.password
+
+    # Some errors, such as when running a UserGetRequest and the user doesn't exist, shouldn't
+    # throw an exception. Don't want to suppress ALL errors, so look for specific ones.
+    def derive_skip_error(self, error_msg):
+        if self.skip_fetch_error:
+            if self.skip_fetch_error_head in error_msg:
+                return True
+
+        return False
 
     def is_auth_suite(self):
         # commands that are part of the login/logout suite don't ever need login

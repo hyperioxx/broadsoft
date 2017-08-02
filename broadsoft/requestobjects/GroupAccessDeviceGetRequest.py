@@ -4,6 +4,8 @@ from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 
 class GroupAccessDeviceGetRequest(BroadsoftRequest):
     command_name = 'GroupAccessDeviceGetRequest18sp1'
+    skip_fetch_error = True
+    skip_fetch_error_head = '[Error 4505] Access Device not found: '
 
     def __init__(self, name=None, **kwargs):
         self.name = name
