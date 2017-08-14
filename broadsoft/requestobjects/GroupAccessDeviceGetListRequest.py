@@ -94,7 +94,7 @@ class GroupAccessDeviceGetListRequest(SearchRequest):
             did = BroadsoftRequest.convert_phone_number(number=did)
 
             if did == user_did:
-                return fetched_device_xml
+                return d
 
         return None
 

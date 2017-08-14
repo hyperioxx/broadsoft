@@ -93,10 +93,10 @@ class TestBroadsoftGroupAccessDeviceGetListRequest(unittest.TestCase):
     def test_find_device_by_mac_and_did_call(self, find_device_by_mac_patch, get_device_patch, get_user_patch):
         # pass matching did
         d = GroupAccessDeviceGetListRequest.find_device_by_mac_and_did(mac_address='aabbcc112233', did=6175551212)
-        target_xml = """<ns0:BroadsoftDocument xmlns:ns0="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" protocol="OCI"><sessionId>Chriss-MacBook-Pro-4.local,2017-08-14 19:25:38.239458,9172042794</sessionId><command echo="" xsi:type="GroupAccessDeviceGetResponse18sp1"><deviceType>Generic SIP Phone</deviceType><protocol>SIP 2.0</protocol><macAddress>aabbcc112233</macAddress><description>Time Beaver</description><numberOfPorts><unlimited>true</unlimited></numberOfPorts><numberOfAssignedPorts>1</numberOfAssignedPorts><status>Online</status><configurationMode>Default</configurationMode><transportProtocol>Unspecified</transportProtocol><useCustomUserNamePassword>true</useCustomUserNamePassword><userName>6175551212@broadsoft-dev.mit.edu</userName></command></ns0:BroadsoftDocument>"""
         self.assertEqual(
-            ET.tostring(d).decode('utf-8'),
-            target_xml
+            d,
+            {'Version': None, 'Net Address': None, 'MAC Address': 'aabbcc112233', 'Device Name': 'Tim Beaver',
+             'Status': 'Online', 'Device Type': 'Generic SIP Phone', 'Available Ports': 'Unlimited'}
         )
 
         # pass non-matching did
