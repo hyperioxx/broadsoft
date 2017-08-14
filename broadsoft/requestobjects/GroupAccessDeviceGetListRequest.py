@@ -71,7 +71,7 @@ class GroupAccessDeviceGetListRequest(SearchRequest):
         return BroadsoftRequest.convert_results_table(xml=table)
 
     @staticmethod
-    def find_device_by_mac_and_did(mac_address, did=None, **kwargs):
+    def find_device_by_mac_and_did(mac_address, did, **kwargs):
         from broadsoft.requestobjects.GroupAccessDeviceGetRequest import GroupAccessDeviceGetRequest
         from broadsoft.requestobjects.UserGetRequest import UserGetRequest
         from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
