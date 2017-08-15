@@ -3,6 +3,7 @@ import unittest.mock
 import broadsoft.requestobjects.lib.BroadsoftRequest
 from broadsoft.lib.BroadsoftObject import BroadsoftObject
 from broadsoft.Device import Device
+from broadsoft.Account import Account
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 from broadsoft.requestobjects.UserAddRequest import UserAddRequest
 import xml.etree.ElementTree as ET
@@ -110,23 +111,43 @@ class TestBroadsoftObject(unittest.TestCase):
         self.assertTrue(b.fetched)
 
     @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    @unittest.mock.patch.object(Account, 'overwrite')
     @unittest.mock.patch.object(Device, 'overwrite')
-    def test_implicit_overwrite_respected(self, overwrite_patch, post_patch):
+    def test_implicit_overwrite_respected(self, device_overwrite_patch, account_overwrite_patch, post_patch):
         # doing this with a Device since raw BroadsoftObject doesn't have an overwrite or build_provision_request method
 
         # with default value for implicit overwrite (False)
         d = Device(mac_address='aabbcc112233', did=6175551212)
         d.provision()
-        self.assertFalse(overwrite_patch.called)
-        overwrite_patch.called = False
+        self.assertFalse(device_overwrite_patch.called)
+        device_overwrite_patch.called = False
 
         # with False for implicit overwrite
         d = Device(mac_address='aabbcc112233', did=6175551212, implicit_overwrite=False)
-        self.assertFalse(overwrite_patch.called)
+        self.assertFalse(device_overwrite_patch.called)
         d.provision()
-        overwrite_patch.called = False
+        device_overwrite_patch.called = False
 
         # with True for implicit overwrite
         d = Device(mac_address='aabbcc112233', did=6175551212, implicit_overwrite=True)
         d.provision()
-        self.assertTrue(overwrite_patch.called)
+        self.assertTrue(device_overwrite_patch.called)
+
+        # doing it again with an Account
+
+        # with default value for implicit overwrite (False)
+        a = Account(sip_user_id='6175551212@broadsoft-dev.mit.edu', email='beaver@mit.edu')
+        a.provision()
+        self.assertFalse(account_overwrite_patch.called)
+        account_overwrite_patch.called = False
+
+        # with False for implicit overwrite
+        a = Account(sip_user_id='6175551212@broadsoft-dev.mit.edu', email='beaver@mit.edu', implicit_overwrite=False)
+        self.assertFalse(account_overwrite_patch.called)
+        a.provision()
+        account_overwrite_patch.called = False
+
+        # with True for implicit overwrite
+        a = Account(sip_user_id='6175551212@broadsoft-dev.mit.edu', email='beaver@mit.edu', implicit_overwrite=True)
+        a.provision()
+        self.assertTrue(account_overwrite_patch.called)

@@ -18,6 +18,7 @@ from broadsoft.Voicemail import Voicemail
 from broadsoft.requestobjects.UserVoiceMessagingUserModifyVoiceManagementRequest import UserVoiceMessagingUserModifyVoiceManagementRequest
 from broadsoft.requestobjects.UserThirdPartyVoiceMailSupportModifyRequest import UserThirdPartyVoiceMailSupportModifyRequest
 from broadsoft.requestobjects.GroupAccessDeviceDeleteRequest import GroupAccessDeviceDeleteRequest
+from broadsoft.requestobjects.lib.BroadsoftRequest import instance_factory
 
 
 def fake_phone_db_record():
@@ -1532,3 +1533,53 @@ class TestBroadsoftAccount(unittest.TestCase):
     def test_thaw_from_db_does_not_barf_when_no_devices(self, post_patch, roles_patch):
         u = fake_users_db_record()
         a = Account.thaw_from_db(user_record=u, device_records=None, voicemail='broadsoft')
+
+    @unittest.mock.patch.object(Account, 'delete')
+    def test_overwrite_when_no_sip_user_id_but_is_did(self, delete_patch):
+        i = instance_factory(instance='test')
+        a = Account(did=6175551212, broadsoftinstance=i)
+        a.overwrite()
+
+        # account should have inherited a sip_user_id at this point
+        self.assertEqual(str(a.did) + '@' + i.default_domain, a.sip_user_id)
+
+        # since a sip user id was inherited, delete() should have been called
+        self.assertTrue(delete_patch.called)
+
+    @unittest.mock.patch.object(Account, 'derive_sip_user_id')
+    @unittest.mock.patch.object(Account, 'delete')
+    def test_overwrite_when_is_sip_user_id(self, delete_patch, derive_sip_user_id_patch):
+        i = instance_factory(instance='test')
+        a = Account(sip_user_id='6175551212@broadsoft-dev.mit.edu', broadsoftinstance=i)
+        a.overwrite()
+
+        # since a sip user id was passed, should not have called derive_sip_user_id()
+        self.assertFalse(derive_sip_user_id_patch.called)
+
+        # since a sip user id was inherited, delete() should have been called
+        self.assertTrue(delete_patch.called)
+
+    @unittest.mock.patch.object(Account, '__init__', side_effect=return_none)
+    @unittest.mock.patch('mitroles.MitRoles.MitRoles.get_owners_for_did', side_effect=roles_mock)
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    def test_thaw_from_db_passes_overwrite_option(self, post_patch, roles_patch, account_init_patch):
+        u = fake_users_db_record()
+        d = fake_phone_db_record()
+
+        # this will throw an error because we're mocking the __init__
+        try:
+            # with implict_overwrite True
+            Account.thaw_from_db(user_record=u, device_records=[d], voicemail='broadsoft', implicit_overwrite=True)
+        except AttributeError:
+            pass
+        args, kwargs = account_init_patch.call_args_list[0]
+        self.assertTrue(kwargs['implicit_overwrite'])
+
+        # this will throw an error because we're mocking the __init__
+        try:
+            # with implict_overwrite False
+            Account.thaw_from_db(user_record=u, device_records=[d], voicemail='broadsoft', implicit_overwrite=False)
+        except AttributeError:
+            pass
+        args, kwargs = account_init_patch.call_args_list[1]
+        self.assertFalse(kwargs['implicit_overwrite'])

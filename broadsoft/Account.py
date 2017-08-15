@@ -17,6 +17,7 @@ from broadsoft.requestobjects.UserThirdPartyVoiceMailSupportModifyRequest import
 from broadsoft.requestobjects.UserDeleteRequest import UserDeleteRequest
 from broadsoft.requestobjects.UserGetListInGroupRequest import UserGetListInGroupRequest
 import re
+import logging
 
 
 class Account(BroadsoftObject):
@@ -257,6 +258,22 @@ class Account(BroadsoftObject):
                 d.bootstrap_shared_call_appearance(sca=sca)
                 d.fetch(target_name=d.name)
                 self.devices.append(d)
+
+    def overwrite(self):
+        logging.info("overwriting pre-existing account for DID: " + str(self.did), extra={'session_id': self.broadsoftinstance.session_id})
+
+        # here should derive sip_user_id if not present
+        if not self.sip_user_id:
+            self.did = self.derive_sip_user_id(did=self.did)
+            logging.info("overwriting pre-existing account for DID: " + str(self.did) +
+                         ", derived " + str(self.sip_user_id) + " as sip_user_id",
+                         extra={'session_id': self.broadsoftinstance.session_id})
+
+        if self.sip_user_id is not None:
+            logging.info("overwriting pre-existing account for DID: " + str(self.did) +
+                         ", executing",
+                         extra={'session_id': self.broadsoftinstance.session_id})
+            self.delete()
 
     def provision(self):
         BroadsoftObject.prep_attributes(self)
