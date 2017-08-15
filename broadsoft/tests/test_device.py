@@ -6,11 +6,16 @@ from broadsoft.requestobjects.GroupAccessDeviceGetRequest import GroupAccessDevi
 from broadsoft.requestobjects.GroupAccessDeviceAddRequest import GroupAccessDeviceAddRequest
 from broadsoft.requestobjects.GroupAccessDeviceModifyRequest import GroupAccessDeviceModifyRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
+from broadsoft.requestobjects.lib.BroadsoftRequest import instance_factory
 from broadsoft.lib.BroadsoftObject import BroadsoftObject
 from broadsoft.requestobjects.GroupAccessDeviceDeleteRequest import GroupAccessDeviceDeleteRequest
 from xml.etree.ElementTree import Element
 import xml.etree.ElementTree as ET
 
+
+def return_find_device(*args, **kwargs):
+    return {'Available Ports': 'Unlimited', 'Status': 'Online', 'Device Type': 'Generic SIP Phone',
+                  'Net Address': None, 'Version': None, 'Device Name': 'Tim Beaver', 'MAC Address': 'aabbcc112233'}
 
 def return_none(**kwargs):
     return None
@@ -341,3 +346,69 @@ class TestBroadsoftDevice(unittest.TestCase):
         g = d.build_provision_request()
         # expect to see two calls
         self.assertEqual(2, len(prep_attributes_patch.call_args_list))
+
+    def test_bootstrap_find_result(self):
+        result = {'Available Ports': 'Unlimited', 'Status': 'Online', 'Device Type': 'Generic SIP Phone',
+                  'Net Address': None, 'Version': None, 'Device Name': 'Tim Beaver', 'MAC Address': 'aabbcc112233'}
+        d = Device()
+        d.bootstrap_find_result(result=result)
+        self.assertEqual(d.mac_address, result['MAC Address'])
+        self.assertEqual(d.type, result['Device Type'])
+        self.assertEqual(d.name, result['Device Name'])
+        self.assertIsNone(d.is_primary)
+
+    @unittest.mock.patch.object(Device, 'delete')
+    @unittest.mock.patch('broadsoft.requestobjects.GroupAccessDeviceGetListRequest.GroupAccessDeviceGetListRequest.find_device_by_mac_and_did',
+                         side_effect=return_find_device)
+    def test_overwrite_when_no_name_and_fetch_returns_result(self, find_device_patch, delete_patch):
+        i = instance_factory(instance='test')
+        d = Device(mac_address='aabbcc112233', did=6175551212, broadsoftinstance=i)
+        d.overwrite()
+
+        # check the call to find_device_by_mac_and_did()
+        args, kwargs = find_device_patch.call_args_list[0]
+        self.assertEqual(d.mac_address, kwargs['mac_address'])
+        self.assertEqual(d.did, kwargs['did'])
+        self.assertEqual(i, kwargs['broadsoftinstance'])
+
+        # device should have inherited a name at this point
+        self.assertEqual("Tim Beaver", d.name)
+
+        # since a name was inherited, delete() should have been called
+        self.assertTrue(delete_patch.called)
+
+    @unittest.mock.patch.object(Device, 'delete')
+    @unittest.mock.patch(
+        'broadsoft.requestobjects.GroupAccessDeviceGetListRequest.GroupAccessDeviceGetListRequest.find_device_by_mac_and_did',
+        side_effect=return_none)
+    def test_overwrite_when_no_name_and_fetch_returns_no_result(self, find_device_patch, delete_patch):
+        i = instance_factory(instance='test')
+        d = Device(mac_address='aabbcc112233', did=6175551212, broadsoftinstance=i)
+        d.overwrite()
+
+        # check the call to find_device_by_mac_and_did()
+        args, kwargs = find_device_patch.call_args_list[0]
+        self.assertEqual(d.mac_address, kwargs['mac_address'])
+        self.assertEqual(d.did, kwargs['did'])
+        self.assertEqual(i, kwargs['broadsoftinstance'])
+
+        # device should not have inherited a name at this point
+        self.assertIsNone(d.name)
+
+        # since a name was not inherited, delete() should not have been called
+        self.assertFalse(delete_patch.called)
+
+    @unittest.mock.patch.object(Device, 'delete')
+    @unittest.mock.patch(
+        'broadsoft.requestobjects.GroupAccessDeviceGetListRequest.GroupAccessDeviceGetListRequest.find_device_by_mac_and_did',
+        side_effect=return_find_device)
+    def test_overwrite_when_name_provided(self, find_device_patch, delete_patch):
+        i = instance_factory(instance='test')
+        d = Device(name='beaverphone', mac_address='aabbcc112233', did=6175551212, broadsoftinstance=i)
+        d.overwrite()
+
+        # should not have called find_device_by_mac_and_did() since have a name
+        self.assertFalse(find_device_patch.called)
+
+        # since a name was inherited, delete() should have been called
+        self.assertTrue(delete_patch.called)

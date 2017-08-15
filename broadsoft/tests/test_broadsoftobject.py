@@ -108,3 +108,25 @@ class TestBroadsoftObject(unittest.TestCase):
         b.xml = xml
         b.check_if_object_fetched()
         self.assertTrue(b.fetched)
+
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    @unittest.mock.patch.object(Device, 'overwrite')
+    def test_implicit_overwrite_respected(self, overwrite_patch, post_patch):
+        # doing this with a Device since raw BroadsoftObject doesn't have an overwrite or build_provision_request method
+
+        # with default value for implicit overwrite (False)
+        d = Device(mac_address='aabbcc112233', did=6175551212)
+        d.provision()
+        self.assertFalse(overwrite_patch.called)
+        overwrite_patch.called = False
+
+        # with False for implicit overwrite
+        d = Device(mac_address='aabbcc112233', did=6175551212, implicit_overwrite=False)
+        self.assertFalse(overwrite_patch.called)
+        d.provision()
+        overwrite_patch.called = False
+
+        # with True for implicit overwrite
+        d = Device(mac_address='aabbcc112233', did=6175551212, implicit_overwrite=True)
+        d.provision()
+        self.assertTrue(overwrite_patch.called)

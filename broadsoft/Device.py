@@ -4,7 +4,9 @@ from broadsoft.requestobjects.GroupAccessDeviceGetRequest import GroupAccessDevi
 from broadsoft.requestobjects.GroupAccessDeviceModifyRequest import GroupAccessDeviceModifyRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 from broadsoft.requestobjects.GroupAccessDeviceDeleteRequest import GroupAccessDeviceDeleteRequest
-
+from broadsoft.requestobjects.GroupAccessDeviceGetListRequest import GroupAccessDeviceGetListRequest
+import xml.etree.ElementTree as ET
+import logging
 
 class Device(BroadsoftObject):
     def __init__(self, name=None, type=None, description=None, mac_address=None, protocol=None,
@@ -34,6 +36,12 @@ class Device(BroadsoftObject):
         self.name = ade.findall('./accessDevice/deviceName')[0].text
         self.line_port = ade.findall('./linePort')[0].text
         self.is_primary = True
+
+    # running a GroupAccessDeviceGetListRequest.find_device_by_mac_and_did() returns
+    def bootstrap_find_result(self, result):
+        self.mac_address = result['MAC Address']
+        self.type = result['Device Type']
+        self.name = result['Device Name']
 
     # expects to get a result row, from running a UserSharedCallAppearanceGetRequest, which was run through
     # BroadsoftRequest.convert_results_table
@@ -94,6 +102,26 @@ class Device(BroadsoftObject):
         descs = self.xml.findall('./command/description')
         if len(descs) > 0:
             self.description = descs[0].text
+
+    def overwrite(self):
+        desc = "(name: " + str(self.name) + ", mac: " + str(self.mac_address) + ", did: " + str(self.mac_address) + ")"
+        logging.info("overwriting pre-existing devices " + desc, extra={'session_id': self.broadsoftinstance.session_id})
+
+        if self.name is None:
+            result = GroupAccessDeviceGetListRequest.find_device_by_mac_and_did(mac_address=self.mac_address, did=self.did,
+                                                                           broadsoftinstance=self.broadsoftinstance)
+            if result is not None:
+                self.bootstrap_find_result(result=result)
+                logging.info("overwriting pre-existing devices, lookup returned name " + str(self.name),
+                             extra={'session_id': self.broadsoftinstance.session_id})
+
+        if self.name is not None:
+            logging.info("overwriting pre-existing devices, running delete on " + str(self.name),
+                         extra={'session_id': self.broadsoftinstance.session_id})
+            self.delete()
+        else:
+            logging.info("overwriting pre-existing devices, no matches found for " + desc,
+                         extra={'session_id': self.broadsoftinstance.session_id})
 
     def set_password(self, did=None, sip_user_name=None, sip_password=None):
         if not did and not sip_user_name:

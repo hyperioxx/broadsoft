@@ -5,9 +5,10 @@ from broadsoft.requestobjects.lib.BroadsoftRequest import LogoutRequest
 
 
 class BroadsoftObject:
-    def __init__(self, xml=None, instance='prod', broadsoftinstance=None):
+    def __init__(self, xml=None, implicit_overwrite=False, instance='prod', broadsoftinstance=None):
         self.broadsoftinstance = broadsoftinstance
         self.fetched = None
+        self.implicit_overwrite = implicit_overwrite
         self.instance = instance
         self.xml = xml
         self.prep_attributes()
@@ -74,6 +75,9 @@ class BroadsoftObject:
             self.email = self.kname + '@mit.edu'
 
     def provision(self):
+        if self.implicit_overwrite:
+            self.overwrite()
+
         ro = self.build_provision_request()
         results = ro.post()
         return results
