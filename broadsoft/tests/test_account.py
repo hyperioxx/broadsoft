@@ -784,6 +784,7 @@ class TestBroadsoftAccount(unittest.TestCase):
             else:
                 self.assertFalse(d.is_primary)
             self.assertEqual('6175551212_' + str(d.index) + '@' + i.default_domain, d.line_port)
+            self.assertEqual('Generic SIP Phone', d.type)
             first_one = False
 
     @unittest.mock.patch.object(Account, 'set_device_passwords')

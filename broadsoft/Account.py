@@ -136,6 +136,7 @@ class Account(BroadsoftObject):
             d.did = self.did
             d.index = index
             d.name = str(d.did) + '_' + str(d.index)
+            d.type = 'Generic SIP Phone'
             d.derive_line_port()
 
             self.devices.append(d)
