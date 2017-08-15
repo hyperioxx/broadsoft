@@ -80,14 +80,9 @@ class Device(BroadsoftObject):
                                                                 broadsoftinstance=self.broadsoftinstance)
 
     def derive_line_port(self):
-        if self.did and self.index and self.mac_address and self.broadsoftinstance.default_domain:
-            from nettools.MACtools import MAC
-
+        if self.did and self.index and self.broadsoftinstance.default_domain:
             did = BroadsoftRequest.convert_phone_number(number=self.did)
-            m = MAC(mac=self.mac_address)
-            mac = m.bare_mac
-
-            self.line_port = str(did) + '_' + str(mac) + '_' + str(self.index) + '@' + self.broadsoftinstance.default_domain
+            self.line_port = str(did) + '_' + str(self.index) + '@' + self.broadsoftinstance.default_domain
 
     def fetch(self, target_name=None):
         if not target_name:

@@ -29,9 +29,10 @@ class Account(BroadsoftObject):
         'Voice Messaging User'
     ]
 
-    def __init__(self, did=None, extension=None, last_name=None, first_name=None,
+    def __init__(self, default_device_count=36, did=None, extension=None, last_name=None, first_name=None,
                  sip_user_id=None, kname=None, email=None, services=None,
                  sip_password=None, voicemail='broadsoft', voicemail_mwi=None, **kwargs):
+        self.default_device_count = default_device_count
         self.did = did
         self.email = email
         self.first_name = first_name
@@ -101,8 +102,9 @@ class Account(BroadsoftObject):
             for d in self.devices:
                 # error if missing line_port at this time
                 if d.line_port is None:
-                    raise RuntimeError("The device " + str(
-                        d) + " does not have a line_port specified. One can be automatically generated with a DID and MAC address.")
+                    raise RuntimeError("The device " + str(d)
+                                       + " does not have a line_port specified. One can be automatically "
+                                         "generated with a DID.")
 
                 # all devices get added to system
                 self.inject_broadsoftinstance(child=d)
@@ -124,6 +126,20 @@ class Account(BroadsoftObject):
             s.sip_user_id = self.sip_user_id
             s.services = self.services
             req_object.commands.append(s)
+
+    def attach_default_devices(self):
+        is_primary = True
+        for index in range(1, self.default_device_count + 1):
+            d = Device()
+            d.broadsoftinstance = self.broadsoftinstance
+            d.is_primary = is_primary
+            d.did = self.did
+            d.index = index
+            d.name = str(d.did) + '_' + str(d.index)
+            d.derive_line_port()
+
+            self.devices.append(d)
+            is_primary = False
 
     def build_provision_request(self):
         # going to do this as a compound request so that it's pseudo-atomic...if one fails, the rest should
@@ -281,6 +297,10 @@ class Account(BroadsoftObject):
         if not self.sip_password:
             self.generate_sip_password()
 
+        # each new account gets 36 non-specific devices attached to it. we're doing no device management in broadsoft.
+        if len(self.devices) == 0 or self.devices is None:
+            self.attach_default_devices()
+
         p = BroadsoftObject.provision(self)
 
         # Not making this part atomic since I want to leverage set_device_passwords(), so it gets called outside of
@@ -360,7 +380,7 @@ class Account(BroadsoftObject):
         return (first_name, last_name)
 
     @staticmethod
-    def thaw_from_db(user_record, device_records, voicemail='broadsoft', voicemail_mwi=True,
+    def thaw_from_db(user_record, voicemail='broadsoft', voicemail_mwi=True,
                      force_when_no_devices=False, **kwargs):
         from mitroles.MitRoles import MitRoles
 
@@ -381,6 +401,10 @@ class Account(BroadsoftObject):
         a.sip_password = user_record.password
         a.voicemail_mwi = voicemail_mwi
 
+        """
+        we're not building specific devices
+        all details will be held in our database 
+        
         # build the devices
         is_primary = True
         if device_records is not None:
@@ -402,5 +426,8 @@ class Account(BroadsoftObject):
 
         if len(a.devices) > 0 or force_when_no_devices:
             a.provision()
+        """
+
+        a.provision()
 
         return a

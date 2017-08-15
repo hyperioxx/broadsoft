@@ -745,8 +745,9 @@ class TestBroadsoftAccount(unittest.TestCase):
     @unittest.mock.patch.object(Account, 'set_device_passwords')
     @unittest.mock.patch.object(BroadsoftObject, 'provision')
     @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    @unittest.mock.patch.object(Account, 'attach_default_devices')
     def test_provision_handles_sip_password(
-            self, post_patch, provision_patch, set_device_passwords_patch
+            self, attach_default_devices_patch, post_patch, provision_patch, set_device_passwords_patch
     ):
         d1 = Device(name='d1name')
         d2 = Device(name='d2name')
@@ -758,6 +759,32 @@ class TestBroadsoftAccount(unittest.TestCase):
         a.devices = [d1, d2]
         a.provision()
         self.assertTrue(set_device_passwords_patch.called)
+
+        # devices were attached, so don't called attach_default_devices
+        self.assertFalse(attach_default_devices_patch.called)
+
+    @unittest.mock.patch.object(Account, 'set_device_passwords')
+    @unittest.mock.patch.object(BroadsoftObject, 'provision')
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    def test_provision_calls_attach_default_devices_when_none_provided(self, post_patch, provision_patch,
+                                                                       set_device_passwords_patch):
+        i = instance_factory(instance='test')
+        a = Account(did=6175551212, last_name='beaver', first_name='tim', sip_password='password',
+                    email='beaver@mit.edu', broadsoftinstance=i)
+        a.provision()
+        self.assertEqual(36, len(a.devices))
+
+        first_one = True
+        for d in a.devices:
+            self.assertEqual(type(i), type(d.broadsoftinstance))
+            self.assertIsInstance(d, Device)
+            self.assertEqual('6175551212', d.did)
+            if first_one:
+                self.assertTrue(d.is_primary)
+            else:
+                self.assertFalse(d.is_primary)
+            self.assertEqual('6175551212_' + str(d.index) + '@' + i.default_domain, d.line_port)
+            first_one = False
 
     @unittest.mock.patch.object(Account, 'set_device_passwords')
     @unittest.mock.patch.object(BroadsoftObject, 'provision')
@@ -1395,11 +1422,10 @@ class TestBroadsoftAccount(unittest.TestCase):
     @unittest.mock.patch.object(Account, 'provision')
     def test_thaw_from_db_passes_voicemail_mwi(self, account_provision_patch, roles_patch):
         u = fake_users_db_record()
-        d = fake_phone_db_record()
-        a = Account.thaw_from_db(user_record=u, device_records=[d], voicemail='broadsoft', voicemail_mwi=True)
+        a = Account.thaw_from_db(user_record=u, voicemail='broadsoft', voicemail_mwi=True)
         self.assertTrue(a.voicemail_mwi)
 
-        a = Account.thaw_from_db(user_record=u, device_records=[d], voicemail='broadsoft', voicemail_mwi=False)
+        a = Account.thaw_from_db(user_record=u, voicemail='broadsoft', voicemail_mwi=False)
         self.assertFalse(a.voicemail_mwi)
 
     @unittest.mock.patch.object(BroadsoftRequest, 'post')
@@ -1423,21 +1449,24 @@ class TestBroadsoftAccount(unittest.TestCase):
         d = fake_phone_db_record()
 
         # Device instance (test and prod)
-        a = Account.thaw_from_db(user_record=u, device_records=[d], instance='test')
+        a = Account.thaw_from_db(user_record=u, instance='test')
         self.assertIsInstance(a.broadsoftinstance, broadsoft.requestobjects.lib.BroadsoftRequest.TestBroadsoftInstance)
 
-        a = Account.thaw_from_db(user_record=u, device_records=[d], instance='prod')
+        a = Account.thaw_from_db(user_record=u, instance='prod')
         self.assertIsInstance(a.broadsoftinstance, broadsoft.requestobjects.lib.BroadsoftRequest.BroadsoftInstance)
 
         # broadsoft instance (test and prod)
         i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(instance='test')
-        a = Account.thaw_from_db(user_record=u, device_records=[d], broadsoftinstance=i)
+        a = Account.thaw_from_db(user_record=u, broadsoftinstance=i)
         self.assertIsInstance(a.broadsoftinstance, broadsoft.requestobjects.lib.BroadsoftRequest.TestBroadsoftInstance)
 
         i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(instance='prod')
-        a = Account.thaw_from_db(user_record=u, device_records=[d], broadsoftinstance=i)
+        a = Account.thaw_from_db(user_record=u, broadsoftinstance=i)
         self.assertIsInstance(a.broadsoftinstance, broadsoft.requestobjects.lib.BroadsoftRequest.BroadsoftInstance)
 
+    """
+    currently not creating specific devices
+    
     @unittest.mock.patch('mitroles.MitRoles.MitRoles.get_owners_for_did', side_effect=roles_mock)
     @unittest.mock.patch.object(BroadsoftRequest, 'post')
     def test_thaw_from_db_skips_inactive_devices(self, post_patch, roles_patch):
@@ -1454,7 +1483,11 @@ class TestBroadsoftAccount(unittest.TestCase):
         # should only see d2 in devices
         self.assertEqual(1, len(a.devices))
         self.assertEqual('d2', a.devices[0].name)
+    """
 
+    """
+    currently not creating specific devices
+    
     @unittest.mock.patch('mitroles.MitRoles.MitRoles.get_owners_for_did', side_effect=roles_mock)
     @unittest.mock.patch.object(Account, 'provision')
     def test_thaw_from_db_skips_provision_when_no_devices(self, provision_patch, roles_patch):
@@ -1467,6 +1500,7 @@ class TestBroadsoftAccount(unittest.TestCase):
         u = fake_users_db_record()
         a = Account.thaw_from_db(user_record=u, device_records=[], force_when_no_devices=True)
         self.assertTrue(provision_patch.called)
+    """
 
     @unittest.mock.patch('mitroles.MitRoles.MitRoles.get_owners_for_did', side_effect=roles_mock)
     @unittest.mock.patch.object(BroadsoftRequest, 'post')
@@ -1474,13 +1508,13 @@ class TestBroadsoftAccount(unittest.TestCase):
         # broadsoft
         u = fake_users_db_record()
         d = fake_phone_db_record()
-        a = Account.thaw_from_db(user_record=u, device_records=[d], voicemail='broadsoft')
+        a = Account.thaw_from_db(user_record=u, voicemail='broadsoft')
         self.assertEqual('broadsoft', a.voicemail)
 
         # unity
         u = fake_users_db_record()
         d = fake_phone_db_record()
-        a = Account.thaw_from_db(user_record=u, device_records=[d], voicemail='unity')
+        a = Account.thaw_from_db(user_record=u, voicemail='unity')
         self.assertEqual('unity', a.voicemail)
 
     @unittest.mock.patch('mitroles.MitRoles.MitRoles.get_owners_for_did', side_effect=roles_mock)
@@ -1496,6 +1530,9 @@ class TestBroadsoftAccount(unittest.TestCase):
         d2.hwaddr = 'ddeeff445566'
         d2.phone_type = 'hamburger'
 
+        """
+        currently not creating specific devices, especially when bulk importing
+        
         a = Account.thaw_from_db(user_record=u, device_records=[d1, d2], voicemail='broadsoft')
 
         self.assertEqual(a.did, '6175551212')
@@ -1527,12 +1564,28 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertEqual(d.type, 'hamburger')
         self.assertEqual(d.mac_address, 'ddeeff445566')
         self.assertEqual(d.line_port, d.did + '_' + d.mac_address + '_' + str(d.index) + '@' + d.broadsoftinstance.default_domain)
+        """
 
+        a = Account.thaw_from_db(user_record=u, voicemail='broadsoft')
+
+        self.assertEqual(a.did, '6175551212')
+        self.assertEqual(a.kname, 'beaver')
+        self.assertEqual(a.email, 'beaver@mit.edu')
+        self.assertEqual(a.first_name, 'Tim')
+        self.assertEqual(a.last_name, 'Beaver')
+        self.assertEqual(a.voicemail, 'broadsoft')
+        self.assertEqual(a.sip_password, '123456')
+        self.assertTrue(a.voicemail_mwi)
+
+    """
+    currently not creating specific devices
+    
     @unittest.mock.patch('mitroles.MitRoles.MitRoles.get_owners_for_did', side_effect=roles_mock)
     @unittest.mock.patch.object(BroadsoftRequest, 'post')
     def test_thaw_from_db_does_not_barf_when_no_devices(self, post_patch, roles_patch):
         u = fake_users_db_record()
         a = Account.thaw_from_db(user_record=u, device_records=None, voicemail='broadsoft')
+    """
 
     @unittest.mock.patch.object(Account, 'delete')
     def test_overwrite_when_no_sip_user_id_but_is_did(self, delete_patch):
@@ -1569,7 +1622,7 @@ class TestBroadsoftAccount(unittest.TestCase):
         # this will throw an error because we're mocking the __init__
         try:
             # with implict_overwrite True
-            Account.thaw_from_db(user_record=u, device_records=[d], voicemail='broadsoft', implicit_overwrite=True)
+            Account.thaw_from_db(user_record=u, voicemail='broadsoft', implicit_overwrite=True)
         except AttributeError:
             pass
         args, kwargs = account_init_patch.call_args_list[0]
@@ -1578,7 +1631,7 @@ class TestBroadsoftAccount(unittest.TestCase):
         # this will throw an error because we're mocking the __init__
         try:
             # with implict_overwrite False
-            Account.thaw_from_db(user_record=u, device_records=[d], voicemail='broadsoft', implicit_overwrite=False)
+            Account.thaw_from_db(user_record=u, voicemail='broadsoft', implicit_overwrite=False)
         except AttributeError:
             pass
         args, kwargs = account_init_patch.call_args_list[1]
