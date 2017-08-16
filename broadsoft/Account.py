@@ -141,12 +141,26 @@ class Account(BroadsoftObject):
             d.is_primary = is_primary
             d.did = self.did
             d.index = index
+            d.description = self.attach_default_devices__build_description()
             d.name = str(d.did) + '_' + str(d.index)
             d.type = 'Generic SIP Phone'
             d.derive_line_port()
 
             self.devices.append(d)
             is_primary = False
+
+    def attach_default_devices__build_description(self):
+        description = ''
+        if self.last_name:
+            description = self.last_name
+
+        if self.first_name:
+            if self.last_name:
+                description = self.first_name + ' ' + self.last_name
+            else:
+                description = self.first_name
+
+        return description
 
     def build_provision_request(self):
         # going to do this as a compound request so that it's pseudo-atomic...if one fails, the rest should

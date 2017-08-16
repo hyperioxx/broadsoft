@@ -795,6 +795,23 @@ class TestBroadsoftAccount(unittest.TestCase):
         # devices were attached, so don't called attach_default_devices
         self.assertFalse(attach_default_devices_patch.called)
 
+    def test_attach_default_devices__build_description(self):
+        i = instance_factory(instance='test')
+        a = Account(did=6175551212, last_name='beaver', first_name='tim', sip_password='password',
+                    email='beaver@mit.edu', broadsoftinstance=i)
+        desc = a.attach_default_devices__build_description()
+        self.assertEqual('tim beaver', desc)
+
+        a = Account(did=6175551212, first_name='tim', sip_password='password',
+                    email='beaver@mit.edu', broadsoftinstance=i)
+        desc = a.attach_default_devices__build_description()
+        self.assertEqual('tim', desc)
+
+        a = Account(did=6175551212, last_name='beaver', sip_password='password',
+                    email='beaver@mit.edu', broadsoftinstance=i)
+        desc = a.attach_default_devices__build_description()
+        self.assertEqual('beaver', desc)
+
     @unittest.mock.patch.object(Account, 'set_device_passwords')
     @unittest.mock.patch.object(BroadsoftObject, 'provision')
     @unittest.mock.patch.object(BroadsoftRequest, 'post')
@@ -817,6 +834,7 @@ class TestBroadsoftAccount(unittest.TestCase):
                 self.assertFalse(d.is_primary)
             self.assertEqual('6175551212_' + str(d.index) + '@' + i.default_domain, d.line_port)
             self.assertEqual('Generic SIP Phone', d.type)
+            self.assertEqual('tim beaver', d.description)
             first_one = False
 
     @unittest.mock.patch.object(Account, 'set_device_passwords')
