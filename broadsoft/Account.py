@@ -23,14 +23,16 @@ import logging
 class Account(BroadsoftObject):
     # these are optional broadsoft services that will get applied by default to every new
     # account
-    default_services = [
-        'Shared Call Appearance 10',
-        'Third-Party Voice Mail Support',
-        'Voice Messaging User'
-    ]
+    # default_services = [
+    #     'Shared Call Appearance 10',
+    #     'Third-Party Voice Mail Support',
+    #     'Voice Messaging User'
+    # ]
+    default_services = None
+    default_service_pack = 'MIT-Pack'
 
     def __init__(self, default_device_count=36, did=None, extension=None, last_name=None, first_name=None,
-                 sip_user_id=None, kname=None, email=None, services=None,
+                 sip_user_id=None, kname=None, email=None, services=None, service_pack=None,
                  sip_password=None, voicemail='broadsoft', voicemail_mwi=None, **kwargs):
         self.default_device_count = default_device_count
         self.did = did
@@ -38,6 +40,9 @@ class Account(BroadsoftObject):
         self.first_name = first_name
         self.kname = kname
         self.last_name = last_name
+        self.service_pack = self.default_service_pack
+        if service_pack:
+            self.service_pack = service_pack
         self.services = self.default_services
         if services:
             if type(services) == str:
@@ -119,12 +124,13 @@ class Account(BroadsoftObject):
                 self.link_sca_device(req_object=req_object, device=d)
 
     def add_services(self, req_object):
-        if self.services and len(self.services) > 0:
+        if self.services_defined():
             s = UserServiceAssignListRequest()
             self.inject_broadsoftinstance(child=s)
             s.did = self.did
             s.sip_user_id = self.sip_user_id
             s.services = self.services
+            s.service_pack = self.service_pack
             req_object.commands.append(s)
 
     def attach_default_devices(self):
@@ -313,6 +319,15 @@ class Account(BroadsoftObject):
         # Not making this part atomic since it seems reasonable to not make the entire request fail if this part does.
         if self.voicemail:
             v = self.activate_voicemail()
+
+    def services_defined(self):
+        if self.service_pack is not None:
+            return True
+
+        if self.services and len(self.services) > 0:
+            return True
+
+        return False
 
     def set_device_passwords(self, new_sip_password=None):
         if not self.sip_user_id and not self.did:

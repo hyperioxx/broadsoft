@@ -279,14 +279,38 @@ class TestBroadsoftAccount(unittest.TestCase):
         a = Account(services=['a'])
         self.assertEqual(['a'], a.services)
 
+    def test_services_defined(self):
+        a = Account()
+        a.services = []
+        a.service_pack = None
+        self.assertFalse(a.services_defined())
+
+        a.services = ['a']
+        self.assertTrue(a.services_defined())
+
+        a.services = 'a'
+        self.assertTrue(a.services_defined())
+
+        a.services = []
+        a.service_pack = 'powerpack'
+        self.assertTrue(a.services_defined())
+
+    def test_inherits_default_service_pack(self):
+        a = Account()
+        self.assertEqual(a.default_service_pack, a.service_pack)
+
+        a = Account(service_pack='gaga')
+        self.assertEqual('gaga', a.service_pack)
+
     def test_add_services(self):
-        # when no services specified, should get default services in UserServiceAssignListRequest object
+        # when no services/service_pack specified, should get default services in UserServiceAssignListRequest object
         a = Account()
         b = BroadsoftRequest()
         a.add_services(req_object=b)
         s = b.commands[0]
         self.assertIsInstance(s, UserServiceAssignListRequest)
         self.assertEqual(a.default_services, s.services)
+        self.assertEqual(a.default_service_pack, s.service_pack)
 
         # when services overridden, should get inserted
         a = Account(services=['a','b'])
@@ -295,6 +319,14 @@ class TestBroadsoftAccount(unittest.TestCase):
         s = b.commands[0]
         self.assertIsInstance(s, UserServiceAssignListRequest)
         self.assertEqual(['a','b'], s.services)
+
+        # when service_pack overridden, should get inserted
+        a = Account(service_pack='gaga')
+        b = BroadsoftRequest()
+        a.add_services(req_object=b)
+        s = b.commands[0]
+        self.assertIsInstance(s, UserServiceAssignListRequest)
+        self.assertEqual('gaga', s.service_pack)
 
     def test_link_primary_device(self):
         b = BroadsoftRequest()
@@ -804,10 +836,15 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertEqual('password', a.sip_password)
 
     def test_default_services(self):
-        self.assertEqual(3, len(Account.default_services))
-        self.assertIn('Shared Call Appearance 10', Account.default_services)
-        self.assertIn('Third-Party Voice Mail Support', Account.default_services)
-        self.assertIn('Voice Messaging User', Account.default_services)
+        # going with service pack, not individual services
+        self.assertIsNone(Account.default_services)
+        #self.assertEqual(3, len(Account.default_services))
+        #self.assertIn('Shared Call Appearance 10', Account.default_services)
+        #self.assertIn('Third-Party Voice Mail Support', Account.default_services)
+        #self.assertIn('Voice Messaging User', Account.default_services)
+
+    def test_default_service_pack(self):
+        self.assertEqual('MIT-Pack', Account.default_service_pack)
 
     def test_account_converts_did_at_init(self):
         a = Account(did=6175551212)
