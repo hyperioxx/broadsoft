@@ -99,6 +99,9 @@ class Device(BroadsoftObject):
             self.description = descs[0].text
 
     def overwrite(self):
+        logging.info("overwriting for pre-existing devices is currently disabled (no device handling expected in broadosoft)",
+                     extra={'session_id': self.broadsoftinstance.session_id})
+        """
         desc = "(name: " + str(self.name) + ", mac: " + str(self.mac_address) + ", did: " + str(self.mac_address) + ")"
         logging.info("overwriting pre-existing devices " + desc, extra={'session_id': self.broadsoftinstance.session_id})
 
@@ -117,6 +120,7 @@ class Device(BroadsoftObject):
         else:
             logging.info("overwriting pre-existing devices, no matches found for " + desc,
                          extra={'session_id': self.broadsoftinstance.session_id})
+        """
 
     def set_password(self, did=None, sip_user_name=None, sip_password=None):
         if not did and not sip_user_name:

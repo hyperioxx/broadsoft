@@ -365,17 +365,20 @@ class TestBroadsoftDevice(unittest.TestCase):
         d = Device(mac_address='aabbcc112233', did=6175551212, broadsoftinstance=i)
         d.overwrite()
 
+        # --- actually, skipping overwrite for Device as we're not expecting to do device management in broadsoft
+        self.assertFalse(delete_patch.called)
+
         # check the call to find_device_by_mac_and_did()
-        args, kwargs = find_device_patch.call_args_list[0]
-        self.assertEqual(d.mac_address, kwargs['mac_address'])
-        self.assertEqual(d.did, kwargs['did'])
-        self.assertEqual(i, kwargs['broadsoftinstance'])
+        # args, kwargs = find_device_patch.call_args_list[0]
+        # self.assertEqual(d.mac_address, kwargs['mac_address'])
+        # self.assertEqual(d.did, kwargs['did'])
+        # self.assertEqual(i, kwargs['broadsoftinstance'])
 
         # device should have inherited a name at this point
-        self.assertEqual("Tim Beaver", d.name)
+        # self.assertEqual("Tim Beaver", d.name)
 
         # since a name was inherited, delete() should have been called
-        self.assertTrue(delete_patch.called)
+        # self.assertTrue(delete_patch.called)
 
     @unittest.mock.patch.object(Device, 'delete')
     @unittest.mock.patch(
@@ -386,11 +389,14 @@ class TestBroadsoftDevice(unittest.TestCase):
         d = Device(mac_address='aabbcc112233', did=6175551212, broadsoftinstance=i)
         d.overwrite()
 
+        # --- actually, skipping overwrite for Device as we're not expecting to do device management in broadsoft
+        self.assertFalse(delete_patch.called)
+
         # check the call to find_device_by_mac_and_did()
-        args, kwargs = find_device_patch.call_args_list[0]
-        self.assertEqual(d.mac_address, kwargs['mac_address'])
-        self.assertEqual(d.did, kwargs['did'])
-        self.assertEqual(i, kwargs['broadsoftinstance'])
+        # args, kwargs = find_device_patch.call_args_list[0]
+        # self.assertEqual(d.mac_address, kwargs['mac_address'])
+        # self.assertEqual(d.did, kwargs['did'])
+        # self.assertEqual(i, kwargs['broadsoftinstance'])
 
         # device should not have inherited a name at this point
         self.assertIsNone(d.name)
@@ -411,4 +417,6 @@ class TestBroadsoftDevice(unittest.TestCase):
         self.assertFalse(find_device_patch.called)
 
         # since a name was inherited, delete() should have been called
-        self.assertTrue(delete_patch.called)
+        # self.assertTrue(delete_patch.called)
+        # --- actually, skipping overwrite for Device as we're not expecting to do device management in broadsoft
+        self.assertFalse(delete_patch.called)
