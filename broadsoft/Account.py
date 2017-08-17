@@ -145,6 +145,8 @@ class Account(BroadsoftObject):
             d.name = str(d.did) + '_' + str(d.index)
             d.type = 'Generic SIP Phone'
             d.derive_line_port()
+            d.implicit_overwrite = False
+            d.skip_if_exists = True
 
             self.devices.append(d)
             is_primary = False
