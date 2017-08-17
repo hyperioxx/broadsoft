@@ -221,3 +221,49 @@ class TestBroadsoftObject(unittest.TestCase):
         a = Account(did=6175551212, skip_if_exists=False, email='beaver@mit.edu')
         with self.assertRaises(RuntimeError):
             a.provision()
+
+    def test_paginate_request(self):
+        import math
+
+        a = Account()
+        a.did = 6175551212
+        a.kname = 'beaver'
+        a.email = 'beaver@mit.edu'
+        a.first_name = 'Time'
+        a.last_name = 'Beaver'
+        a.voicemail = 'broadsoft'
+        a.sip_password = 'blah'
+        a.voicemail_mwi = True
+        a.prep_attributes()
+        a.generate_sip_password()
+        a.attach_default_devices()
+
+        req = a.build_provision_request()
+        reqs = a.paginate_request(request=req)
+
+        expected_fragments = math.ceil(len(req.commands) / BroadsoftRequest.max_commands_per_request)
+        self.assertEqual(expected_fragments, len(reqs))
+
+        for r in reqs:
+            self.assertLessEqual(len(r.commands), BroadsoftRequest.max_commands_per_request)
+            self.assertIsInstance(r, BroadsoftRequest)
+
+    @unittest.mock.patch.object(BroadsoftObject, 'paginate_request')
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    @unittest.mock.patch.object(Account, 'overwrite')
+    def test_provision_should_paginate_large_command_set(self, overwrite_patch, post_patch, paginate_patch):
+        a = Account()
+        a.did = 6175551212
+        a.kname = 'beaver'
+        a.email = 'beaver@mit.edu'
+        a.first_name = 'Time'
+        a.last_name = 'Beaver'
+        a.voicemail = 'broadsoft'
+        a.sip_password = 'blah'
+        a.voicemail_mwi = True
+        a.prep_attributes()
+        a.generate_sip_password()
+        a.attach_default_devices()
+        a.provision()
+
+        self.assertTrue(paginate_patch.called)

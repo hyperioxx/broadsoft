@@ -24,6 +24,7 @@ class BroadsoftRequest(XmlDocument):
     logging_fname = 'api.log'
     default_timezone = 'America/New_York'
     check_success = False
+    max_commands_per_request = 15
     skip_fetch_error = False
     skip_fetch_error_head = None
 

@@ -2,6 +2,8 @@ import xml.etree.ElementTree as ET
 import broadsoft.requestobjects.lib.BroadsoftRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import LogoutRequest
+import logging
+import copy
 
 
 class BroadsoftObject:
@@ -59,6 +61,35 @@ class BroadsoftObject:
     def logout(self):
         l = LogoutRequest.logout(broadsoftinstance=self.broadsoftinstance)
 
+    # looks like we can't pass more than 15 commands in a request; here we break
+    # up requests with more than that
+    def paginate_request(self, request):
+        # split out the commands based on the max listed in BroadsoftRequest.max_commands_per_request
+        command_pages = []
+        command_page = []
+        for c in request.commands:
+            command_page.append(c)
+            if len(command_page) == BroadsoftRequest.max_commands_per_request:
+                command_pages.append(command_page)
+                command_page = []
+
+        # catch last page if needed
+        if len(command_page) > 0:
+            command_pages.append(command_page)
+            command_page = []
+
+        # now build individual requests that are clones of the original, but with a single page of commands
+        requests = []
+        for page in command_pages:
+            paged_request = copy.deepcopy(request)
+            paged_request.commands = page
+            requests.append(paged_request)
+
+        if len(requests) > 1:
+            logging.info("request has been paginated; atomicity not preserved", extra={'session_id': self.broadsoftinstance.session_id})
+
+        return requests
+
     def prep_attributes(self):
         if self.broadsoftinstance is None:
             self.broadsoftinstance = self.derive_broadsoft_instance(instance=self.instance)
@@ -79,19 +110,19 @@ class BroadsoftObject:
         if self.implicit_overwrite:
             self.overwrite()
 
-        ro = self.build_provision_request()
+        request_object = self.build_provision_request()
+        request_objects = self.paginate_request(request=request_object)
 
-        results = None
+        for request_object in request_objects:
+            try:
+                request_object.post()
 
-        try:
-            results = ro.post()
+            except RuntimeError as e:
+                if self.should_skip_error(error=str(e)):
+                    pass
 
-        except RuntimeError as e:
-            if self.should_skip_error(error=str(e)):
-                pass
-
-            else:
-                raise(e)
+                else:
+                    raise(e)
 
     @staticmethod
     def derive_broadsoft_instance(instance='prod'):
