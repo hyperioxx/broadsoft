@@ -75,11 +75,11 @@ class UserAddRequest(BroadsoftRequest):
         if self.sip_user_id is None:
             raise ValueError("can't run broadsoft.UserAddRequest.to_xml() without a value for sip_user_id.")
 
-        if self.first_name is None:
-            raise ValueError("can't run broadsoft.UserAddRequest.to_xml() without a value for first_name")
+        # if self.first_name is None:
+        #    raise ValueError("can't run broadsoft.UserAddRequest.to_xml() without a value for first_name")
 
-        if self.last_name is None:
-            raise ValueError("can't run broadsoft.UserAddRequest.to_xml() without a value for last_name")
+        # if self.last_name is None:
+        #    raise ValueError("can't run broadsoft.UserAddRequest.to_xml() without a value for last_name")
 
         if self.sip_password is None:
             raise ValueError("can't run broadsoft.UserAddRequest.to_xml() without a value for sip_password")
