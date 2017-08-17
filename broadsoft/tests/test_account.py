@@ -1373,8 +1373,11 @@ class TestBroadsoftAccount(unittest.TestCase):
         request = requests[0]
 
         # expect to see three commands in the request, the latter two for the devices
-        self.assertEqual(3, len(request.commands))
+        #self.assertEqual(3, len(request.commands))
+        # -- no longer handling device deletions here
+        self.assertEqual(1, len(request.commands))
 
+        """
         delete_device_1 = request.commands[1]
         self.assertIsInstance(delete_device_1, GroupAccessDeviceDeleteRequest)
         self.assertEqual('dname1', delete_device_1.device_name)
@@ -1382,6 +1385,8 @@ class TestBroadsoftAccount(unittest.TestCase):
         delete_device_2 = request.commands[2]
         self.assertIsInstance(delete_device_2, GroupAccessDeviceDeleteRequest)
         self.assertEqual('dname2', delete_device_2.device_name)
+        self.assertEqual(3, len(request.commands))
+        """
 
     @unittest.mock.patch.object(Account, 'load_devices', side_effect=return_empty_array)
     @unittest.mock.patch.object(BroadsoftRequest, 'post')
