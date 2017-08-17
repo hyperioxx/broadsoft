@@ -222,9 +222,11 @@ class Account(BroadsoftObject):
         user = UserDeleteRequest(sip_user_id=self.sip_user_id)
         b.commands = [user]
 
+        # -- doing no device management in broadsoft, therefore no need for
+        # -- "clear the decks behavior"...create device. Exists already? Fine.
         # for each device, add XML for device deletion
-        for d in self.devices:
-            b.commands.append(d.delete(bundle=True))
+        # for d in self.devices:
+        #    b.commands.append(d.delete(bundle=True))
 
         b.post()
         return [b]
