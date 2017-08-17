@@ -5,11 +5,12 @@ from broadsoft.requestobjects.lib.BroadsoftRequest import LogoutRequest
 
 
 class BroadsoftObject:
-    def __init__(self, xml=None, implicit_overwrite=False, instance='prod', broadsoftinstance=None):
+    def __init__(self, xml=None, implicit_overwrite=False, skip_if_exists=False, instance='prod', broadsoftinstance=None):
         self.broadsoftinstance = broadsoftinstance
         self.fetched = None
         self.implicit_overwrite = implicit_overwrite
         self.instance = instance
+        self.skip_if_exists = skip_if_exists
         self.xml = xml
         self.prep_attributes()
 
@@ -79,7 +80,19 @@ class BroadsoftObject:
             self.overwrite()
 
         ro = self.build_provision_request()
-        results = ro.post()
+
+        results = None
+
+        try:
+            results = ro.post()
+
+        except RuntimeError as e:
+            if self.should_skip_error(error=str(e)):
+                pass
+
+            else:
+                raise(e)
+
         return results
 
     @staticmethod

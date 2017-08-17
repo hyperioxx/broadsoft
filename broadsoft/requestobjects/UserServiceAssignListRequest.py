@@ -31,9 +31,10 @@ class UserServiceAssignListRequest(BroadsoftRequest):
             sp = ET.SubElement(cmd, 'servicePackName')
             sp.text = self.service_pack
 
-        for s in self.services:
-            sn = ET.SubElement(cmd, 'serviceName')
-            sn.text = s
+        if self.services is not None:
+            for s in self.services:
+                sn = ET.SubElement(cmd, 'serviceName')
+                sn.text = s
 
         return cmd
 

@@ -8,9 +8,11 @@ from broadsoft.requestobjects.GroupAccessDeviceGetListRequest import GroupAccess
 import xml.etree.ElementTree as ET
 import logging
 
+
 class Device(BroadsoftObject):
     def __init__(self, name=None, type=None, description=None, mac_address=None, protocol=None,
-                 transport_protocol=None, line_port=None, is_primary=None, did=None, index=1, **kwargs):
+                 transport_protocol=None, line_port=None, is_primary=None, did=None, index=1, skip_if_exists=True,
+                 **kwargs):
         self.description = description
         self.did = did
         self.index = index              # defaults to 1; the number of appearances for a given DID on a given device,
@@ -25,7 +27,7 @@ class Device(BroadsoftObject):
         self.protocol = protocol
         self.transport_protocol = transport_protocol
 
-        BroadsoftObject.__init__(self, **kwargs)
+        BroadsoftObject.__init__(self, skip_if_exists=skip_if_exists, **kwargs)
         self.derive_line_port()
 
     def __repr__(self):
@@ -139,3 +141,11 @@ class Device(BroadsoftObject):
                                            sip_password=sip_password)
         self.inject_broadsoftinstance(child=g)
         g.post()
+
+    def should_skip_error(self, error):
+        skip = False
+        if self.skip_if_exists:
+            if 'RuntimeError: the SOAP server threw an error: [Error 4500] Access Device already exists:' in error:
+                skip = True
+
+        return skip

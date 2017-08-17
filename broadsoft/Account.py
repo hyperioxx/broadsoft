@@ -376,6 +376,14 @@ class Account(BroadsoftObject):
         UserModifyRequest.set_password(did=self.did, sip_user_id=self.sip_user_id, new_password=new_password,
                                        broadsoftinstance=self.broadsoftinstance)
 
+    def should_skip_error(self, error):
+        skip = False
+        if self.skip_if_exists:
+            if 'RuntimeError: the SOAP server threw an error: [Error 4200] User already exists: ' in error:
+                skip = True
+
+        return skip
+
     @staticmethod
     def get_accounts(instance='prod', **kwargs):
         if 'broadsoftinstance' not in kwargs or kwargs['broadsoftinstance'] is None:

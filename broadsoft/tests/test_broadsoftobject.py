@@ -13,7 +13,6 @@ from broadsoft.requestobjects.lib.BroadsoftRequest import instance_factory
 def return_none(*args, **kwargs):
     return None
 
-
 class TestBroadsoftObject(unittest.TestCase):
     @unittest.mock.patch.object(BroadsoftObject, 'prep_attributes')
     def test_pass_broadsoftinstance(
@@ -154,3 +153,71 @@ class TestBroadsoftObject(unittest.TestCase):
         a = Account(did=6175551212, sip_user_id='6175551212@broadsoft-dev.mit.edu', email='beaver@mit.edu', implicit_overwrite=True, broadsoftinstance=i)
         a.provision()
         self.assertTrue(account_overwrite_patch.called)
+
+    def test_skip_if_exists_set_attr(self):
+        # Account should default to no
+        a = Account()
+        self.assertFalse(a.skip_if_exists)
+
+        # Device should default to yes
+        d = Device()
+        self.assertTrue(d.skip_if_exists)
+
+        # Can override Account
+        a = Account(skip_if_exists=True)
+        self.assertTrue(a.skip_if_exists)
+
+        # Can override Device
+        d = Device(skip_if_exists=False)
+        self.assertFalse(d.skip_if_exists)
+
+    def test_device_should_skip_error(self):
+        d = Device(skip_if_exists=True)
+        self.assertFalse(d.should_skip_error(error='blah'))
+        self.assertTrue(d.should_skip_error(error='RuntimeError: the SOAP server threw an error: [Error 4500] Access Device already exists: 6173000066_1 :: [Error 4500] Access Device already exists: 6173000066_1 :: None'))
+
+        d = Device(skip_if_exists=False)
+        self.assertFalse(d.should_skip_error(error='blah'))
+        self.assertFalse(d.should_skip_error(
+            error='RuntimeError: the SOAP server threw an error: [Error 4500] Access Device already exists: 6173000066_1 :: [Error 4500] Access Device already exists: 6173000066_1 :: None'))
+
+    def test_account_should_skip_error(self):
+        a = Account(skip_if_exists=True)
+        self.assertFalse(a.should_skip_error(error='blah'))
+        self.assertTrue(a.should_skip_error(
+            error='RuntimeError: the SOAP server threw an error: [Error 4200] User already exists: 6175551212@broadsoft-dev.mit.edu :: [Error 4200] User already exists: 6175551212@broadsoft-dev.mit.edu :: None'))
+
+        a = Account(skip_if_exists=False)
+        self.assertFalse(a.should_skip_error(error='blah'))
+        self.assertFalse(a.should_skip_error(
+            error='RuntimeError: the SOAP server threw an error: [Error 4200] User already exists: 6175551212@broadsoft-dev.mit.edu :: [Error 4200] User already exists: 6175551212@broadsoft-dev.mit.edu :: None'))
+
+    @unittest.mock.patch('broadsoft.requestobjects.lib.BroadsoftRequest.BroadsoftRequest.post',
+                         side_effect=RuntimeError('RuntimeError: the SOAP server threw an error: [Error 4500] Access Device already exists: 6173000066_1 :: [Error 4500] Access Device already exists: 6173000066_1 :: None'))
+    def test_skip_if_exists_for_device(self, post_patch):
+        # this should not throw an error
+        d = Device(skip_if_exists=True)
+        d.provision()
+
+        # this should throw an error
+        d = Device(skip_if_exists=False)
+        with self.assertRaises(RuntimeError):
+            d.provision()
+
+    @unittest.mock.patch.object(Account, 'activate_voicemail')
+    @unittest.mock.patch.object(Account, 'set_device_passwords')
+    @unittest.mock.patch.object(Account, 'attach_default_devices')
+    @unittest.mock.patch.object(Account, 'generate_sip_password')
+    @unittest.mock.patch('broadsoft.requestobjects.lib.BroadsoftRequest.BroadsoftRequest.post',
+                         side_effect=RuntimeError(
+                             'RuntimeError: the SOAP server threw an error: [Error 4200] User already exists: 6175551212@broadsoft-dev.mit.edu :: [Error 4200] User already exists: 6175551212@broadsoft-dev.mit.edu :: None'))
+    def test_skip_if_exists_for_account(self, post_patch, gen_pwd_patch, attach_devices_patch, set_pwd_patch,
+                                        vmail_patch):
+        # this should not throw an error
+        a = Account(did=6175551212, skip_if_exists=True, email='beaver@mit.edu')
+        a.provision()
+
+        # this should throw an error
+        a = Account(did=6175551212, skip_if_exists=False, email='beaver@mit.edu')
+        with self.assertRaises(RuntimeError):
+            a.provision()

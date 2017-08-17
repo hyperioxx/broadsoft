@@ -33,6 +33,7 @@ class TestBroadsoftUserServiceAssignListRequest(unittest.TestCase):
             u.validate()
 
     def test_build_command_xml(self):
+        # services as list length 1
         u = UserServiceAssignListRequest()
         u.services = ['a']
         u.sip_user_id = '6175551212@broadsoft.mit.edu'
@@ -45,6 +46,7 @@ class TestBroadsoftUserServiceAssignListRequest(unittest.TestCase):
             '</command>'
         )
 
+        # services as list length 2
         u = UserServiceAssignListRequest()
         u.services = ['a','b']
         u.sip_user_id = '6175551212@broadsoft.mit.edu'
@@ -58,7 +60,22 @@ class TestBroadsoftUserServiceAssignListRequest(unittest.TestCase):
             '</command>'
         )
 
+        # default blank services
         u = UserServiceAssignListRequest()
+        u.service_pack = 'powerpack'
+        u.sip_user_id = '6175551212@broadsoft.mit.edu'
+        cmd = u.build_command_xml()
+        self.assertEqual(
+            ET.tostring(cmd).decode('utf-8'),
+            '<command xmlns="" xsi:type="UserServiceAssignListRequest">' +
+            '<userId>6175551212@broadsoft.mit.edu</userId>' +
+            '<servicePackName>powerpack</servicePackName>'
+            '</command>'
+        )
+
+        # explicitly set services to None
+        u = UserServiceAssignListRequest()
+        u.services = None
         u.service_pack = 'powerpack'
         u.sip_user_id = '6175551212@broadsoft.mit.edu'
         cmd = u.build_command_xml()
