@@ -79,6 +79,8 @@ if you want to manage login (such as to keep session open for multiple requests)
 good form to do a logout when you're done
 
 how to do bulk requests with atomicity (drawn from populatebroadsoft code)
+    note if large number will paginate, effectively killing atomicity
+    add that to comments as well
     
 how the requestobjects work, how to create a new one
     discuss login fuctionality

@@ -335,17 +335,17 @@ class Account(BroadsoftObject):
         if len(self.devices) == 0 or self.devices is None:
             self.attach_default_devices()
 
-        p = BroadsoftObject.provision(self)
+        BroadsoftObject.provision(self)
 
         # Not making this part atomic since I want to leverage set_device_passwords(), so it gets called outside of
         # build_provision_request. Seems reasonable to not make the entire request fail if this part does anyway.
         if self.sip_password:
-            p = self.set_device_passwords(new_sip_password=self.sip_password)
+            self.set_device_passwords(new_sip_password=self.sip_password)
 
         # set up voicemail
         # Not making this part atomic since it seems reasonable to not make the entire request fail if this part does.
         if self.voicemail:
-            v = self.activate_voicemail()
+            self.activate_voicemail()
 
     def services_defined(self):
         if self.service_pack is not None:

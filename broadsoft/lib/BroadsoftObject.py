@@ -93,8 +93,6 @@ class BroadsoftObject:
             else:
                 raise(e)
 
-        return results
-
     @staticmethod
     def derive_broadsoft_instance(instance='prod'):
         return broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(instance=instance)
