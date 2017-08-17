@@ -319,11 +319,9 @@ class Account(BroadsoftObject):
                 self.delete()
 
             except RuntimeError as e:
-                if 'RuntimeError: the SOAP server threw an error: [Error 4008] User not found: ' in str(e):
-                    pass
-
-                else:
+                if 'RuntimeError: the SOAP server threw an error: [Error 4008] User not found: ' not in str(e):
                     raise(e)
+                pass
 
     def provision(self):
         BroadsoftObject.prep_attributes(self)
