@@ -314,7 +314,16 @@ class Account(BroadsoftObject):
             logging.info("overwriting pre-existing account for DID: " + str(self.did) +
                          ", executing",
                          extra={'session_id': self.broadsoftinstance.session_id})
-            self.delete()
+
+            try:
+                self.delete()
+
+            except RuntimeError as e:
+                if 'RuntimeError: the SOAP server threw an error: [Error 4008] User not found: ' in str(e):
+                    pass
+
+                else:
+                    raise(e)
 
     def provision(self):
         BroadsoftObject.prep_attributes(self)

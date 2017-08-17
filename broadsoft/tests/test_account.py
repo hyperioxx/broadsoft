@@ -1697,3 +1697,9 @@ class TestBroadsoftAccount(unittest.TestCase):
             pass
         args, kwargs = account_init_patch.call_args_list[1]
         self.assertFalse(kwargs['implicit_overwrite'])
+
+    @unittest.mock.patch.object(Account, 'delete', side_effect=RuntimeError('RuntimeError: the SOAP server threw an error: [Error 4008] User not found: 6175551212@broadsoft-dev.mit.edu :: [Error 4008] User not found: 6175551212@broadsoft-dev.mit.edu :: None'))
+    def test_overwrite_skips_does_not_exist_error(self, delete_patch):
+        # should see no error here
+        a = Account(sip_user_id='6175551212@broadsoft.mit.edu')
+        a.overwrite()
