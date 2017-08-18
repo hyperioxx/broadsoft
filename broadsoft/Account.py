@@ -387,14 +387,6 @@ class Account(BroadsoftObject):
         UserModifyRequest.set_password(did=self.did, sip_user_id=self.sip_user_id, new_password=new_password,
                                        broadsoftinstance=self.broadsoftinstance)
 
-    def should_skip_error(self, error):
-        skip = False
-        if self.skip_if_exists:
-            if 'RuntimeError: the SOAP server threw an error: [Error 4200] User already exists: ' in error:
-                skip = True
-
-        return skip
-
     @staticmethod
     def get_accounts(instance='prod', **kwargs):
         if 'broadsoftinstance' not in kwargs or kwargs['broadsoftinstance'] is None:
@@ -430,7 +422,7 @@ class Account(BroadsoftObject):
 
     @staticmethod
     def thaw_from_db(user_record, voicemail='broadsoft', voicemail_mwi=True,
-                     force_when_no_devices=False, **kwargs):
+                     force_when_no_devices=False, skip_if_exists=True, **kwargs):
         from mitroles.MitRoles import MitRoles
 
         (firstname, lastname) = Account.split_name(name=user_record.display_name)
@@ -440,7 +432,7 @@ class Account(BroadsoftObject):
         owner = owners[0]
 
         # build the user
-        a = Account(**kwargs)
+        a = Account(skip_if_exists=skip_if_exists, **kwargs)
         a.did = user_record.did
         a.kname = owner
         a.email = owner + '@mit.edu'

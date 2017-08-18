@@ -4,6 +4,7 @@ from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import LogoutRequest
 import logging
 import copy
+import re
 
 
 class BroadsoftObject:
@@ -123,6 +124,14 @@ class BroadsoftObject:
 
                 else:
                     raise(e)
+
+    def should_skip_error(self, error):
+        skip = False
+        if self.skip_if_exists:
+            if re.match(r'the SOAP server threw an error: \[Error 4[25]00\] .+? already exists:.+$', error):
+                skip = True
+
+        return skip
 
     @staticmethod
     def derive_broadsoft_instance(instance='prod'):

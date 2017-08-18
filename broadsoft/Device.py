@@ -7,6 +7,7 @@ from broadsoft.requestobjects.GroupAccessDeviceDeleteRequest import GroupAccessD
 from broadsoft.requestobjects.GroupAccessDeviceGetListRequest import GroupAccessDeviceGetListRequest
 import xml.etree.ElementTree as ET
 import logging
+import re
 
 
 class Device(BroadsoftObject):
@@ -141,11 +142,3 @@ class Device(BroadsoftObject):
                                            sip_password=sip_password)
         self.inject_broadsoftinstance(child=g)
         g.post()
-
-    def should_skip_error(self, error):
-        skip = False
-        if self.skip_if_exists:
-            if 'RuntimeError: the SOAP server threw an error: [Error 4500] Access Device already exists:' in error:
-                skip = True
-
-        return skip
