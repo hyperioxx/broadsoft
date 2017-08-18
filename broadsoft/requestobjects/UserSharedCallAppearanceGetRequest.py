@@ -31,4 +31,4 @@ class UserSharedCallAppearanceGetRequest(BroadsoftRequest):
     def get_devices(sip_user_id=None, **kwargs):
         u = UserSharedCallAppearanceGetRequest(sip_user_id=sip_user_id, **kwargs)
         xml = u.post()
-        return xml
+        return BroadsoftRequest.convert_results_table(xml=xml)

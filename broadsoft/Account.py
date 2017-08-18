@@ -16,6 +16,7 @@ from broadsoft.requestobjects.UserThirdPartyVoiceMailSupportModifyRequest import
     UserThirdPartyVoiceMailSupportModifyRequest
 from broadsoft.requestobjects.UserDeleteRequest import UserDeleteRequest
 from broadsoft.requestobjects.UserGetListInGroupRequest import UserGetListInGroupRequest
+from broadsoft.requestobjects.UserSharedCallAppearanceDeleteEndpointListRequest import UserSharedCallAppearanceDeleteEndpointListRequest
 import re
 import logging
 
@@ -103,6 +104,21 @@ class Account(BroadsoftObject):
         return [b]
 
     def add_devices(self, req_object):
+        # delete primary device first so we don't run into "Exceeded maximum number of allowed appearances" error
+        # raise NotImplemented("delete primary device")
+
+        # delete all shared call appearances applied to user
+        d_list = UserSharedCallAppearanceGetRequest.get_devices(broadsoftinstance=self.broadsoftinstance,
+                                                           sip_user_id=self.sip_user_id)
+        if len(d_list) > 0:
+            devices = []
+            for r in d_list:
+                device = {'line_port': r['Line/Port'], 'name': r['Device Name']}
+                devices.append(device)
+            del_d = UserSharedCallAppearanceDeleteEndpointListRequest(broadsoftinstance=self.broadsoftinstance,
+                                                                      sip_user_id=self.sip_user_id, devices=devices)
+            req_object.commands.append(del_d)
+
         if len(self.devices) > 0:
             for d in self.devices:
                 # error if missing line_port at this time
@@ -111,10 +127,10 @@ class Account(BroadsoftObject):
                                        + " does not have a line_port specified. One can be automatically "
                                          "generated with a DID.")
 
-                # all devices get added to system
+                # insert the add request
                 self.inject_broadsoftinstance(child=d)
-                d_ro = d.build_provision_request()
-                req_object.commands.append(d_ro)
+                add_d = d.build_provision_request()
+                req_object.commands.append(add_d)
 
             # first device gets associated directly with user
             self.link_primary_device(req_object=req_object, device=self.devices[0])
@@ -319,7 +335,7 @@ class Account(BroadsoftObject):
                 self.delete()
 
             except RuntimeError as e:
-                if 'RuntimeError: the SOAP server threw an error: [Error 4008] User not found: ' not in str(e):
+                if 'the SOAP server threw an error: [Error 4008] User not found: ' not in str(e):
                     raise(e)
                 pass
 
@@ -368,8 +384,9 @@ class Account(BroadsoftObject):
             self.load_devices()
 
         for d in self.devices:
-            self.inject_broadsoftinstance(child=d)
-            d.set_password(sip_user_name=self.sip_user_id, did=self.did, sip_password=new_sip_password)
+            if d.is_primary:
+                self.inject_broadsoftinstance(child=d)
+                d.set_password(sip_user_name=self.sip_user_id, did=self.did, sip_password=new_sip_password)
 
     def set_portal_password(self, sip_password=None):
         new_password = sip_password

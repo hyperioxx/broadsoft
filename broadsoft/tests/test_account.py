@@ -1703,3 +1703,8 @@ class TestBroadsoftAccount(unittest.TestCase):
         # should see no error here
         a = Account(sip_user_id='6175551212@broadsoft.mit.edu')
         a.overwrite()
+
+    def test_fix_changes(self):
+        # in Account.add_devices, test the deletion of SCAs
+        # in set_device_passwords(), currently only doing so for primary phone...wait for response from bsoft as to whether that's necessary
+        self.assertFalse("write this")
