@@ -100,6 +100,7 @@ class GroupAccessDeviceGetListRequest(SearchRequest):
 
     @staticmethod
     def list_devices(**kwargs):
+        from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
         g = GroupAccessDeviceGetListRequest(**kwargs)
         xml = g.post()
-        return xml
+        return BroadsoftRequest.convert_results_table(xml=xml)
