@@ -143,6 +143,7 @@ class BroadsoftRequest(XmlDocument):
         import os
         from logging.handlers import TimedRotatingFileHandler
 
+
         # does the log location exist
         if not os.path.exists(self.logging_dir):
             os.makedirs(name=self.logging_dir, exist_ok=True)
@@ -159,6 +160,7 @@ class BroadsoftRequest(XmlDocument):
                                            interval=1,
                                            backupCount=12)
         logger.addHandler(handler)
+        return logger
 
     def derive_commands(self):
         # determine source of commands we'll be injecting into the master XML document
@@ -449,6 +451,11 @@ class BroadsoftRequest(XmlDocument):
             if payload:
                 return ET.fromstring(text=payload)
         return None
+
+    @staticmethod
+    def logger():
+        b = BroadsoftRequest()
+        return b.default_logging(require_logging=True)
 
     @staticmethod
     def map_phone_type(phone_type):

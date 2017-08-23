@@ -19,7 +19,7 @@ class AccessDevice:
 
     def validate(self):
         if not self.device_name:
-            raise ValueError("can't run AccessDeviceEndpoint.to_xml() without a value for device_name")
+            raise ValueError("can't run AccessDevice.to_xml() without a value for device_name")
 
         if not self.device_level:
-            raise ValueError("can't run AccessDeviceEndpoint.to_xml() without a value for device_level")
+            raise ValueError("can't run AccessDevice.to_xml() without a value for device_level")
