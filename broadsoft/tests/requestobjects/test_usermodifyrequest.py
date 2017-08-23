@@ -93,7 +93,7 @@ class TestBroadsoftUserModifyRequest(unittest.TestCase):
                     '<accessDeviceEndpoint>' + \
                         '<accessDevice>' + \
                             '<deviceLevel>Group</deviceLevel>' + \
-                            '<deviceName>beaverphone</deviceName>' + \
+                            '<deviceName>Generic</deviceName>' + \
                         '</accessDevice>' + \
                         '<linePort>6175551212_lp@broadsoft-dev.mit.edu</linePort>' + \
                     '</accessDeviceEndpoint>' + \
@@ -103,31 +103,18 @@ class TestBroadsoftUserModifyRequest(unittest.TestCase):
         cmd = u.build_command_xml()
         self.assertEqual(target_xml, ET.tostring(cmd).decode('utf-8'))
 
-        # here's a request with just last name
+        # here's a request with just last name (inherits Generic as device name)
         u = UserModifyRequest(sip_user_id='6175551212@broadsoft-dev.mit.edu', last_name='Beaver')
         target_xml = \
-            '<command xmlns="" xsi:type="UserModifyRequest16">' + \
-            '<userId>6175551212@broadsoft-dev.mit.edu</userId>' + \
-            '<lastName>Beaver</lastName>' + \
-            '</command>'
+            '<command xmlns="" xsi:type="UserModifyRequest16"><userId>6175551212@broadsoft-dev.mit.edu</userId><lastName>Beaver</lastName><endpoint><accessDeviceEndpoint><accessDevice><deviceLevel>Group</deviceLevel><deviceName>Generic</deviceName></accessDevice></accessDeviceEndpoint></endpoint></command>'
 
         cmd = u.build_command_xml()
         self.assertEqual(target_xml, ET.tostring(cmd).decode('utf-8'))
 
-        # here's a request with just device_name
+        # here's a request with just device_name (inherits Generic as device name)
         u = UserModifyRequest(sip_user_id='6175551212@broadsoft-dev.mit.edu', device_name='beaverphone')
         target_xml = \
-            '<command xmlns="" xsi:type="UserModifyRequest16">' + \
-            '<userId>6175551212@broadsoft-dev.mit.edu</userId>' + \
-            '<endpoint>' + \
-                    '<accessDeviceEndpoint>' + \
-                        '<accessDevice>' + \
-                            '<deviceLevel>Group</deviceLevel>' + \
-                            '<deviceName>beaverphone</deviceName>' + \
-                        '</accessDevice>' + \
-                    '</accessDeviceEndpoint>' + \
-                '</endpoint>' + \
-            '</command>'
+            '<command xmlns="" xsi:type="UserModifyRequest16"><userId>6175551212@broadsoft-dev.mit.edu</userId><endpoint><accessDeviceEndpoint><accessDevice><deviceLevel>Group</deviceLevel><deviceName>Generic</deviceName></accessDevice></accessDeviceEndpoint></endpoint></command>'
 
         cmd = u.build_command_xml()
         self.assertEqual(target_xml, ET.tostring(cmd).decode('utf-8'))

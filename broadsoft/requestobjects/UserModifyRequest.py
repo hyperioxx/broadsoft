@@ -86,7 +86,7 @@ class UserModifyRequest(BroadsoftRequest):
             e.text = self.email_address
 
         # building the endpoint is a little complicated, so hand that off...
-        e = Endpoint(device_name=self.device_name, line_port=self.line_port)
+        e = Endpoint(line_port=self.line_port)
         ex = e.to_xml()
         if ex:
             cmd.append(ex)

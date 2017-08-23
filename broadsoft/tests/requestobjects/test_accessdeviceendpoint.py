@@ -31,14 +31,12 @@ class TestAccessDeviceEndpoint(unittest.TestCase):
             ET.tostring(ade.to_xml()).decode('utf-8')
         )
 
-        # no device name
+        # no device name (expect it to inherit "Generic" as Device Name)
         ade = AccessDeviceEndpoint()
         ade.line_port = '6175551212_lp@broadsoft-dev.mit.edu'
 
         target_xml = \
-            '<accessDeviceEndpoint>' + \
-            '<linePort>6175551212_lp@broadsoft-dev.mit.edu</linePort>' + \
-            '</accessDeviceEndpoint>'
+            '<accessDeviceEndpoint><accessDevice><deviceLevel>Group</deviceLevel><deviceName>Generic</deviceName></accessDevice><linePort>6175551212_lp@broadsoft-dev.mit.edu</linePort></accessDeviceEndpoint>'
 
         self.assertEqual(
             target_xml,

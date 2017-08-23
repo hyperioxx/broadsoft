@@ -2,7 +2,7 @@ import xml.etree.ElementTree as ET
 
 
 class AccessDevice:
-    def __init__(self, device_name=None, device_level='Group'):
+    def __init__(self, device_name='Generic', device_level='Group'):
         self.device_level = device_level
         self.device_name = device_name
 

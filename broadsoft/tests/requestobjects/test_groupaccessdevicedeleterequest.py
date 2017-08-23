@@ -1,3 +1,4 @@
+import unittest
 import unittest.mock
 import xml.etree.ElementTree as ET
 from broadsoft.requestobjects.GroupAccessDeviceDeleteRequest import GroupAccessDeviceDeleteRequest
@@ -5,11 +6,15 @@ from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 
 
 class TestBroadsoftGroupAccessDeviceDeleteRequest(unittest.TestCase):
+    # GroupAccessDevice is for creating Identity Profiles. We expect to always use the Generic one.
+    @unittest.skip
     def test_validate(self):
         u = GroupAccessDeviceDeleteRequest()
         with self.assertRaises(ValueError):
             u.validate()
 
+    # GroupAccessDevice is for creating Identity Profiles. We expect to always use the Generic one.
+    @unittest.skip
     def test_to_xml(self):
         d = GroupAccessDeviceDeleteRequest(
             device_name='dname'

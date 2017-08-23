@@ -10,7 +10,8 @@ def return_false(**kwargs):
 
 class TestEndpoint(unittest.TestCase):
     def test_is_quorum(self):
-        e = Endpoint()
+        # with explicit "None" for device_name, now that have default value
+        e = Endpoint(device_name=None)
         self.assertFalse(e.is_quorum())
 
         e = Endpoint()
@@ -57,12 +58,9 @@ class TestEndpoint(unittest.TestCase):
         e = Endpoint()
         e.line_port = '6175551212_lp@broadsoft-dev.mit.edu'
 
+        # now inheriting "Generic" as default device name
         target_xml = \
-            '<endpoint>' + \
-            '<accessDeviceEndpoint>' + \
-            '<linePort>6175551212_lp@broadsoft-dev.mit.edu</linePort>' + \
-            '</accessDeviceEndpoint>' + \
-            '</endpoint>'
+            '<endpoint><accessDeviceEndpoint><accessDevice><deviceLevel>Group</deviceLevel><deviceName>Generic</deviceName></accessDevice><linePort>6175551212_lp@broadsoft-dev.mit.edu</linePort></accessDeviceEndpoint></endpoint>'
 
         self.assertEqual(
             target_xml,

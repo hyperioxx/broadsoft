@@ -216,7 +216,8 @@ def roles_mock(*args, **kwargs):
 
 
 class TestBroadsoftAccount(unittest.TestCase):
-    def test_account_attrs_get_passed_to_request_object(self):
+    @unittest.mock.patch.object(Account, 'add_devices')
+    def test_account_attrs_get_passed_to_request_object(self, add_devices_patch):
         a = Account(did=6175551212, extension=51212, last_name='beaver', first_name='tim',
                     sip_user_id='beaver@broadsoft.mit.edu', kname='beaver', email='beaver@mit.edu',
                     sip_password='password', broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory())
@@ -230,7 +231,8 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertEqual(a.email, uadd.email)
         self.assertEqual(a.sip_password, uadd.sip_password)
 
-    def test_devices_added_get_built_into_request_object(self):
+    @unittest.mock.patch('broadsoft.requestobjects.UserSharedCallAppearanceGetRequest.UserSharedCallAppearanceGetRequest.get_devices')
+    def test_devices_added_get_built_into_request_object(self, get_devices_patch):
         d1 = Device(description='beaver phone 1', name='beaverphone1', type='iphone', line_port='lp1')
         d2 = Device(description='beaver phone 2', name='beaverphone2', type='hamburger', line_port='lp2')
         a = Account(did=6175551212, extension=51212, last_name='beaver', first_name='tim',
@@ -266,10 +268,10 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertIsInstance(cmd, UserModifyRequest)
         self.assertEqual(cmd.device_name, 'beaverphone1')
 
-        # ... one to associate d2 with the user as shared call appearance
+        # ... one to associate d2 with the user as shared call appearance (inherits "Generic" as device name)
         cmd = ro.commands[5]
         self.assertIsInstance(cmd, UserSharedCallAppearanceAddEndpointRequest)
-        self.assertEqual(cmd.device_name, 'beaverphone2')
+        self.assertEqual(cmd.device_name, 'Generic')
 
     def test_inherits_default_services(self):
         a = Account()
@@ -349,9 +351,11 @@ class TestBroadsoftAccount(unittest.TestCase):
         cmd = b.commands[0]
         self.assertIsInstance(cmd, UserSharedCallAppearanceAddEndpointRequest)
         self.assertEqual(cmd.sip_user_id, str(a.did) + '@' + a.broadsoftinstance.default_domain)
-        self.assertEqual(cmd.device_name, d1.name)
+        self.assertEqual(cmd.device_name, 'Generic')
 
-    def test_add_devices(self):
+    @unittest.mock.patch(
+        'broadsoft.requestobjects.UserSharedCallAppearanceGetRequest.UserSharedCallAppearanceGetRequest.get_devices')
+    def test_add_devices(self, get_devices_patch):
         a = Account(did=6175551212)
         b = BroadsoftRequest()
         d1 = Device(description='beaver phone 1', name='beaverphone1', type='iphone', instance='prod', line_port='lp1')
@@ -376,9 +380,10 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertIsInstance(cmd, UserModifyRequest)
         self.assertEqual(d1.name, cmd.device_name)
 
+        # should inherit "Generic" as name
         cmd = b.commands[3]
         self.assertIsInstance(cmd, UserSharedCallAppearanceAddEndpointRequest)
-        self.assertEqual(d2.name, cmd.device_name)
+        self.assertEqual('Generic', cmd.device_name)
 
     def test_xml_converted_to_elementtree_at_init(self):
         a = Account(xml="""
@@ -704,6 +709,8 @@ class TestBroadsoftAccount(unittest.TestCase):
         with self.assertRaises(ValueError):
             a.set_device_passwords()
 
+    # setting device passwords is disabled by design
+    @unittest.skip
     @unittest.mock.patch.object(Device, 'set_password')
     def test_set_device_passwords_passing_password(
             self, set_device_password_patch
@@ -735,6 +742,8 @@ class TestBroadsoftAccount(unittest.TestCase):
         args, kwargs = call
         self.assertEqual('newpassword', kwargs['sip_password'])
 
+    # setting device passwords is now disabled by design
+    @unittest.skip
     @unittest.mock.patch.object(Device, 'set_password')
     def test_set_device_passwords_calls_set_password_for_each_device(
             self, set_device_password_patch
@@ -790,7 +799,9 @@ class TestBroadsoftAccount(unittest.TestCase):
                     email='beaver@mit.edu')
         a.devices = [d1, d2]
         a.provision()
-        self.assertTrue(set_device_passwords_patch.called)
+        # self.assertTrue(set_device_passwords_patch.called)
+        # actually, not setting device passwords
+        self.assertFalse(set_device_passwords_patch.called)
 
         # devices were attached, so don't called attach_default_devices
         self.assertFalse(attach_default_devices_patch.called)
@@ -949,13 +960,14 @@ class TestBroadsoftAccount(unittest.TestCase):
         a.inject_broadsoftinstance(child=d)
         self.assertIsInstance(d.broadsoftinstance, broadsoft.requestobjects.lib.BroadsoftRequest.BroadsoftInstance)
 
+    @unittest.mock.patch('broadsoft.requestobjects.UserSharedCallAppearanceGetRequest.UserSharedCallAppearanceGetRequest.get_devices')
     @unittest.mock.patch.object(Account, 'inject_broadsoftinstance')
     @unittest.mock.patch.object(Account, 'link_sca_device')
     @unittest.mock.patch.object(Account, 'link_primary_device')
     @unittest.mock.patch.object(Account, 'build_provision_request')
     def test_add_devices_injects_broadsoftinstance_once_per_device(
             self, build_provision_request_patch, link_primary_device_patch, link_sca_device_patch,
-            inject_broadsoftinstance_patch
+            inject_broadsoftinstance_patch, get_devices_patch
     ):
         d1 = Device(name='dname1', line_port='lp1')
         d2 = Device(name='dname2', line_port='lp2')
@@ -1111,6 +1123,8 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertIsInstance(kwargs['broadsoftinstance'],
                               broadsoft.requestobjects.lib.BroadsoftRequest.BroadsoftInstance)
 
+    # setting device passwords is disabled by design
+    @unittest.skip
     @unittest.mock.patch.object(Device, 'set_password')
     @unittest.mock.patch.object(BroadsoftObject, 'inject_broadsoftinstance')
     def test_set_device_passwords_injects_broadsoftinstance(
@@ -1173,10 +1187,13 @@ class TestBroadsoftAccount(unittest.TestCase):
         call = usca_init_patch.call_args_list[0]
         args, kwargs = call
         self.assertEqual(kwargs['sip_user_id'], a.sip_user_id)
-        self.assertEqual(kwargs['device_name'], d.name)
+        # device name should be implicit so it defaults to Generic
+        self.assertNotIn('device_name', kwargs)
         self.assertEqual(kwargs['line_port'], d.line_port)
 
-    def test_barf_if_try_to_add_device_missing_lineport(self):
+    @unittest.mock.patch(
+        'broadsoft.requestobjects.UserSharedCallAppearanceGetRequest.UserSharedCallAppearanceGetRequest.get_devices')
+    def test_barf_if_try_to_add_device_missing_lineport(self, get_devices_patch):
         d1 = Device(name='d1', line_port='d1_lp')
         d2 = Device(name='d2')
         d2.line_port = None
@@ -1704,7 +1721,5 @@ class TestBroadsoftAccount(unittest.TestCase):
         a = Account(sip_user_id='6175551212@broadsoft.mit.edu')
         a.overwrite()
 
-    def test_fix_changes(self):
-        # in Account.add_devices, test the deletion of SCAs
-        # in set_device_passwords(), currently only doing so for primary phone...wait for response from bsoft as to whether that's necessary
+    def test_add_devices_deletes_shared_call_appearances(self):
         self.assertFalse("write this")

@@ -6,7 +6,7 @@ class Endpoint:
     # we only bother building this if certain key elements are present
     quorum = ['device_name', 'line_port']
 
-    def __init__(self, device_name=None, line_port=None, contact=None, device_level='Group'):
+    def __init__(self, device_name='Generic', line_port=None, contact=None, device_level='Group'):
         self.contact = contact
         self.device_level = device_level
         self.device_name = device_name

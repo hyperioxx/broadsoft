@@ -3,7 +3,7 @@ from broadsoft.requestobjects.datatypes.AccessDevice import AccessDevice
 
 
 class AccessDeviceEndpoint:
-    def __init__(self, device_name=None, line_port=None, contact=None, device_level='Group'):
+    def __init__(self, device_name='Generic', line_port=None, contact=None, device_level='Group'):
         self.contact = contact
         self.device_level = device_level
         self.device_name = device_name

@@ -11,7 +11,7 @@ import re
 
 
 class Device(BroadsoftObject):
-    def __init__(self, name=None, type=None, description=None, mac_address=None, protocol=None,
+    def __init__(self, name='Generic', type=None, description=None, mac_address=None, protocol=None,
                  transport_protocol=None, line_port=None, is_primary=None, did=None, index=1, skip_if_exists=True,
                  **kwargs):
         self.description = description

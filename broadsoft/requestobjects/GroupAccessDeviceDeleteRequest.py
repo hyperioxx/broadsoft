@@ -2,6 +2,12 @@ import xml.etree.ElementTree as ET
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 
 
+"""
+this is for creating Device/Identity Profiles...we actually don't want to do that; we are planning on using a single
+master generic profile for all our phones
+"""
+
+
 class GroupAccessDeviceDeleteRequest(BroadsoftRequest):
     command_name = 'GroupAccessDeviceDeleteRequest'
 
@@ -28,6 +34,7 @@ class GroupAccessDeviceDeleteRequest(BroadsoftRequest):
         return cmd
 
     def validate(self):
+        raise RuntimeError("this is for creating Device/Identity Profiles which we actually don't want to do")
         if not self.device_name:
             raise ValueError("can't run GroupAccessDeviceDeleteRequest.delete() without a value for device_name")
 

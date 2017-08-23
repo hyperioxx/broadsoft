@@ -58,6 +58,6 @@ class TestBroadsoftUserSharedCallAppearanceDeleteEndpointListRequest(unittest.Te
     @unittest.mock.patch.object(BroadsoftRequest, 'authenticate_and_login')
     @unittest.mock.patch('requests.post', side_effect=return_get_failure)
     def test_fetch_with_no_results_ok(self, post_patch, login_patch, logout_patch):
-        u = UserSharedCallAppearanceDeleteEndpointListRequest(sip_user_id='6175551212@broadsoft.mit.edu')
+        u = UserSharedCallAppearanceDeleteEndpointListRequest(sip_user_id='6175551212@broadsoft.mit.edu', devices=[{'line_port': 'line_port', 'name': 'name'}])
         # not testing for anything here per se, just expecting no exception thrown
         u.post()

@@ -174,26 +174,26 @@ class TestBroadsoftObject(unittest.TestCase):
     def test_device_should_skip_error(self):
         d = Device(skip_if_exists=True)
         self.assertFalse(d.should_skip_error(error='blah'))
-        self.assertTrue(d.should_skip_error(error='RuntimeError: the SOAP server threw an error: [Error 4500] Access Device already exists: 6173000066_1 :: [Error 4500] Access Device already exists: 6173000066_1 :: None'))
+        self.assertTrue(d.should_skip_error(error='the SOAP server threw an error: [Error 4500] Access Device already exists: 6173000066_1 :: [Error 4500] Access Device already exists: 6173000066_1 :: None'))
 
         d = Device(skip_if_exists=False)
         self.assertFalse(d.should_skip_error(error='blah'))
         self.assertFalse(d.should_skip_error(
-            error='RuntimeError: the SOAP server threw an error: [Error 4500] Access Device already exists: 6173000066_1 :: [Error 4500] Access Device already exists: 6173000066_1 :: None'))
+            error='the SOAP server threw an error: [Error 4500] Access Device already exists: 6173000066_1 :: [Error 4500] Access Device already exists: 6173000066_1 :: None'))
 
     def test_account_should_skip_error(self):
         a = Account(skip_if_exists=True)
         self.assertFalse(a.should_skip_error(error='blah'))
         self.assertTrue(a.should_skip_error(
-            error='RuntimeError: the SOAP server threw an error: [Error 4200] User already exists: 6175551212@broadsoft-dev.mit.edu :: [Error 4200] User already exists: 6175551212@broadsoft-dev.mit.edu :: None'))
+            error='the SOAP server threw an error: [Error 4200] User already exists: 6175551212@broadsoft-dev.mit.edu :: [Error 4200] User already exists: 6175551212@broadsoft-dev.mit.edu :: None'))
 
         a = Account(skip_if_exists=False)
         self.assertFalse(a.should_skip_error(error='blah'))
         self.assertFalse(a.should_skip_error(
-            error='RuntimeError: the SOAP server threw an error: [Error 4200] User already exists: 6175551212@broadsoft-dev.mit.edu :: [Error 4200] User already exists: 6175551212@broadsoft-dev.mit.edu :: None'))
+            error='the SOAP server threw an error: [Error 4200] User already exists: 6175551212@broadsoft-dev.mit.edu :: [Error 4200] User already exists: 6175551212@broadsoft-dev.mit.edu :: None'))
 
     @unittest.mock.patch('broadsoft.requestobjects.lib.BroadsoftRequest.BroadsoftRequest.post',
-                         side_effect=RuntimeError('RuntimeError: the SOAP server threw an error: [Error 4500] Access Device already exists: 6173000066_1 :: [Error 4500] Access Device already exists: 6173000066_1 :: None'))
+                         side_effect=RuntimeError('the SOAP server threw an error: [Error 4500] Access Device already exists: 6173000066_1 :: [Error 4500] Access Device already exists: 6173000066_1 :: None'))
     def test_skip_if_exists_for_device(self, post_patch):
         # this should not throw an error
         d = Device(skip_if_exists=True)
@@ -204,15 +204,17 @@ class TestBroadsoftObject(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             d.provision()
 
+    @unittest.mock.patch(
+        'broadsoft.requestobjects.UserSharedCallAppearanceGetRequest.UserSharedCallAppearanceGetRequest.get_devices')
     @unittest.mock.patch.object(Account, 'activate_voicemail')
     @unittest.mock.patch.object(Account, 'set_device_passwords')
     @unittest.mock.patch.object(Account, 'attach_default_devices')
     @unittest.mock.patch.object(Account, 'generate_sip_password')
     @unittest.mock.patch('broadsoft.requestobjects.lib.BroadsoftRequest.BroadsoftRequest.post',
                          side_effect=RuntimeError(
-                             'RuntimeError: the SOAP server threw an error: [Error 4200] User already exists: 6175551212@broadsoft-dev.mit.edu :: [Error 4200] User already exists: 6175551212@broadsoft-dev.mit.edu :: None'))
+                             'the SOAP server threw an error: [Error 4200] User already exists: 6175551212@broadsoft-dev.mit.edu :: [Error 4200] User already exists: 6175551212@broadsoft-dev.mit.edu :: None'))
     def test_skip_if_exists_for_account(self, post_patch, gen_pwd_patch, attach_devices_patch, set_pwd_patch,
-                                        vmail_patch):
+                                        vmail_patch, get_devices_patch):
         # this should not throw an error
         a = Account(did=6175551212, skip_if_exists=True, email='beaver@mit.edu')
         a.provision()
@@ -222,7 +224,8 @@ class TestBroadsoftObject(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             a.provision()
 
-    def test_paginate_request(self):
+    @unittest.mock.patch('broadsoft.requestobjects.UserSharedCallAppearanceGetRequest.UserSharedCallAppearanceGetRequest.get_devices')
+    def test_paginate_request(self, get_devices_patch):
         import math
 
         a = Account()
@@ -267,3 +270,11 @@ class TestBroadsoftObject(unittest.TestCase):
         a.provision()
 
         self.assertTrue(paginate_patch.called)
+
+    def test_paginate_should_not_mangle_non_compound_request(self):
+        from broadsoft.requestobjects.GroupAccessDeviceAddRequest import GroupAccessDeviceAddRequest
+        g = GroupAccessDeviceAddRequest()
+
+        b = BroadsoftObject()
+        reqs = b.paginate_request(request=g)
+        self.assertEqual([g], reqs)

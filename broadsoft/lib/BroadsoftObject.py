@@ -65,6 +65,11 @@ class BroadsoftObject:
     # looks like we can't pass more than 15 commands in a request; here we break
     # up requests with more than that
     def paginate_request(self, request):
+        # does the object not have "commands" populated? is a unitary object and should be handed back as single element
+        # list
+        if len(request.commands) == 0:
+            return [request]
+
         # split out the commands based on the max listed in BroadsoftRequest.max_commands_per_request
         command_pages = []
         command_page = []

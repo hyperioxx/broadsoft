@@ -214,7 +214,7 @@ class TestBroadsoftDevice(unittest.TestCase):
     ):
         # requires device name
         with self.assertRaises(ValueError):
-            d = Device()
+            d = Device(name=None)
             d.set_password(sip_user_name='6175551212@mit.edu', sip_password='password')
 
         # requires did or sip_user_name
@@ -296,7 +296,7 @@ class TestBroadsoftDevice(unittest.TestCase):
     def test_delete_device_barfs_if_no_name(
             self, post_patch
     ):
-        d = Device()
+        d = Device(name=None)
         with self.assertRaises(ValueError):
             d.delete()
 
@@ -399,7 +399,7 @@ class TestBroadsoftDevice(unittest.TestCase):
         # self.assertEqual(i, kwargs['broadsoftinstance'])
 
         # device should not have inherited a name at this point
-        self.assertIsNone(d.name)
+        self.assertEqual('Generic', d.name)
 
         # since a name was not inherited, delete() should not have been called
         self.assertFalse(delete_patch.called)
@@ -420,3 +420,7 @@ class TestBroadsoftDevice(unittest.TestCase):
         # self.assertTrue(delete_patch.called)
         # --- actually, skipping overwrite for Device as we're not expecting to do device management in broadsoft
         self.assertFalse(delete_patch.called)
+
+    def test_should_create_phones_with_generic_device_profile(self):
+        # happens via link_sca_device(), UserSharedCallAppearanceAddEndpointRequest(sip_user_id=self.sip_user_id, line_port=line_port)
+        self.assertFalse("write this")

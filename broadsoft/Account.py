@@ -16,7 +16,8 @@ from broadsoft.requestobjects.UserThirdPartyVoiceMailSupportModifyRequest import
     UserThirdPartyVoiceMailSupportModifyRequest
 from broadsoft.requestobjects.UserDeleteRequest import UserDeleteRequest
 from broadsoft.requestobjects.UserGetListInGroupRequest import UserGetListInGroupRequest
-from broadsoft.requestobjects.UserSharedCallAppearanceDeleteEndpointListRequest import UserSharedCallAppearanceDeleteEndpointListRequest
+from broadsoft.requestobjects.UserSharedCallAppearanceDeleteEndpointListRequest import \
+    UserSharedCallAppearanceDeleteEndpointListRequest
 import re
 import logging
 
@@ -64,7 +65,7 @@ class Account(BroadsoftObject):
 
     def __repr__(self):
         return "<Broadsoft Account did:%s, last_name:%s, first_name:%s, sip_user_id:%s>" % (
-        self.did, self.last_name, self.first_name, self.sip_user_id)
+            self.did, self.last_name, self.first_name, self.sip_user_id)
 
     def activate_voicemail(self, type=None, voicemail_object=None):
         if not self.sip_user_id:
@@ -109,7 +110,7 @@ class Account(BroadsoftObject):
 
         # delete all shared call appearances applied to user
         d_list = UserSharedCallAppearanceGetRequest.get_devices(broadsoftinstance=self.broadsoftinstance,
-                                                           sip_user_id=self.sip_user_id)
+                                                                sip_user_id=self.sip_user_id)
         if len(d_list) > 0:
             devices = []
             for r in d_list:
@@ -158,7 +159,6 @@ class Account(BroadsoftObject):
             d.did = self.did
             d.index = index
             d.description = self.attach_default_devices__build_description()
-            d.name = str(d.did) + '_' + str(d.index)
             d.type = 'Generic SIP Phone'
             d.derive_line_port()
             d.implicit_overwrite = False
@@ -274,15 +274,13 @@ class Account(BroadsoftObject):
             self.sip_password = str(random.randint(1000000000, 9999999999))
 
     def link_primary_device(self, req_object, device):
-        u_mod = UserModifyRequest(did=self.did, sip_user_id=self.sip_user_id, device_name=device.name,
-                                  line_port=device.line_port)
+        u_mod = UserModifyRequest(did=self.did, sip_user_id=self.sip_user_id, device_name=device.name,line_port=device.line_port)
         self.inject_broadsoftinstance(child=u_mod)
         req_object.commands.append(u_mod)
 
     def link_sca_device(self, req_object, device):
         line_port = device.line_port
-        sca = UserSharedCallAppearanceAddEndpointRequest(sip_user_id=self.sip_user_id,
-                                                         device_name=device.name, line_port=line_port)
+        sca = UserSharedCallAppearanceAddEndpointRequest(sip_user_id=self.sip_user_id, line_port=line_port)
         self.inject_broadsoftinstance(child=sca)
         req_object.commands.append(sca)
 
@@ -317,7 +315,8 @@ class Account(BroadsoftObject):
                 self.devices.append(d)
 
     def overwrite(self):
-        logging.info("overwriting pre-existing account for DID: " + str(self.did), extra={'session_id': self.broadsoftinstance.session_id})
+        logging.info("overwriting pre-existing account for DID: " + str(self.did),
+                     extra={'session_id': self.broadsoftinstance.session_id})
 
         # here should derive sip_user_id if not present
         if not self.sip_user_id:
@@ -336,7 +335,7 @@ class Account(BroadsoftObject):
 
             except RuntimeError as e:
                 if 'the SOAP server threw an error: [Error 4008] User not found: ' not in str(e):
-                    raise(e)
+                    raise (e)
                 pass
 
     def provision(self):
@@ -353,8 +352,8 @@ class Account(BroadsoftObject):
 
         # Not making this part atomic since I want to leverage set_device_passwords(), so it gets called outside of
         # build_provision_request. Seems reasonable to not make the entire request fail if this part does anyway.
-        if self.sip_password:
-            self.set_device_passwords(new_sip_password=self.sip_password)
+        # if self.sip_password:
+        #    self.set_device_passwords(new_sip_password=self.sip_password)
 
         # set up voicemail
         # Not making this part atomic since it seems reasonable to not make the entire request fail if this part does.
