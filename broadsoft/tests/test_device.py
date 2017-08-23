@@ -420,7 +420,3 @@ class TestBroadsoftDevice(unittest.TestCase):
         # self.assertTrue(delete_patch.called)
         # --- actually, skipping overwrite for Device as we're not expecting to do device management in broadsoft
         self.assertFalse(delete_patch.called)
-
-    def test_should_create_phones_with_generic_device_profile(self):
-        # happens via link_sca_device(), UserSharedCallAppearanceAddEndpointRequest(sip_user_id=self.sip_user_id, line_port=line_port)
-        self.assertFalse("write this")

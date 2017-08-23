@@ -3,6 +3,14 @@ from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 from broadsoft.requestobjects.datatypes.AccessDeviceCredentials import AccessDeviceCredentials
 from nettools.MACtools import MAC
 
+"""
+This is for modifying Device/Identity Profiles...we actually don't want to do that; we are planning on using a single
+master generic profile for all our phones. Don't expect to use this, but leaving in case we do need it.
+
+We only expect to link the Generic device profile as a primary/SCA, which will be handled via either UserModifyRequest
+and UserSharedCallAppearanceAddEndpointRequest.
+"""
+
 
 class GroupAccessDeviceModifyRequest(BroadsoftRequest):
     command_name = 'GroupAccessDeviceModifyRequest14'

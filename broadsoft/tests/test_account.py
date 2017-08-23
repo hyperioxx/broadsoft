@@ -19,7 +19,8 @@ from broadsoft.requestobjects.UserVoiceMessagingUserModifyVoiceManagementRequest
 from broadsoft.requestobjects.UserThirdPartyVoiceMailSupportModifyRequest import UserThirdPartyVoiceMailSupportModifyRequest
 from broadsoft.requestobjects.GroupAccessDeviceDeleteRequest import GroupAccessDeviceDeleteRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import instance_factory
-
+from broadsoft.requestobjects.UserSharedCallAppearanceGetRequest import UserSharedCallAppearanceGetRequest
+from broadsoft.requestobjects.UserSharedCallAppearanceDeleteEndpointListRequest import UserSharedCallAppearanceDeleteEndpointListRequest
 
 def fake_phone_db_record():
     class FakeDbPhone:
@@ -42,6 +43,7 @@ def fake_users_db_record():
             self.password = '123456'
 
     return FakeDbUser()
+
 
 def get_device_mock(name, **kwargs):
     if name == 'beaver550':
@@ -104,6 +106,13 @@ def get_device_mock(name, **kwargs):
             </BroadsoftDocument>"""
         return ET.fromstring(xml)
 
+
+def get_devices_mock(*args, **kwargs):
+    return [
+        {'Line/Port': 'lp1', 'Device Name': 'dn1'},
+        {'Line/Port': 'lp2', 'Device Name': 'dn2'},
+        {'Line/Port': 'lp3', 'Device Name': 'dn3'},
+    ]
 
 def get_sca_mock(**kwargs):
     xml = """<?xml version="1.0" encoding="ISO-8859-1"?>
@@ -241,8 +250,8 @@ class TestBroadsoftAccount(unittest.TestCase):
         a.devices = [d1, d2]
         ro = a.build_provision_request()
 
-        # expect to see 6 commands in the request object...
-        self.assertEqual(6, len(ro.commands))
+        # expect to see 4 commands in the request object...
+        self.assertEqual(4, len(ro.commands))
 
         # ... one to add the user
         cmd = ro.commands[0]
@@ -253,23 +262,13 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertIsInstance(cmd, UserServiceAssignListRequest)
         self.assertEqual(['a'], cmd.services)
 
-        # ... one to add d1
-        cmd = ro.commands[2]
-        self.assertIsInstance(cmd, GroupAccessDeviceAddRequest)
-        self.assertEqual(cmd.device_name, 'beaverphone1')
-
-        # ... one to add d2
-        cmd = ro.commands[3]
-        self.assertIsInstance(cmd, GroupAccessDeviceAddRequest)
-        self.assertEqual(cmd.device_name, 'beaverphone2')
-
         # ... one to associate d1 with the user directly
-        cmd = ro.commands[4]
+        cmd = ro.commands[2]
         self.assertIsInstance(cmd, UserModifyRequest)
         self.assertEqual(cmd.device_name, 'beaverphone1')
 
         # ... one to associate d2 with the user as shared call appearance (inherits "Generic" as device name)
-        cmd = ro.commands[5]
+        cmd = ro.commands[3]
         self.assertIsInstance(cmd, UserSharedCallAppearanceAddEndpointRequest)
         self.assertEqual(cmd.device_name, 'Generic')
 
@@ -363,25 +362,17 @@ class TestBroadsoftAccount(unittest.TestCase):
         a.devices = [d1, d2]
         a.add_devices(req_object=b)
 
-        # should be four requests
-        self.assertEqual(4, len(b.commands))
+        # should be 2 requests
+        self.assertEqual(2, len(b.commands))
 
         # Not going to investigate each one in details, that's handled in test_link_primary_device() and
         # test_link_sca_device(). Just checking for object type and order.
         cmd = b.commands[0]
-        self.assertIsInstance(cmd, GroupAccessDeviceAddRequest)
-        self.assertEqual(d1.name, cmd.device_name)
-
-        cmd = b.commands[1]
-        self.assertIsInstance(cmd, GroupAccessDeviceAddRequest)
-        self.assertEqual(d2.name, cmd.device_name)
-
-        cmd = b.commands[2]
         self.assertIsInstance(cmd, UserModifyRequest)
         self.assertEqual(d1.name, cmd.device_name)
 
         # should inherit "Generic" as name
-        cmd = b.commands[3]
+        cmd = b.commands[1]
         self.assertIsInstance(cmd, UserSharedCallAppearanceAddEndpointRequest)
         self.assertEqual('Generic', cmd.device_name)
 
@@ -960,34 +951,6 @@ class TestBroadsoftAccount(unittest.TestCase):
         a.inject_broadsoftinstance(child=d)
         self.assertIsInstance(d.broadsoftinstance, broadsoft.requestobjects.lib.BroadsoftRequest.BroadsoftInstance)
 
-    @unittest.mock.patch('broadsoft.requestobjects.UserSharedCallAppearanceGetRequest.UserSharedCallAppearanceGetRequest.get_devices')
-    @unittest.mock.patch.object(Account, 'inject_broadsoftinstance')
-    @unittest.mock.patch.object(Account, 'link_sca_device')
-    @unittest.mock.patch.object(Account, 'link_primary_device')
-    @unittest.mock.patch.object(Account, 'build_provision_request')
-    def test_add_devices_injects_broadsoftinstance_once_per_device(
-            self, build_provision_request_patch, link_primary_device_patch, link_sca_device_patch,
-            inject_broadsoftinstance_patch, get_devices_patch
-    ):
-        d1 = Device(name='dname1', line_port='lp1')
-        d2 = Device(name='dname2', line_port='lp2')
-        a = Account(broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory())
-        a.devices = [d1, d2]
-        a.add_devices(req_object=BroadsoftRequest())
-
-        self.assertTrue(inject_broadsoftinstance_patch.called)
-        self.assertEqual(2, len(inject_broadsoftinstance_patch.call_args_list))
-
-        call = inject_broadsoftinstance_patch.call_args_list[0]
-        args, kwargs = call
-        self.assertEqual(d1.name, kwargs['child'].name)
-        self.assertIsInstance(kwargs['child'], Device)
-
-        call = inject_broadsoftinstance_patch.call_args_list[1]
-        args, kwargs = call
-        self.assertEqual(d2.name, kwargs['child'].name)
-        self.assertIsInstance(kwargs['child'], Device)
-
     @unittest.mock.patch.object(BroadsoftObject, 'inject_broadsoftinstance')
     def test_add_services_injects_broadsoftinstance(
             self, inject_broadsoftinstance_patch
@@ -1190,18 +1153,6 @@ class TestBroadsoftAccount(unittest.TestCase):
         # device name should be implicit so it defaults to Generic
         self.assertNotIn('device_name', kwargs)
         self.assertEqual(kwargs['line_port'], d.line_port)
-
-    @unittest.mock.patch(
-        'broadsoft.requestobjects.UserSharedCallAppearanceGetRequest.UserSharedCallAppearanceGetRequest.get_devices')
-    def test_barf_if_try_to_add_device_missing_lineport(self, get_devices_patch):
-        d1 = Device(name='d1', line_port='d1_lp')
-        d2 = Device(name='d2')
-        d2.line_port = None
-        a = Account(did=6175551212)
-        a.devices = [d1, d2]
-
-        with self.assertRaises(RuntimeError):
-            a.add_devices(req_object=BroadsoftRequest())
 
     @unittest.mock.patch('broadsoft.requestobjects.UserThirdPartyVoiceMailSupportModifyRequest.UserThirdPartyVoiceMailSupportModifyRequest.deactivate_unity_voicemail')
     def test_deactivate_unity_voicemail_passes_broadsoftinstance(
@@ -1721,5 +1672,54 @@ class TestBroadsoftAccount(unittest.TestCase):
         a = Account(sip_user_id='6175551212@broadsoft.mit.edu')
         a.overwrite()
 
-    def test_add_devices_deletes_shared_call_appearances(self):
-        self.assertFalse("write this")
+    @unittest.mock.patch.object(UserSharedCallAppearanceDeleteEndpointListRequest, '__init__', side_effect=return_none)
+    @unittest.mock.patch.object(UserSharedCallAppearanceGetRequest, 'get_devices', side_effect=get_devices_mock)
+    def test_add_devices_deletes_shared_call_appearances(self, get_devices_patch, list_endppoints_patch):
+        a = Account()
+        b = BroadsoftRequest()
+        a.add_devices(req_object=b)
+
+        # check how it constructs the delete call
+        args, kwargs = list_endppoints_patch.call_args_list[0]
+        self.assertEqual(
+            [{'line_port': 'lp1', 'name': 'dn1'}, {'line_port': 'lp2', 'name': 'dn2'},
+             {'line_port': 'lp3', 'name': 'dn3'}],
+            kwargs['devices']
+        )
+
+        # check delete call added to pile
+        added = False
+        for c in b.commands:
+            if type(c) is UserSharedCallAppearanceDeleteEndpointListRequest:
+                added = True
+        self.assertTrue(added)
+
+    def test_link_primary_device_creates_with_generic_profile(self):
+        b = BroadsoftRequest()
+        a = Account(did=6175551212)
+        a.attach_default_devices()
+        a.link_primary_device(req_object=b, device=a.devices[0])
+
+        attach_command = None
+        for c in b.commands:
+            if type(c) is UserModifyRequest:
+                attach_command = c
+
+        ep_xml = '<endpoint><accessDeviceEndpoint><accessDevice><deviceLevel>Group</deviceLevel><deviceName>Generic</deviceName></accessDevice><linePort>6175551212_1@broadsoft.mit.edu</linePort></accessDeviceEndpoint></endpoint>'
+        xml = ET.tostring(c.to_xml()).decode('utf-8')
+        self.assertIn(ep_xml, xml)
+
+    def test_link_sca_device_creates_with_generic_profile(self):
+        b = BroadsoftRequest()
+        a = Account(did=6175551212)
+        a.attach_default_devices()
+        a.link_sca_device(req_object=b, device=a.devices[1])
+
+        attach_command = None
+        for c in b.commands:
+            if type(c) is UserModifyRequest:
+                attach_command = c
+
+        ep_xml = '<accessDeviceEndpoint><accessDevice><deviceLevel>Group</deviceLevel><deviceName>Generic</deviceName></accessDevice><linePort>6175551212_2@broadsoft.mit.edu</linePort></accessDeviceEndpoint>'
+        xml = ET.tostring(c.to_xml()).decode('utf-8')
+        self.assertIn(ep_xml, xml)

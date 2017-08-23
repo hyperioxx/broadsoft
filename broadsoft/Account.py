@@ -121,18 +121,6 @@ class Account(BroadsoftObject):
             req_object.commands.append(del_d)
 
         if len(self.devices) > 0:
-            for d in self.devices:
-                # error if missing line_port at this time
-                if d.line_port is None:
-                    raise RuntimeError("The device " + str(d)
-                                       + " does not have a line_port specified. One can be automatically "
-                                         "generated with a DID.")
-
-                # insert the add request
-                self.inject_broadsoftinstance(child=d)
-                add_d = d.build_provision_request()
-                req_object.commands.append(add_d)
-
             # first device gets associated directly with user
             self.link_primary_device(req_object=req_object, device=self.devices[0])
 
