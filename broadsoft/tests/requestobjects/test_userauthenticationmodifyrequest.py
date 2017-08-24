@@ -3,6 +3,7 @@ import xml.etree.ElementTree as ET
 
 from broadsoft.requestobjects.UserAuthenticationModifyRequest import UserAuthenticationModifyRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
+from broadsoft.requestobjects.lib.BroadsoftRequest import instance_factory
 
 
 class TestBroadsoftUserAuthenticationModifyRequest(unittest.TestCase):
@@ -75,3 +76,15 @@ class TestBroadsoftUserAuthenticationModifyRequest(unittest.TestCase):
 
         cmd = u.build_command_xml()
         self.assertEqual(target_xml, ET.tostring(cmd).decode('utf-8'))
+
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    @unittest.mock.patch.object(BroadsoftRequest, '__init__', side_effect=None)
+    def test_set_credentials_passes_broadsoft_instance(self, init_patch, post_patch):
+        i = instance_factory(instance='prod')
+        UserAuthenticationModifyRequest.set_credentials(new_password='gaga', did=6175551212,
+                                                        sip_user_id='6175551212@broadsoft-dev.mit.edu',
+                                                        broadsoftinstance=i)
+
+        for call in init_patch.call_args_list:
+            args, kwargs = call
+            self.assertEqual(kwargs['broadsoftinstance'].api_url, i.api_url)
