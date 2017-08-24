@@ -445,34 +445,6 @@ class Account(BroadsoftObject):
         a.voicemail = voicemail
         a.sip_password = user_record.password
         a.voicemail_mwi = voicemail_mwi
-
-        """
-        we're not building specific devices
-        all details will be held in our database 
-        
-        # build the devices
-        is_primary = True
-        if device_records is not None:
-            for device_record in device_records:
-                if device_record.active != 'Y':
-                    continue
-
-                d = Device(**kwargs)
-                d.did = user_record.did
-                d.description = device_record.description
-                d.is_primary = is_primary
-                d.name = device_record.description
-                d.type = device_record.phone_type
-                d.mac_address = device_record.hwaddr
-                d.derive_line_port()
-
-                a.devices.append(d)
-                is_primary = False
-
-        if len(a.devices) > 0 or force_when_no_devices:
-            a.provision()
-        """
-
         a.provision()
 
         return a
