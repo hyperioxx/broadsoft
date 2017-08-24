@@ -21,6 +21,7 @@ from broadsoft.requestobjects.GroupAccessDeviceDeleteRequest import GroupAccessD
 from broadsoft.requestobjects.lib.BroadsoftRequest import instance_factory
 from broadsoft.requestobjects.UserSharedCallAppearanceGetRequest import UserSharedCallAppearanceGetRequest
 from broadsoft.requestobjects.UserSharedCallAppearanceDeleteEndpointListRequest import UserSharedCallAppearanceDeleteEndpointListRequest
+from broadsoft.requestobjects.UserAuthenticationModifyRequest import UserAuthenticationModifyRequest
 
 def fake_phone_db_record():
     class FakeDbPhone:
@@ -1723,3 +1724,45 @@ class TestBroadsoftAccount(unittest.TestCase):
         ep_xml = '<accessDeviceEndpoint><accessDevice><deviceLevel>Group</deviceLevel><deviceName>Generic</deviceName></accessDevice><linePort>6175551212_2@broadsoft.mit.edu</linePort></accessDeviceEndpoint>'
         xml = ET.tostring(c.to_xml()).decode('utf-8')
         self.assertIn(ep_xml, xml)
+
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    def test_set_auth_creds_barfs_if_no_did(self, post_patch):
+        a = Account(sip_user_id='6175551212@mit.edu', sip_password='gaga')
+        with self.assertRaises(ValueError):
+            a.set_auth_creds()
+
+    @unittest.mock.patch.object(Account, 'derive_sip_user_id')
+    @unittest.mock.patch.object(Account, 'generate_sip_password')
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    def test_set_auth_creds_derives_as_needed(self, post_patch, pwd_patch, userid_patch):
+        a = Account(did=6175551212)
+        post_patch.called = False
+        userid_patch.called = False
+        a.sip_user_id = None
+        a.sip_password = None
+
+        a.set_auth_creds()
+
+        self.assertTrue(post_patch.called)
+        self.assertTrue(userid_patch.called)
+
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    def test_set_auth_creds_functionality(self, post_patch):
+        # passing DID as int to confirm it gets converted to string
+        a = Account(did=6175551212, sip_user_id='6175551212@phoney.mit.edu', sip_password='12345')
+        b = BroadsoftRequest()
+        a.set_auth_creds(req_object=b)
+
+        for c in b.commands:
+            if type(c) is UserAuthenticationModifyRequest:
+                xml = ET.tostring(c.to_xml()).decode('utf-8')
+                target_xml = '<BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><sessionId xmlns="">None</sessionId><command xmlns="" xsi:type="UserAuthenticationModifyRequest"><userId>6175551212@phoney.mit.edu</userId><userName>6175551212</userName><newPassword>12345</newPassword></command></BroadsoftDocument>'
+                self.assertEqual(xml, target_xml)
+
+    @unittest.mock.patch.object(Account, 'set_auth_creds')
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    def test_provision_calls_set_auth_creds(self, post_patch, set_auth_creds_patch):
+        a = Account(did=6175551212, sip_user_id='6175551212@phoney.mit.edu', sip_password='12345', email='beaver@mit.edu')
+        set_auth_creds_patch.called = False
+        a.provision()
+        self.assertTrue(set_auth_creds_patch.called)

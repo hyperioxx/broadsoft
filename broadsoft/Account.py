@@ -18,6 +18,7 @@ from broadsoft.requestobjects.UserDeleteRequest import UserDeleteRequest
 from broadsoft.requestobjects.UserGetListInGroupRequest import UserGetListInGroupRequest
 from broadsoft.requestobjects.UserSharedCallAppearanceDeleteEndpointListRequest import \
     UserSharedCallAppearanceDeleteEndpointListRequest
+from broadsoft.requestobjects.UserAuthenticationModifyRequest import UserAuthenticationModifyRequest
 import re
 
 
@@ -191,6 +192,9 @@ class Account(BroadsoftObject):
         # if there are devices to add for user, add them
         self.add_devices(req_object=b)
 
+        # set authentication creds
+        self.set_auth_creds(req_object=b)
+
         return b
 
     def deactivate_unity_voicemail(self):
@@ -338,11 +342,6 @@ class Account(BroadsoftObject):
 
         BroadsoftObject.provision(self)
 
-        # Not making this part atomic since I want to leverage set_device_passwords(), so it gets called outside of
-        # build_provision_request. Seems reasonable to not make the entire request fail if this part does anyway.
-        # if self.sip_password:
-        #    self.set_device_passwords(new_sip_password=self.sip_password)
-
         # set up voicemail
         # Not making this part atomic since it seems reasonable to not make the entire request fail if this part does.
         if self.voicemail:
@@ -356,6 +355,26 @@ class Account(BroadsoftObject):
             return True
 
         return False
+
+    def set_auth_creds(self, req_object):
+        self.prep_attributes()
+
+        if self.did is None:
+            raise ValueError("can't run Account.set_auth_creds() without a did")
+
+        if self.sip_password is None:
+            self.generate_sip_password()
+
+        if self.sip_user_id is None:
+            self.derive_sip_user_id(did=self.did)
+
+        u = UserAuthenticationModifyRequest()
+        self.inject_broadsoftinstance(child=u)
+        u.did = self.did
+        u.sip_user_id = self.sip_user_id
+        u.new_password = self.sip_password
+
+        req_object.commands.append(u)
 
     def set_device_passwords(self, new_sip_password=None):
         if not self.sip_user_id and not self.did:
