@@ -251,8 +251,7 @@ class TestBroadsoftAccount(unittest.TestCase):
         a.devices = [d1, d2]
         ro = a.build_provision_request()
 
-        # expect to see 4 commands in the request object...
-        self.assertEqual(4, len(ro.commands))
+        self.assertEqual(5, len(ro.commands))
 
         # ... one to add the user
         cmd = ro.commands[0]
@@ -272,6 +271,13 @@ class TestBroadsoftAccount(unittest.TestCase):
         cmd = ro.commands[3]
         self.assertIsInstance(cmd, UserSharedCallAppearanceAddEndpointRequest)
         self.assertEqual(cmd.device_name, 'Generic')
+
+        # ... one to set authentication
+        cmd = ro.commands[4]
+        self.assertIsInstance(cmd, UserAuthenticationModifyRequest)
+        self.assertEqual(cmd.did, a.did)
+        self.assertEqual(cmd.sip_user_id, a.sip_user_id)
+        self.assertEqual(cmd.new_password, a.sip_password)
 
     def test_inherits_default_services(self):
         a = Account()
@@ -973,10 +979,10 @@ class TestBroadsoftAccount(unittest.TestCase):
     def test_build_provision_request_injects_broadsoftinstance(
             self, inject_broadsoftinstance_patch, add_services_patch, add_devices_patch
     ):
-        a = Account(broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory())
+        a = Account(broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(), did=6175551212)
         a.build_provision_request()
         self.assertTrue(inject_broadsoftinstance_patch.called)
-        self.assertEqual(2, len(inject_broadsoftinstance_patch.call_args_list))
+        self.assertEqual(3, len(inject_broadsoftinstance_patch.call_args_list))
 
         call = inject_broadsoftinstance_patch.call_args_list[0]
         args, kwargs = call
@@ -985,6 +991,10 @@ class TestBroadsoftAccount(unittest.TestCase):
         call = inject_broadsoftinstance_patch.call_args_list[1]
         args, kwargs = call
         self.assertIsInstance(kwargs['child'], UserAddRequest)
+
+        call = inject_broadsoftinstance_patch.call_args_list[2]
+        args, kwargs = call
+        self.assertIsInstance(kwargs['child'], UserAuthenticationModifyRequest)
 
     @unittest.mock.patch('broadsoft.requestobjects.UserGetRequest.UserGetRequest.get_user')
     @unittest.mock.patch.object(Account, 'from_xml')
@@ -1727,9 +1737,10 @@ class TestBroadsoftAccount(unittest.TestCase):
 
     @unittest.mock.patch.object(BroadsoftRequest, 'post')
     def test_set_auth_creds_barfs_if_no_did(self, post_patch):
+        b = BroadsoftRequest
         a = Account(sip_user_id='6175551212@mit.edu', sip_password='gaga')
         with self.assertRaises(ValueError):
-            a.set_auth_creds()
+            a.set_auth_creds(req_object=b)
 
     @unittest.mock.patch.object(Account, 'derive_sip_user_id')
     @unittest.mock.patch.object(Account, 'generate_sip_password')
@@ -1740,10 +1751,11 @@ class TestBroadsoftAccount(unittest.TestCase):
         userid_patch.called = False
         a.sip_user_id = None
         a.sip_password = None
+        b = BroadsoftRequest()
 
-        a.set_auth_creds()
+        a.set_auth_creds(req_object=b)
 
-        self.assertTrue(post_patch.called)
+        self.assertTrue(pwd_patch.called)
         self.assertTrue(userid_patch.called)
 
     @unittest.mock.patch.object(BroadsoftRequest, 'post')
