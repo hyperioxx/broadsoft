@@ -19,6 +19,7 @@ from broadsoft.requestobjects.UserGetListInGroupRequest import UserGetListInGrou
 from broadsoft.requestobjects.UserSharedCallAppearanceDeleteEndpointListRequest import \
     UserSharedCallAppearanceDeleteEndpointListRequest
 from broadsoft.requestobjects.UserAuthenticationModifyRequest import UserAuthenticationModifyRequest
+from broadsoft.requestobjects.UserSharedCallAppearanceModifyRequest import UserSharedCallAppearanceModifyRequest
 import re
 
 
@@ -192,10 +193,33 @@ class Account(BroadsoftObject):
         # if there are devices to add for user, add them
         self.add_devices(req_object=b)
 
+        # default settings for all SCAs, set once per account
+        self.configure_sca_settings(req_object=b)
+
         # set authentication creds
         self.set_auth_creds(req_object=b)
 
         return b
+
+    def configure_sca_settings(self, req_object):
+        self.prep_attributes()
+
+        if self.sip_user_id is None:
+            self.derive_sip_user_id(did=self.did)
+
+        u = UserSharedCallAppearanceModifyRequest()
+        self.inject_broadsoftinstance(child=u)
+
+        u.sip_user_id = self.sip_user_id
+        u.alert_all_appearances_for_click_to_dial_calls = True
+        u.alert_all_appearances_for_group_paging_calls = True
+        u.allow_sca_call_retrieve = True
+        u.multiple_call_arrangement_is_active = True
+        u.allow_bridging_between_locations = True
+        u.enable_call_park_notification = True
+        u.bridge_warning_tone = 'None'
+
+        req_object.commands.append(u)
 
     def deactivate_unity_voicemail(self):
         if not self.sip_user_id:

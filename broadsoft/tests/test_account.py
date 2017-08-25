@@ -22,6 +22,7 @@ from broadsoft.requestobjects.lib.BroadsoftRequest import instance_factory
 from broadsoft.requestobjects.UserSharedCallAppearanceGetRequest import UserSharedCallAppearanceGetRequest
 from broadsoft.requestobjects.UserSharedCallAppearanceDeleteEndpointListRequest import UserSharedCallAppearanceDeleteEndpointListRequest
 from broadsoft.requestobjects.UserAuthenticationModifyRequest import UserAuthenticationModifyRequest
+from broadsoft.requestobjects.UserSharedCallAppearanceModifyRequest import UserSharedCallAppearanceModifyRequest
 
 def fake_phone_db_record():
     class FakeDbPhone:
@@ -251,7 +252,7 @@ class TestBroadsoftAccount(unittest.TestCase):
         a.devices = [d1, d2]
         ro = a.build_provision_request()
 
-        self.assertEqual(5, len(ro.commands))
+        self.assertEqual(6, len(ro.commands))
 
         # ... one to add the user
         cmd = ro.commands[0]
@@ -272,8 +273,20 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertIsInstance(cmd, UserSharedCallAppearanceAddEndpointRequest)
         self.assertEqual(cmd.device_name, 'Generic')
 
-        # ... one to set authentication
+        # ... one to configure account-wide SCA behavior
         cmd = ro.commands[4]
+        self.assertIsInstance(cmd, UserSharedCallAppearanceModifyRequest)
+        self.assertEqual(cmd.sip_user_id, a.sip_user_id)
+        self.assertTrue(cmd.alert_all_appearances_for_click_to_dial_calls)
+        self.assertTrue(cmd.alert_all_appearances_for_group_paging_calls)
+        self.assertTrue(cmd.allow_sca_call_retrieve)
+        self.assertTrue(cmd.multiple_call_arrangement_is_active)
+        self.assertTrue(cmd.allow_bridging_between_locations)
+        self.assertTrue(cmd.enable_call_park_notification)
+        self.assertEqual(cmd.bridge_warning_tone, 'None')
+
+        # ... one to set authentication
+        cmd = ro.commands[5]
         self.assertIsInstance(cmd, UserAuthenticationModifyRequest)
         self.assertEqual(cmd.did, a.did)
         self.assertEqual(cmd.sip_user_id, a.sip_user_id)
@@ -982,7 +995,7 @@ class TestBroadsoftAccount(unittest.TestCase):
         a = Account(broadsoftinstance=broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(), did=6175551212)
         a.build_provision_request()
         self.assertTrue(inject_broadsoftinstance_patch.called)
-        self.assertEqual(3, len(inject_broadsoftinstance_patch.call_args_list))
+        self.assertEqual(4, len(inject_broadsoftinstance_patch.call_args_list))
 
         call = inject_broadsoftinstance_patch.call_args_list[0]
         args, kwargs = call
@@ -993,6 +1006,10 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertIsInstance(kwargs['child'], UserAddRequest)
 
         call = inject_broadsoftinstance_patch.call_args_list[2]
+        args, kwargs = call
+        self.assertIsInstance(kwargs['child'], UserSharedCallAppearanceModifyRequest)
+
+        call = inject_broadsoftinstance_patch.call_args_list[3]
         args, kwargs = call
         self.assertIsInstance(kwargs['child'], UserAuthenticationModifyRequest)
 
@@ -1778,3 +1795,52 @@ class TestBroadsoftAccount(unittest.TestCase):
         set_auth_creds_patch.called = False
         a.provision()
         self.assertTrue(set_auth_creds_patch.called)
+
+    @unittest.mock.patch.object(Account, 'derive_sip_user_id')
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    def test_configure_sca_settings_derives_as_needed(self, post_patch, userid_patch):
+        a = Account(did=6175551212)
+        post_patch.called = False
+        userid_patch.called = False
+        a.sip_user_id = None
+
+        b = BroadsoftRequest()
+        a.configure_sca_settings(req_object=b)
+
+        self.assertTrue(userid_patch.called)
+
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    def test_configure_sca_settings_functionality(self, post_patch):
+        # passing DID as int to confirm it gets converted to string
+        a = Account()
+        a.did = 6175551212
+        b = BroadsoftRequest()
+        a.configure_sca_settings(req_object=b)
+
+        for c in b.commands:
+            if type(c) is UserSharedCallAppearanceModifyRequest:
+                xml = ET.tostring(c.to_xml()).decode('utf-8')
+                target_xml = \
+                    '<BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' + \
+                    '<sessionId xmlns="">None</sessionId>' + \
+                    '<command xmlns="" xsi:type="UserSharedCallAppearanceModifyRequest">' + \
+                    '<userId>6175551212@broadsoft.mit.edu</userId>' + \
+                    '<alertAllAppearancesForClickToDialCalls>true</alertAllAppearancesForClickToDialCalls>' + \
+                    '<alertAllAppearancesForGroupPagingCalls>true</alertAllAppearancesForGroupPagingCalls>' + \
+                    '<allowSCACallRetrieve>true</allowSCACallRetrieve>' + \
+                    '<multipleCallArrangementIsActive>true</multipleCallArrangementIsActive>' + \
+                    '<allowBridgingBetweenLocations>true</allowBridgingBetweenLocations>' + \
+                    '<bridgeWarningTone>None</bridgeWarningTone>' + \
+                    '<enableCallParkNotification>true</enableCallParkNotification>' + \
+                    '</command>' + \
+                    '</BroadsoftDocument>'
+                self.assertEqual(xml, target_xml)
+
+    @unittest.mock.patch.object(Account, 'configure_sca_settings')
+    @unittest.mock.patch.object(BroadsoftRequest, 'post')
+    def test_provision_calls_configure_sca_settings(self, post_patch, configure_sca_settings_patch):
+        a = Account(did=6175551212, sip_user_id='6175551212@phoney.mit.edu', sip_password='12345',
+                    email='beaver@mit.edu')
+        configure_sca_settings_patch.called = False
+        a.provision()
+        self.assertTrue(configure_sca_settings_patch.called)
