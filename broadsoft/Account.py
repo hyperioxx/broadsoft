@@ -87,6 +87,10 @@ class Account(BroadsoftObject):
             voicemail_object.sip_user_id = self.sip_user_id
         if voicemail_object.mwi is None:
             voicemail_object.mwi = self.voicemail_mwi
+        if voicemail_object.sip_password is None:
+            voicemail_object.sip_password = self.sip_password
+        if voicemail_object.did is None:
+            voicemail_object.did = self.did
 
         # going to do this as a compound request so that it's pseudo-atomic...if one fails, the rest should
         # fail, regardless of where in the process that failure occurs
@@ -101,7 +105,7 @@ class Account(BroadsoftObject):
         # build XML to deactivate counterpart
         deactivate = voicemail_object.build_deactivate_counterpart_command()
 
-        b.commands = [activate, deactivate]
+        b.commands = activate + deactivate
         b.post()
         return [b]
 

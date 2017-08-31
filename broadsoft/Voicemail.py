@@ -64,10 +64,11 @@ class Voicemail(BroadsoftObject):
         # UserVoiceMessagingUserModifyAdvancedVoiceManagementRequest
         surgemail = UserVoiceMessagingUserModifyAdvancedVoiceManagementRequest()
         surgemail.sip_user_id = self.sip_user_id
-        surgemail.mailServerSelection = 'Group Mail Server'
-        surgemail.groupMailServerEmailAddress = self.email
-        surgemail.groupMailServerUserId = self.sip_user_id
-        surgemail.groupMailServerPassword = self.sip_password
+        surgemail.mail_server_selection = 'Group Mail Server'
+        surgemail.group_mail_server_email_address = self.email
+        surgemail.group_mail_server_user_id = self.did
+        surgemail.group_mail_server_password = self.sip_password
+        surgemail.use_group_default_mail_server_full_mailbox_limit = True
 
         return [activate, surgemail]
 

@@ -16,6 +16,7 @@ from broadsoft.requestobjects.UserSharedCallAppearanceAddEndpointRequest import 
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 from broadsoft.Voicemail import Voicemail
 from broadsoft.requestobjects.UserVoiceMessagingUserModifyVoiceManagementRequest import UserVoiceMessagingUserModifyVoiceManagementRequest
+from broadsoft.requestobjects.UserVoiceMessagingUserModifyAdvancedVoiceManagementRequest import UserVoiceMessagingUserModifyAdvancedVoiceManagementRequest
 from broadsoft.requestobjects.UserThirdPartyVoiceMailSupportModifyRequest import UserThirdPartyVoiceMailSupportModifyRequest
 from broadsoft.requestobjects.GroupAccessDeviceDeleteRequest import GroupAccessDeviceDeleteRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import instance_factory
@@ -1279,13 +1280,15 @@ class TestBroadsoftAccount(unittest.TestCase):
         a = Account(sip_user_id='6175551212@broadsoft.com', email='beaver@mit.edu')
         r = a.activate_voicemail()
 
-        # expect to see two commands: an activate, and a deactivate
+        # expect to see 3 commands: an activate for basic voicemail, a configure for surgemail, and a deactivate for unity
         request = r[0]
-        activate = request.commands[0]
-        deactivate = request.commands[1]
+        activate_base = request.commands[0]
+        activate_surgemail = request.commands[1]
+        deactivate = request.commands[2]
 
         # default is broadsoft, so activate should be for broadsoft, and deactivate for third party
-        self.assertIsInstance(activate, UserVoiceMessagingUserModifyVoiceManagementRequest)
+        self.assertIsInstance(activate_base, UserVoiceMessagingUserModifyVoiceManagementRequest)
+        self.assertIsInstance(activate_surgemail, UserVoiceMessagingUserModifyAdvancedVoiceManagementRequest)
         self.assertIsInstance(deactivate, UserThirdPartyVoiceMailSupportModifyRequest)
 
         # build unity
@@ -1304,28 +1307,47 @@ class TestBroadsoftAccount(unittest.TestCase):
     @unittest.mock.patch.object(BroadsoftRequest, 'post')
     def test_activate_voicemail_passes_relevant_attributes(self, post_patch):
         # with mwi True
-        a = Account(sip_user_id='6175551212@broadsoft.com', email='beaver@mit.edu', voicemail_mwi=True)
+        a = Account(did=6175551212, sip_user_id='6175551212@broadsoft.com', email='beaver@mit.edu', voicemail_mwi=True,
+                    sip_password='gaga')
         [request] = a.activate_voicemail()
 
-        # check activate command for email, sip_user_id, and mwi
-        activate = request.commands[0]
-        self.assertEqual(activate.voice_message_delivery_email_address, a.email)
-        self.assertEqual(activate.voice_message_notify_email_address, a.email)
-        self.assertEqual(activate.send_voice_message_notify_email, a.email)
-        self.assertEqual(activate.sip_user_id, a.sip_user_id)
-        self.assertTrue(activate.use_phone_message_waiting_indicator)
+        # check activate base command for email, sip_user_id, and mwi
+        activate_base = request.commands[0]
+        self.assertEqual(activate_base.voice_message_delivery_email_address, a.email)
+        self.assertEqual(activate_base.voice_message_notify_email_address, a.email)
+        self.assertEqual(activate_base.send_voice_message_notify_email, a.email)
+        self.assertEqual(activate_base.sip_user_id, a.sip_user_id)
+        self.assertTrue(activate_base.use_phone_message_waiting_indicator)
+
+        # check activate surgemail command
+        activate_surgemail = request.commands[1]
+        self.assertEqual(activate_surgemail.sip_user_id, a.sip_user_id)
+        self.assertEqual(activate_surgemail.mail_server_selection, 'Group Mail Server')
+        self.assertEqual(activate_surgemail.group_mail_server_email_address, a.email)
+        self.assertEqual(activate_surgemail.group_mail_server_user_id, a.did)
+        self.assertEqual(activate_surgemail.group_mail_server_password, a.sip_password)
+        self.assertTrue(activate_surgemail.use_group_default_mail_server_full_mailbox_limit)
 
         # with mwi False
         a = Account(sip_user_id='6175551212@broadsoft.com', email='beaver@mit.edu', voicemail_mwi=False)
         [request] = a.activate_voicemail()
 
         # check activate command for email, sip_user_id, and mwi
-        activate = request.commands[0]
-        self.assertEqual(activate.voice_message_delivery_email_address, a.email)
-        self.assertEqual(activate.voice_message_notify_email_address, a.email)
-        self.assertEqual(activate.send_voice_message_notify_email, a.email)
-        self.assertEqual(activate.sip_user_id, a.sip_user_id)
-        self.assertFalse(activate.use_phone_message_waiting_indicator)
+        activate_base = request.commands[0]
+        self.assertEqual(activate_base.voice_message_delivery_email_address, a.email)
+        self.assertEqual(activate_base.voice_message_notify_email_address, a.email)
+        self.assertEqual(activate_base.send_voice_message_notify_email, a.email)
+        self.assertEqual(activate_base.sip_user_id, a.sip_user_id)
+        self.assertFalse(activate_base.use_phone_message_waiting_indicator)
+
+        # check activate surgemail command
+        activate_surgemail = request.commands[1]
+        self.assertEqual(activate_surgemail.sip_user_id, a.sip_user_id)
+        self.assertEqual(activate_surgemail.mail_server_selection, 'Group Mail Server')
+        self.assertEqual(activate_surgemail.group_mail_server_email_address, a.email)
+        self.assertEqual(activate_surgemail.group_mail_server_user_id, a.did)
+        self.assertEqual(activate_surgemail.group_mail_server_password, a.sip_password)
+        self.assertTrue(activate_surgemail.use_group_default_mail_server_full_mailbox_limit)
 
     @unittest.mock.patch.object(BroadsoftRequest, 'post')
     def test_delete_converts_did_to_sip_user_id(
