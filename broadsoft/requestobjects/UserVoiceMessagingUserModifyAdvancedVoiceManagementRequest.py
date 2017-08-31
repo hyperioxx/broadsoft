@@ -45,51 +45,51 @@ class UserVoiceMessagingUserModifyAdvancedVoiceManagementRequest(BroadsoftReques
         uid.text = self.sip_user_id
 
         if self.mail_server_selection is not None:
-            s = ET.SubElement(cmd, 'self.mail_server_selection')
+            s = ET.SubElement(cmd, 'mailServerSelection')
             s.text = self.mail_server_selection
 
         if self.group_mail_server_email_address is not None:
-            s = ET.SubElement(cmd, 'self.group_mail_server_email_address')
+            s = ET.SubElement(cmd, 'groupMailServerEmailAddress')
             s.text = self.group_mail_server_email_address
 
         if self.group_mail_server_user_id is not None:
-            s = ET.SubElement(cmd, 'self.group_mail_server_user_id')
+            s = ET.SubElement(cmd, 'groupMailServerUserId')
             s.text = self.group_mail_server_user_id
 
         if self.group_mail_server_password is not None:
-            s = ET.SubElement(cmd, 'self.group_mail_server_password')
+            s = ET.SubElement(cmd, 'groupMailServerPassword')
             s.text = self.group_mail_server_password
 
         if self.use_group_default_mail_server_full_mailbox_limit is not None:
-            s = ET.SubElement(cmd, 'self.use_group_default_mail_server_full_mailbox_limit')
+            s = ET.SubElement(cmd, 'useGroupDefaultMailServerFullMailboxLimit')
             s.text = self.use_group_default_mail_server_full_mailbox_limit
 
         if self.group_mail_server_full_mailbox_limit is not None:
-            s = ET.SubElement(cmd, 'self.group_mail_server_full_mailbox_limit')
+            s = ET.SubElement(cmd, 'groupMailServerFullMailboxLimit')
             s.text = str(self.group_mail_server_full_mailbox_limit)
 
         if self.personal_mail_server_net_address is not None:
-            s = ET.SubElement(cmd, 'self.personal_mail_server_net_address')
+            s = ET.SubElement(cmd, 'personalMailServerNetAddress')
             s.text = self.personal_mail_server_net_address
 
         if self.personal_mail_server_protocol is not None:
-            s = ET.SubElement(cmd, 'self.personal_mail_server_protocol')
+            s = ET.SubElement(cmd, 'personalMailServerProtocol')
             s.text = self.personal_mail_server_protocol
 
         if self.personal_mail_server_real_delete_for_imap is not None:
-            s = ET.SubElement(cmd, 'self.personal_mail_server_real_delete_for_imap')
+            s = ET.SubElement(cmd, 'personalMailServerRealDeleteForImap')
             s.text = self.personal_mail_server_real_delete_for_imap
 
         if self.personal_mail_server_email_address is not None:
-            s = ET.SubElement(cmd, 'self.personal_mail_server_email_address')
+            s = ET.SubElement(cmd, 'personalMailServerEmailAddress')
             s.text = self.personal_mail_server_email_address
 
         if self.personal_mail_server_user_id is not None:
-            s = ET.SubElement(cmd, 'self.personal_mail_server_user_id')
+            s = ET.SubElement(cmd, 'personalMailServerUserId')
             s.text = self.personal_mail_server_user_id
 
         if self.personal_mail_server_password is not None:
-            s = ET.SubElement(cmd, 'self.personal_mail_server_password')
+            s = ET.SubElement(cmd, 'personalMailServerPassword')
             s.text = self.personal_mail_server_password
 
         return cmd
