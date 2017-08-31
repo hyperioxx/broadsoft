@@ -5,7 +5,7 @@ from xml.etree.ElementTree import Element
 import xml.etree.ElementTree as ET
 from broadsoft.requestobjects.UserVoiceMessagingUserModifyVoiceManagementRequest import UserVoiceMessagingUserModifyVoiceManagementRequest
 from broadsoft.requestobjects.UserThirdPartyVoiceMailSupportModifyRequest import UserThirdPartyVoiceMailSupportModifyRequest
-
+from broadsoft.requestobjects.UserVoiceMessagingUserModifyAdvancedVoiceManagementRequest import UserVoiceMessagingUserModifyAdvancedVoiceManagementRequest
 
 def return_none(**kwargs):
     return None
@@ -37,13 +37,27 @@ class TestBroadsoftVoicemail(unittest.TestCase):
         v.type = 'broadsoft'
         activate = v.build_activate_command()
         deactivate = v.build_deactivate_counterpart_command()
-        self.assertIsInstance(activate, UserVoiceMessagingUserModifyVoiceManagementRequest)
+
+        # activate should be a list, containing a UserVoiceMessagingUserModifyVoiceManagementRequest and a
+        # UserVoiceMessagingUserModifyAdvancedVoiceManagementRequest
+        activate_configure, activate_surgemail = activate
+
+        self.assertIsInstance(activate_configure, UserVoiceMessagingUserModifyVoiceManagementRequest)
+        self.assertIsInstance(activate_surgemail, UserVoiceMessagingUserModifyAdvancedVoiceManagementRequest)
+
+        # deactivate is a list with just a UserThirdPartyVoiceMailSupportModifyRequest
+        deactivate = deactivate[0]
         self.assertIsInstance(deactivate, UserThirdPartyVoiceMailSupportModifyRequest)
 
         v = Voicemail(sip_user_id='6175551212@beaver.mit.edu', email='beaver@mit.edu')
         v.type = 'unity'
         activate = v.build_activate_command()
         deactivate = v.build_deactivate_counterpart_command()
+
+        # activate and deactivate here are both single item lists
+        activate = activate[0]
+        deactivate = deactivate[0]
+
         self.assertIsInstance(activate, UserThirdPartyVoiceMailSupportModifyRequest)
         self.assertIsInstance(deactivate, UserVoiceMessagingUserModifyVoiceManagementRequest)
 
