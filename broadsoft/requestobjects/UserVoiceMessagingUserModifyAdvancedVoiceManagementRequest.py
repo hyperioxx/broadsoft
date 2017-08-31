@@ -20,6 +20,7 @@ class UserVoiceMessagingUserModifyAdvancedVoiceManagementRequest(BroadsoftReques
                  personal_mail_server_user_id=None, personal_mail_server_password=None,
                  **kwargs):
         self.sip_user_id = sip_user_id
+        # options are 'Group Mail Server' and 'Personal Mail Server'
         self.mail_server_selection = mail_server_selection
         self.group_mail_server_email_address = group_mail_server_email_address
         self.group_mail_server_user_id = group_mail_server_user_id
