@@ -633,6 +633,7 @@ class BroadsoftInstance:
         self.default_domain = 'broadsoft.mit.edu'
         self.service_provider = 'ENT136'
         self.group_id=group_id
+        self.surgemail_domain = '[unknown]'
 
     def login(self):
         r = BroadsoftRequest(broadsoftinstance=self)
@@ -658,6 +659,7 @@ class TestBroadsoftInstance(BroadsoftInstance):
         self.creds_member = 'test'
         self.default_domain = 'broadsoft-dev.mit.edu'
         self.service_provider = 'MIT-SP'
+        self.surgemail_domain = 'mit1-c10919-sb.lab.myservice.io'
 
 
 def instance_factory(instance='prod') -> object:
