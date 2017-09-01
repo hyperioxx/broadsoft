@@ -1224,7 +1224,7 @@ class TestBroadsoftAccount(unittest.TestCase):
             self, post_patch, inject_broadsoftinstance_patch
     ):
         i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(instance='test')
-        a = Account(sip_user_id='6175551212@mit.edu', email='beaver@mit.edu', broadsoftinstance=i)
+        a = Account(sip_user_id='6175551212@mit.edu', email='beaver@mit.edu', broadsoftinstance=i, did=6175551212)
         a.activate_voicemail()
 
         # expect to see inject_broadsoftinstance_patch called once, for the BroadsoftRequest object that's containing
@@ -1249,7 +1249,7 @@ class TestBroadsoftAccount(unittest.TestCase):
             self, post_patch
     ):
         v = Voicemail(straight_to_voicemail=True, type='broadsoft')
-        a = Account(sip_user_id='6175551212@broadsoft.com', email='beaver@mit.edu')
+        a = Account(sip_user_id='6175551212@broadsoft.com', email='beaver@mit.edu', did=6175551212)
         r = a.activate_voicemail(voicemail_object=v)
 
         # the first command in the returned object from activate_voicemail will
@@ -1263,7 +1263,7 @@ class TestBroadsoftAccount(unittest.TestCase):
     def test_activate_voicemail_construct_voicemail_object(
             self, post_patch
     ):
-        a = Account(sip_user_id='6175551212@broadsoft.com', email='beaver@mit.edu')
+        a = Account(sip_user_id='6175551212@broadsoft.com', email='beaver@mit.edu', did=6175551212)
         r = a.activate_voicemail()
 
         # the first command in the returned object from activate_voicemail will
@@ -1277,7 +1277,7 @@ class TestBroadsoftAccount(unittest.TestCase):
             self, post_patch
     ):
         # build default (broadsoft)
-        a = Account(sip_user_id='6175551212@broadsoft.com', email='beaver@mit.edu')
+        a = Account(sip_user_id='6175551212@broadsoft.com', email='beaver@mit.edu', did=6175551212)
         r = a.activate_voicemail()
 
         # expect to see 3 commands: an activate for basic voicemail, a configure for surgemail, and a deactivate for unity
@@ -1292,7 +1292,7 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertIsInstance(deactivate, UserThirdPartyVoiceMailSupportModifyRequest)
 
         # build unity
-        a = Account(sip_user_id='6175551212@broadsoft.com', email='beaver@mit.edu', voicemail='unity')
+        a = Account(sip_user_id='6175551212@broadsoft.com', email='beaver@mit.edu', voicemail='unity', did=6175551212)
         r = a.activate_voicemail()
 
         # expect to see two commands: an activate, and a deactivate
@@ -1323,13 +1323,13 @@ class TestBroadsoftAccount(unittest.TestCase):
         activate_surgemail = request.commands[1]
         self.assertEqual(activate_surgemail.sip_user_id, a.sip_user_id)
         self.assertEqual(activate_surgemail.mail_server_selection, 'Group Mail Server')
-        self.assertEqual(activate_surgemail.group_mail_server_email_address, a.email)
+        self.assertEqual(activate_surgemail.group_mail_server_email_address, a.did + '@' + activate_surgemail.broadsoftinstance.surgemail_domain)
         self.assertEqual(activate_surgemail.group_mail_server_user_id, a.did)
         self.assertEqual(activate_surgemail.group_mail_server_password, a.sip_password)
         self.assertTrue(activate_surgemail.use_group_default_mail_server_full_mailbox_limit)
 
         # with mwi False
-        a = Account(sip_user_id='6175551212@broadsoft.com', email='beaver@mit.edu', voicemail_mwi=False)
+        a = Account(did=6175551212, sip_user_id='6175551212@broadsoft.com', email='beaver@mit.edu', voicemail_mwi=False)
         [request] = a.activate_voicemail()
 
         # check activate command for email, sip_user_id, and mwi
@@ -1344,7 +1344,7 @@ class TestBroadsoftAccount(unittest.TestCase):
         activate_surgemail = request.commands[1]
         self.assertEqual(activate_surgemail.sip_user_id, a.sip_user_id)
         self.assertEqual(activate_surgemail.mail_server_selection, 'Group Mail Server')
-        self.assertEqual(activate_surgemail.group_mail_server_email_address, a.email)
+        self.assertEqual(activate_surgemail.group_mail_server_email_address, a.did + '@' + activate_surgemail.broadsoftinstance.surgemail_domain)
         self.assertEqual(activate_surgemail.group_mail_server_user_id, a.did)
         self.assertEqual(activate_surgemail.group_mail_server_password, a.sip_password)
         self.assertTrue(activate_surgemail.use_group_default_mail_server_full_mailbox_limit)

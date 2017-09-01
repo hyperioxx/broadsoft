@@ -10,7 +10,7 @@ class Voicemail(BroadsoftObject):
 
     def __init__(self, behavior='email', busy_to_voicemail=True, cc_email=None, did=None, email=None, mwi=None,
                  no_answer_to_voicemail=True, rings=3, straight_to_voicemail=False, send_cc=False, sip_user_id=None,
-                 type='broadsoft', transfer_on_zero=False, transfer_number=None, sip_password=None,
+                 type='broadsoft', transfer_on_zero=False, transfer_number=None, sip_password=None, surgemail_domain=None,
                  **kwargs):
         self.behavior = behavior                            # "email" or "store" (on server)
         self.busy_to_voicemail = busy_to_voicemail
@@ -24,11 +24,15 @@ class Voicemail(BroadsoftObject):
         self.sip_password = sip_password
         self.sip_user_id = sip_user_id
         self.straight_to_voicemail = straight_to_voicemail
+        self.surgemail_domain=surgemail_domain
         self.transfer_on_zero = transfer_on_zero
         self.transfer_number = transfer_number
         self.type = type                                    # broadsoft or unity
 
         BroadsoftObject.__init__(self, **kwargs)
+
+        if self.surgemail_domain is None:
+            self.surgemail_domain = self.broadsoftinstance.surgemail_domain
 
     def build_activate_command(self):
         self.validate()
@@ -65,7 +69,7 @@ class Voicemail(BroadsoftObject):
         surgemail = UserVoiceMessagingUserModifyAdvancedVoiceManagementRequest()
         surgemail.sip_user_id = self.sip_user_id
         surgemail.mail_server_selection = 'Group Mail Server'
-        surgemail.group_mail_server_email_address = self.email
+        surgemail.group_mail_server_email_address = str(self.did) + '@' + self.surgemail_domain
         surgemail.group_mail_server_user_id = self.did
         surgemail.group_mail_server_password = self.sip_password
         surgemail.use_group_default_mail_server_full_mailbox_limit = True
@@ -108,3 +112,6 @@ class Voicemail(BroadsoftObject):
 
         if not self.email:
             raise ValueError("can't call Account.activate_unity_voicemail without a value for email")
+
+        if not self.did:
+            raise ValueError("can't call Account.activate_unity_voicemail without a value for did")
