@@ -70,7 +70,7 @@ class Voicemail(BroadsoftObject):
         surgemail.sip_user_id = self.sip_user_id
         surgemail.mail_server_selection = 'Group Mail Server'
         surgemail.group_mail_server_email_address = str(self.did) + '@' + self.surgemail_domain
-        surgemail.group_mail_server_user_id = self.did
+        surgemail.group_mail_server_user_id = str(self.did) + '@' + self.surgemail_domain
         surgemail.group_mail_server_password = self.sip_password
         surgemail.use_group_default_mail_server_full_mailbox_limit = True
 

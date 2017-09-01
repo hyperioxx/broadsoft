@@ -1324,7 +1324,7 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertEqual(activate_surgemail.sip_user_id, a.sip_user_id)
         self.assertEqual(activate_surgemail.mail_server_selection, 'Group Mail Server')
         self.assertEqual(activate_surgemail.group_mail_server_email_address, a.did + '@' + activate_surgemail.broadsoftinstance.surgemail_domain)
-        self.assertEqual(activate_surgemail.group_mail_server_user_id, a.did)
+        self.assertEqual(activate_surgemail.group_mail_server_user_id, a.did + '@' + activate_surgemail.broadsoftinstance.surgemail_domain)
         self.assertEqual(activate_surgemail.group_mail_server_password, a.sip_password)
         self.assertTrue(activate_surgemail.use_group_default_mail_server_full_mailbox_limit)
 
@@ -1345,7 +1345,7 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertEqual(activate_surgemail.sip_user_id, a.sip_user_id)
         self.assertEqual(activate_surgemail.mail_server_selection, 'Group Mail Server')
         self.assertEqual(activate_surgemail.group_mail_server_email_address, a.did + '@' + activate_surgemail.broadsoftinstance.surgemail_domain)
-        self.assertEqual(activate_surgemail.group_mail_server_user_id, a.did)
+        self.assertEqual(activate_surgemail.group_mail_server_user_id, a.did + '@' + activate_surgemail.broadsoftinstance.surgemail_domain)
         self.assertEqual(activate_surgemail.group_mail_server_password, a.sip_password)
         self.assertTrue(activate_surgemail.use_group_default_mail_server_full_mailbox_limit)
 
