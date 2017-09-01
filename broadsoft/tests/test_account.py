@@ -1866,3 +1866,18 @@ class TestBroadsoftAccount(unittest.TestCase):
         configure_sca_settings_patch.called = False
         a.provision()
         self.assertTrue(configure_sca_settings_patch.called)
+
+    @unittest.mock.patch('requests.post')
+    @unittest.mock.patch.object(Voicemail, '__init__', side_effect=return_none)
+    def test_activate_voicemail_passes_broadsoftinstance_surgemail_domain_to_voicemail_object(self, vmail_patch, post_patch):
+        i = instance_factory(instance='test')
+        a = Account(did=6175551212, sip_user_id='6175551212@phoney.mit.edu', sip_password='12345',
+                    email='beaver@mit.edu', broadsoftinstance=i)
+        # this will throw an exception we don't care about
+        try:
+            a.activate_voicemail()
+        except AttributeError:
+            pass
+
+        args, kwargs = vmail_patch.call_args_list[0]
+        self.assertEqual(i, kwargs['broadsoftinstance'])

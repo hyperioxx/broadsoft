@@ -78,7 +78,7 @@ class Account(BroadsoftObject):
 
         # user didn't specify a custom Voicemail object? Instantiate the default for the given type.
         if voicemail_object is None:
-            voicemail_object = Voicemail(type=type)
+            voicemail_object = Voicemail(type=type, broadsoftinstance=self.broadsoftinstance)
 
         # get email, sip_user_id, and mwi into voicemail object, whether constructed or passed
         if voicemail_object.email is None:
