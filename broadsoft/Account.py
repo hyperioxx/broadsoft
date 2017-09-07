@@ -21,6 +21,7 @@ from broadsoft.requestobjects.UserSharedCallAppearanceDeleteEndpointListRequest 
 from broadsoft.requestobjects.UserAuthenticationModifyRequest import UserAuthenticationModifyRequest
 from broadsoft.requestobjects.UserSharedCallAppearanceModifyRequest import UserSharedCallAppearanceModifyRequest
 import re
+import logging
 
 
 class Account(BroadsoftObject):
@@ -78,7 +79,8 @@ class Account(BroadsoftObject):
 
         # user didn't specify a custom Voicemail object? Instantiate the default for the given type.
         if voicemail_object is None:
-            voicemail_object = Voicemail(type=type, broadsoftinstance=self.broadsoftinstance)
+            voicemail_object = Voicemail(type=type, broadsoftinstance=self.broadsoftinstance,
+                                         logging_level=self.logging_level)
 
         # get email, sip_user_id, and mwi into voicemail object, whether constructed or passed
         if voicemail_object.email is None:
@@ -122,8 +124,7 @@ class Account(BroadsoftObject):
                 device = {'line_port': r['Line/Port'], 'name': r['Device Name']}
                 devices.append(device)
             del_d = UserSharedCallAppearanceDeleteEndpointListRequest(broadsoftinstance=self.broadsoftinstance,
-                                                                      sip_user_id=self.sip_user_id, devices=devices,
-                                                                      logging_level=self.logging_level)
+                                                                      sip_user_id=self.sip_user_id, devices=devices)
             req_object.commands.append(del_d)
 
         if len(self.devices) > 0:
@@ -136,7 +137,7 @@ class Account(BroadsoftObject):
 
     def add_services(self, req_object):
         if self.services_defined():
-            s = UserServiceAssignListRequest(logging_level=self.logging_level)
+            s = UserServiceAssignListRequest()
             self.inject_broadsoftinstance(child=s)
             s.did = self.did
             s.sip_user_id = self.sip_user_id
@@ -178,11 +179,11 @@ class Account(BroadsoftObject):
     def build_provision_request(self):
         # going to do this as a compound request so that it's pseudo-atomic...if one fails, the rest should
         # fail, regardless of where in the process that failure occurs
-        b = BroadsoftRequest(logging_level=self.logging_level)
+        b = BroadsoftRequest()
         self.inject_broadsoftinstance(child=b)
 
         # object to create the user
-        u_add = UserAddRequest(logging_level=self.logging_level)
+        u_add = UserAddRequest()
         self.inject_broadsoftinstance(child=u_add)
         u_add.first_name = self.first_name
         u_add.last_name = self.last_name
@@ -296,14 +297,13 @@ class Account(BroadsoftObject):
 
     def link_primary_device(self, req_object, device):
         u_mod = UserModifyRequest(did=self.did, sip_user_id=self.sip_user_id, device_name=device.name,
-                                  line_port=device.line_port, logging_level=self.logging_level)
+                                  line_port=device.line_port)
         self.inject_broadsoftinstance(child=u_mod)
         req_object.commands.append(u_mod)
 
     def link_sca_device(self, req_object, device):
         line_port = device.line_port
-        sca = UserSharedCallAppearanceAddEndpointRequest(sip_user_id=self.sip_user_id, line_port=line_port,
-                                                         logging_level=self.logging_level)
+        sca = UserSharedCallAppearanceAddEndpointRequest(sip_user_id=self.sip_user_id, line_port=line_port)
         self.inject_broadsoftinstance(child=sca)
         req_object.commands.append(sca)
 
@@ -338,19 +338,18 @@ class Account(BroadsoftObject):
                 self.devices.append(d)
 
     def overwrite(self):
-        logger = BroadsoftRequest.logger(logging_level=self.logging_level)
-        logger.info("overwriting pre-existing account for DID: " + str(self.did),
+        logging.getLogger('broadsoftapi').info("overwriting pre-existing account for DID: " + str(self.did),
                      extra={'session_id': self.broadsoftinstance.session_id})
 
         # here should derive sip_user_id if not present
         if not self.sip_user_id:
             self.did = self.derive_sip_user_id(did=self.did)
-            logger.info("overwriting pre-existing account for DID: " + str(self.did) +
+            logging.getLogger('broadsoftapi').info("overwriting pre-existing account for DID: " + str(self.did) +
                          ", derived " + str(self.sip_user_id) + " as sip_user_id",
                          extra={'session_id': self.broadsoftinstance.session_id})
 
         if self.sip_user_id is not None:
-            logger.info("overwriting pre-existing account for DID: " + str(self.did) +
+            logging.getLogger('broadsoftapi').info("overwriting pre-existing account for DID: " + str(self.did) +
                          ", executing",
                          extra={'session_id': self.broadsoftinstance.session_id})
 

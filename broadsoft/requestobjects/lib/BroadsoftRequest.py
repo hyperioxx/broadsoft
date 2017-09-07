@@ -20,15 +20,13 @@ defines what a request to the Broadsoft OCI server looks like, how to post to it
 
 class BroadsoftRequest(XmlDocument):
     auth_exceptions = ['AuthenticationRequest', 'LoginRequest14sp4', 'LogoutRequest']
-    logging_dir = '/var/log/broadsoft'
-    logging_fname = 'api.log'
     default_timezone = 'America/New_York'
     check_success = False
     max_commands_per_request = 15
     skip_fetch_error = False
     skip_fetch_error_head = None
 
-    def __init__(self, require_logging=True, timezone=None, broadsoftinstance=None, group_id=None, logging_level='info'):
+    def __init__(self, timezone=None, broadsoftinstance=None, group_id=None):
         self.broadsoftinstance = broadsoftinstance
         self.commands = []
         self.group_id = group_id
@@ -48,19 +46,16 @@ class BroadsoftRequest(XmlDocument):
             if self.broadsoftinstance.api_password:
                 self.api_password = self.broadsoftinstance.api_password
 
-        # now that we're done setting up shop, start the logging
-        self.setup_logging(logging_level=self.derive_logging_level_object(logging_level=logging_level))
-
     def authenticate_and_login(self):
-        logging.info("running authenticate request", extra={'session_id': self.broadsoftinstance.session_id})
+        logging.getLogger('broadsoftapi').info("running authenticate request", extra={'session_id': self.broadsoftinstance.session_id})
         a = AuthenticationRequest.authenticate(broadsoftinstance=self.broadsoftinstance)
         self.broadsoftinstance.auth_object = a
 
-        logging.info("running login request", extra={'session_id': self.broadsoftinstance.session_id})
+        logging.getLogger('broadsoftapi').info("running login request", extra={'session_id': self.broadsoftinstance.session_id})
         self.broadsoftinstance.auth_object = a
         l = LoginRequest.login(broadsoftinstance=self.broadsoftinstance)
         self.broadsoftinstance.login_object = l
-        logging.info("continuing with request", extra={'session_id': self.broadsoftinstance.session_id})
+        logging.getLogger('broadsoftapi').info("continuing with request", extra={'session_id': self.broadsoftinstance.session_id})
 
     def broadsoftinstance_needed(self):
         # value for broadsoftinstance? not needed.
@@ -117,7 +112,7 @@ class BroadsoftRequest(XmlDocument):
 
         # found fault/error? log and raise exception
         if error_msg and not self.derive_skip_error(error_msg=error_msg):
-            logging.error(error_msg, extra={'session_id': self.broadsoftinstance.session_id})
+            logging.getLogger('broadsoftapi').info(error_msg, extra={'session_id': self.broadsoftinstance.session_id})
             raise RuntimeError(error_msg)
 
     def convert_booleans(self):
@@ -205,11 +200,11 @@ class BroadsoftRequest(XmlDocument):
         except AttributeError:
             pass
 
-        logging.info("running " + command_name + " request", extra={'session_id': self.broadsoftinstance.session_id})
+        logging.getLogger('broadsoftapi').info("running " + command_name + " request", extra={'session_id': self.broadsoftinstance.session_id})
 
         # if this isn't an auth/login request, check for login object. none? need to login.
         if self.need_login():
-            logging.info("auth/login needed.", extra={'session_id': self.broadsoftinstance.session_id})
+            logging.getLogger('broadsoftapi').info("auth/login needed.", extra={'session_id': self.broadsoftinstance.session_id})
             self.authenticate_and_login()
 
         # first, convert self into string representation
@@ -220,31 +215,31 @@ class BroadsoftRequest(XmlDocument):
         e = SoapEnvelope(body=payload)
         envelope = e.to_string()
 
-        logging.info("url: " + self.broadsoftinstance.api_url, extra={'session_id': self.broadsoftinstance.session_id})
+        logging.getLogger('broadsoftapi').info("url: " + self.broadsoftinstance.api_url, extra={'session_id': self.broadsoftinstance.session_id})
 
         # if there's an attached auth object, grab cookies
         cookies = None
         if self.broadsoftinstance.auth_object:
             try:
                 cookies = self.broadsoftinstance.auth_object.auth_cookie_jar
-                logging.info("cookies: " + str(cookies), extra={'session_id': self.broadsoftinstance.session_id})
+                logging.getLogger('broadsoftapi').info("cookies: " + str(cookies), extra={'session_id': self.broadsoftinstance.session_id})
                 pass
             except AttributeError:
                 pass
 
-        logging.info("payload: " + envelope, extra={'session_id': self.broadsoftinstance.session_id})
+        logging.getLogger('broadsoftapi').info("payload: " + envelope, extra={'session_id': self.broadsoftinstance.session_id})
 
         # post to server
         headers = {'content-type': 'text/xml', 'SOAPAction': ''}
         response = requests.post(url=self.broadsoftinstance.api_url, data=envelope, headers=headers, cookies=cookies)
         response.close()
         self.last_response = response
-        logging.debug(self.format_xml_envelope(xml=envelope), extra={'session_id': self.broadsoftinstance.session_id})
+        logging.getLogger('broadsoftapi').debug("\n" + self.format_xml_envelope(xml=envelope), extra={'session_id': self.broadsoftinstance.session_id})
 
         # get a non-200 response?
         if int(response.status_code) > 299:
             error_msg = "got " + str(response.status_code) + " running request"
-            logging.error(error_msg, extra={'session_id': self.broadsoftinstance.session_id})
+            logging.getLogger('broadsoftapi').info(error_msg, extra={'session_id': self.broadsoftinstance.session_id})
             raise RuntimeError(error_msg)
 
         # massage the response and check for errors
@@ -255,12 +250,12 @@ class BroadsoftRequest(XmlDocument):
         except AttributeError:
             pass
 
-        logging.info("response: " + content, extra={'session_id': self.broadsoftinstance.session_id})
+        logging.getLogger('broadsoftapi').info("response: " + content, extra={'session_id': self.broadsoftinstance.session_id})
         self.check_error(string_response=content)
 
         # if we're managing login behavior, also do an implicit logout
         if self.need_logout():
-            logging.info("automatically running logout request", extra={'session_id': self.broadsoftinstance.session_id})
+            logging.getLogger('broadsoftapi').info("automatically running logout request", extra={'session_id': self.broadsoftinstance.session_id})
             l = LogoutRequest.logout(broadsoftinstance=self.broadsoftinstance)
 
         # if requested, dig actual message out of SOAP envelope it came in (and return as XML object)
@@ -304,28 +299,6 @@ class BroadsoftRequest(XmlDocument):
     def prep_for_xml(self):
         self.prep_attributes()
         self.convert_booleans()
-
-    def setup_logging(self, logging_level=logging.INFO):
-        import os
-        from logging.handlers import TimedRotatingFileHandler
-
-        # does the log location exist
-        if not os.path.exists(self.logging_dir):
-            os.makedirs(name=self.logging_dir, exist_ok=True)
-
-        if not os.path.exists(self.logging_dir):
-            raise IOError('no permission to create ' + self.logging_dir)
-
-        logging.basicConfig(filename=self.logging_dir + '/' + self.logging_fname, level=logging_level,
-                            format='%(levelname)s:%(asctime)s (%(session_id)s): %(message)s')
-        logger = logging.getLogger(name='broadsoftapilog')
-        logger.setLevel(level=logging_level)
-        handler = TimedRotatingFileHandler(filename=self.logging_dir + '/' + self.logging_fname,
-                                           when='W0',
-                                           interval=1,
-                                           backupCount=12)
-        logger.addHandler(handler)
-        return logger
 
     def to_xml(self):
         self.prep_for_xml()
@@ -443,17 +416,6 @@ class BroadsoftRequest(XmlDocument):
         return data
 
     @staticmethod
-    def derive_logging_level_object(logging_level):
-        logging_level = logging_level.lower()
-        logging_level_obj = logging.INFO
-        if logging_level == 'debug':
-            logging_level_obj = logging.DEBUG
-        elif logging_level != 'info':
-            raise ValueError(str(logging_level) + " is not a valid value for logging_level")
-
-        return logging_level_obj
-
-    @staticmethod
     def extract_payload(response):
         response = ET.fromstring(text=response)
         payload_container = response.findall('.//processOCIMessageResponse/{urn:com:broadsoft:webservice}processOCIMessageReturn')
@@ -475,11 +437,6 @@ class BroadsoftRequest(XmlDocument):
         req_string = req_string.replace('&quot;', '"')
 
         return minidom.parseString(req_string).toprettyxml(indent="   ")
-
-    @staticmethod
-    def logger(logging_level='info'):
-        b = BroadsoftRequest(logging_level=logging_level)
-        return b.setup_logging(logging_level=BroadsoftRequest.derive_logging_level_object(logging_level=logging_level))
 
     @staticmethod
     def map_phone_type(phone_type):

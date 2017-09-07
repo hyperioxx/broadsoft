@@ -56,7 +56,7 @@ class Device(BroadsoftObject):
         self.is_primary = False
 
     def build_provision_request(self):
-        g = GroupAccessDeviceAddRequest(logging_level=self.logging_level)
+        g = GroupAccessDeviceAddRequest()
         self.inject_broadsoftinstance(child=g)
         g.description = self.description
         g.device_name = self.name
@@ -104,22 +104,22 @@ class Device(BroadsoftObject):
     def overwrite(self):
         """
         desc = "(name: " + str(self.name) + ", mac: " + str(self.mac_address) + ", did: " + str(self.mac_address) + ")"
-        logging.info("overwriting pre-existing devices " + desc, extra={'session_id': self.broadsoftinstance.session_id})
+        logging.getLogger('broadsoftapi').info("overwriting pre-existing devices " + desc, extra={'session_id': self.broadsoftinstance.session_id})
 
         if self.name is None:
             result = GroupAccessDeviceGetListRequest.find_device_by_mac_and_did(mac_address=self.mac_address, did=self.did,
                                                                            broadsoftinstance=self.broadsoftinstance)
             if result is not None:
                 self.bootstrap_find_result(result=result)
-                logging.info("overwriting pre-existing devices, lookup returned name " + str(self.name),
+                logging.getLogger('broadsoftapi').info("overwriting pre-existing devices, lookup returned name " + str(self.name),
                              extra={'session_id': self.broadsoftinstance.session_id})
 
         if self.name is not None:
-            logging.info("overwriting pre-existing devices, running delete on " + str(self.name),
+            logging.getLogger('broadsoftapi').info("overwriting pre-existing devices, running delete on " + str(self.name),
                          extra={'session_id': self.broadsoftinstance.session_id})
             self.delete()
         else:
-            logging.info("overwriting pre-existing devices, no matches found for " + desc,
+            logging.getLogger('broadsoftapi').info("overwriting pre-existing devices, no matches found for " + desc,
                          extra={'session_id': self.broadsoftinstance.session_id})
         """
         pass

@@ -8,16 +8,21 @@ import re
 
 
 class BroadsoftObject:
+    logging_dir = '/var/log/broadsoft'
+    logging_fname = 'api.log'
+
     def __init__(self, xml=None, implicit_overwrite=False, skip_if_exists=False, instance='prod',
                  broadsoftinstance=None, logging_level='info'):
         self.broadsoftinstance = broadsoftinstance
         self.fetched = None
         self.implicit_overwrite = implicit_overwrite
         self.instance = instance
+        self.logger = None
         self.logging_level = logging_level
         self.skip_if_exists = skip_if_exists
         self.xml = xml
         self.prep_attributes()
+        self.setup_logging(logging_level=logging_level)
 
     def check_if_object_fetched(self):
         if self.xml:
@@ -94,7 +99,7 @@ class BroadsoftObject:
             requests.append(paged_request)
 
         if len(requests) > 1:
-            logging.info("request has been paginated; atomicity not preserved", extra={'session_id': self.broadsoftinstance.session_id})
+            self.logger.info("request has been paginated; atomicity not preserved", extra={'session_id': self.broadsoftinstance.session_id})
 
         return requests
 
@@ -132,6 +137,46 @@ class BroadsoftObject:
                 else:
                     raise(e)
 
+    def setup_logging(self, logging_level='info'):
+        import os
+        from logging.handlers import TimedRotatingFileHandler
+
+        # does the log location exist
+        if not os.path.exists(self.logging_dir):
+            os.makedirs(name=self.logging_dir, exist_ok=True)
+
+        if not os.path.exists(self.logging_dir):
+            raise IOError('no permission to create ' + self.logging_dir)
+
+        # if we're in DEBUG mode, don't want to see requests info
+        logging.getLogger("requests").setLevel(logging.WARNING)
+
+        # convert logging_level string into logging object
+        logging_level = self.derive_logging_level_object(logging_level=logging_level)
+
+        # instantiate the broadsoftapi logger
+        logger = logging.getLogger('broadsoftapi')
+
+        # clear out any prior handlers
+        logger.handlers = []
+
+        logger.setLevel(level=logging_level)
+        format_str = '%(levelname)s:%(asctime)s (%(session_id)s): %(message)s'
+        formatter = logging.Formatter(format_str)
+
+        fh = TimedRotatingFileHandler(filename='/var/log/broadsoft/api.log',
+                                      when='W0', interval=1, backupCount=12)
+        fh.setLevel(logging.INFO)
+        fh.setFormatter(formatter)
+        logger.addHandler(fh)
+
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.DEBUG)
+        ch.setFormatter(formatter)
+        logger.addHandler(ch)
+
+        self.logger = logger
+
     def should_skip_error(self, error):
         skip = False
         if self.skip_if_exists:
@@ -143,3 +188,20 @@ class BroadsoftObject:
     @staticmethod
     def derive_broadsoft_instance(instance='prod'):
         return broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(instance=instance)
+
+    @staticmethod
+    def derive_logging_level_object(logging_level):
+        logging_level = logging_level.lower()
+        logging_level_obj = logging.INFO
+        if logging_level == 'debug':
+            logging_level_obj = logging.DEBUG
+        elif logging_level != 'info':
+            raise ValueError(str(logging_level) + " is not a valid value for logging_level")
+
+        return logging_level_obj
+
+    @staticmethod
+    def kickstart_logger(logging_level='info'):
+        b = BroadsoftObject(logging_level=logging_level)
+        b.setup_logging(logging_level=logging_level)
+

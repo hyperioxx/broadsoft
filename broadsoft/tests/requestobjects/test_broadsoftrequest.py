@@ -738,15 +738,6 @@ class TestBroadsoftRequest(unittest.TestCase):
         # with a request object that does not allow skipping and a non-matching error message, should return False
         self.assertFalse(u.derive_skip_error(error_msg=not_matching_error_msg))
 
-    def test_need_to_test_logging_stuff(self):
-        # can pass logging level
-        # only add login to request log when asked
-        # logger() should be able to generate proper logging level
-        self.assertFalse("write this")
-
-    def test_derive_logging_level_object(self):
-        self.assertFalse("write this")
-
     def test_format_xml_envolope_results(self):
         xml = xml_envelope()
         output = BroadsoftRequest.format_xml_envelope(xml=xml)

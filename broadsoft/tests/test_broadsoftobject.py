@@ -279,6 +279,10 @@ class TestBroadsoftObject(unittest.TestCase):
         reqs = b.paginate_request(request=g)
         self.assertEqual([g], reqs)
 
-    def test_passes_logging_level(self):
-        # call to provision() should insert this
+    def test_need_to_test_logging_stuff(self):
+        # can pass logging level
+        # multiple calls to setup_logging() doesn't overload the handlers
+        self.assertFalse("write this")
+
+    def test_derive_logging_level_object(self):
         self.assertFalse("write this")
