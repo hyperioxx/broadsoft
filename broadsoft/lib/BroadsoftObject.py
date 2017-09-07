@@ -122,7 +122,6 @@ class BroadsoftObject:
         request_objects = self.paginate_request(request=request_object)
 
         for request_object in request_objects:
-            request_object.logging_level = self.logging_level
             try:
                 request_object.post()
 

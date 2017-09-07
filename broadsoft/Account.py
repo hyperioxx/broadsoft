@@ -122,7 +122,8 @@ class Account(BroadsoftObject):
                 device = {'line_port': r['Line/Port'], 'name': r['Device Name']}
                 devices.append(device)
             del_d = UserSharedCallAppearanceDeleteEndpointListRequest(broadsoftinstance=self.broadsoftinstance,
-                                                                      sip_user_id=self.sip_user_id, devices=devices)
+                                                                      sip_user_id=self.sip_user_id, devices=devices,
+                                                                      logging_level=self.logging_level)
             req_object.commands.append(del_d)
 
         if len(self.devices) > 0:
@@ -135,7 +136,7 @@ class Account(BroadsoftObject):
 
     def add_services(self, req_object):
         if self.services_defined():
-            s = UserServiceAssignListRequest()
+            s = UserServiceAssignListRequest(logging_level=self.logging_level)
             self.inject_broadsoftinstance(child=s)
             s.did = self.did
             s.sip_user_id = self.sip_user_id
@@ -148,6 +149,7 @@ class Account(BroadsoftObject):
         for index in range(1, self.default_device_count + 1):
             d = Device()
             d.broadsoftinstance = self.broadsoftinstance
+            d.logging_level = self.logging_level
             d.is_primary = is_primary
             d.did = self.did
             d.index = index
@@ -293,13 +295,15 @@ class Account(BroadsoftObject):
             self.sip_password = str(random.randint(1000000000, 9999999999))
 
     def link_primary_device(self, req_object, device):
-        u_mod = UserModifyRequest(did=self.did, sip_user_id=self.sip_user_id, device_name=device.name,line_port=device.line_port)
+        u_mod = UserModifyRequest(did=self.did, sip_user_id=self.sip_user_id, device_name=device.name,
+                                  line_port=device.line_port, logging_level=self.logging_level)
         self.inject_broadsoftinstance(child=u_mod)
         req_object.commands.append(u_mod)
 
     def link_sca_device(self, req_object, device):
         line_port = device.line_port
-        sca = UserSharedCallAppearanceAddEndpointRequest(sip_user_id=self.sip_user_id, line_port=line_port)
+        sca = UserSharedCallAppearanceAddEndpointRequest(sip_user_id=self.sip_user_id, line_port=line_port,
+                                                         logging_level=self.logging_level)
         self.inject_broadsoftinstance(child=sca)
         req_object.commands.append(sca)
 
@@ -334,7 +338,7 @@ class Account(BroadsoftObject):
                 self.devices.append(d)
 
     def overwrite(self):
-        logger = BroadsoftRequest.logger()
+        logger = BroadsoftRequest.logger(logging_level=self.logging_level)
         logger.info("overwriting pre-existing account for DID: " + str(self.did),
                      extra={'session_id': self.broadsoftinstance.session_id})
 

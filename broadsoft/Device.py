@@ -56,7 +56,7 @@ class Device(BroadsoftObject):
         self.is_primary = False
 
     def build_provision_request(self):
-        g = GroupAccessDeviceAddRequest()
+        g = GroupAccessDeviceAddRequest(logging_level=self.logging_level)
         self.inject_broadsoftinstance(child=g)
         g.description = self.description
         g.device_name = self.name

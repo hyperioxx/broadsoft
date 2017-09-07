@@ -744,6 +744,9 @@ class TestBroadsoftRequest(unittest.TestCase):
         # logger() should be able to generate proper logging level
         self.assertFalse("write this")
 
+    def test_derive_logging_level_object(self):
+        self.assertFalse("write this")
+
     def test_format_xml_envolope_results(self):
         xml = xml_envelope()
         output = BroadsoftRequest.format_xml_envelope(xml=xml)

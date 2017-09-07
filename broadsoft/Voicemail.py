@@ -46,7 +46,7 @@ class Voicemail(BroadsoftObject):
 
     def build_activate_command__broadsoft(self):
         # UserVoiceMessagingUserModifyVoiceManagementRequest configures basic behavoir
-        activate = UserVoiceMessagingUserModifyVoiceManagementRequest()
+        activate = UserVoiceMessagingUserModifyVoiceManagementRequest(logging_level=self.logging_level)
         activate.sip_user_id = self.sip_user_id
         activate.is_active = True
         activate.processing = 'Deliver To Email Address Only'
@@ -66,7 +66,7 @@ class Voicemail(BroadsoftObject):
         # probably because it's a poorly planned tack-on service, surgemail (which provides their voicemail service)
         # has to be configured separately, even though some of the functionality is duplicated, via
         # UserVoiceMessagingUserModifyAdvancedVoiceManagementRequest
-        surgemail = UserVoiceMessagingUserModifyAdvancedVoiceManagementRequest()
+        surgemail = UserVoiceMessagingUserModifyAdvancedVoiceManagementRequest(logging_level=self.logging_level)
         surgemail.sip_user_id = self.sip_user_id
         surgemail.mail_server_selection = 'Group Mail Server'
         surgemail.group_mail_server_email_address = str(self.did) + '@' + self.surgemail_domain
@@ -78,7 +78,7 @@ class Voicemail(BroadsoftObject):
 
     def build_activate_command__unity(self):
         # configure the XML object that activates unity voicemail
-        activate = UserThirdPartyVoiceMailSupportModifyRequest()
+        activate = UserThirdPartyVoiceMailSupportModifyRequest(logging_level=self.logging_level)
         activate.sip_user_id = self.sip_user_id
         activate.is_active = True
         activate.busy_redirect_to_voice_mail = self.busy_to_voicemail
@@ -96,12 +96,14 @@ class Voicemail(BroadsoftObject):
         if self.type == 'unity':
             # if we're activating unity, deactivate broadsoft
             # returning a list to ease merging with other activate/deactivate possibilities
-            return [UserVoiceMessagingUserModifyVoiceManagementRequest(sip_user_id=self.sip_user_id, is_active=False)]
+            return [UserVoiceMessagingUserModifyVoiceManagementRequest(sip_user_id=self.sip_user_id, is_active=False,
+                                                                       logging_level=self.logging_level)]
 
         elif self.type == 'broadsoft':
             # if we're activating broadsoft, deactivate third party
             # returning a list to ease merging with other activate/deactivate possibilities
-            return [UserThirdPartyVoiceMailSupportModifyRequest(sip_user_id=self.sip_user_id, is_active=False)]
+            return [UserThirdPartyVoiceMailSupportModifyRequest(sip_user_id=self.sip_user_id, is_active=False,
+                                                                logging_level=self.logging_level)]
 
         else:
             raise NotImplementedError("no Voicemail.build_deactivate_counterpart_command() behavior defined for type " + str(self.type))

@@ -49,13 +49,7 @@ class BroadsoftRequest(XmlDocument):
                 self.api_password = self.broadsoftinstance.api_password
 
         # now that we're done setting up shop, start the logging
-        logging_level = logging_level.lower()
-        logging_level_obj = logging.INFO
-        if logging_level == 'debug':
-            logging_level_obj = logging.DEBUG
-        elif logging_level != 'info':
-            raise ValueError(str(logging_level) + " is not a valid value for logging_level")
-        self.setup_logging(logging_level=logging_level_obj)
+        self.setup_logging(logging_level=self.derive_logging_level_object(logging_level=logging_level))
 
     def authenticate_and_login(self):
         logging.info("running authenticate request", extra={'session_id': self.broadsoftinstance.session_id})
@@ -449,6 +443,17 @@ class BroadsoftRequest(XmlDocument):
         return data
 
     @staticmethod
+    def derive_logging_level_object(logging_level):
+        logging_level = logging_level.lower()
+        logging_level_obj = logging.INFO
+        if logging_level == 'debug':
+            logging_level_obj = logging.DEBUG
+        elif logging_level != 'info':
+            raise ValueError(str(logging_level) + " is not a valid value for logging_level")
+
+        return logging_level_obj
+
+    @staticmethod
     def extract_payload(response):
         response = ET.fromstring(text=response)
         payload_container = response.findall('.//processOCIMessageResponse/{urn:com:broadsoft:webservice}processOCIMessageReturn')
@@ -474,7 +479,7 @@ class BroadsoftRequest(XmlDocument):
     @staticmethod
     def logger(logging_level='info'):
         b = BroadsoftRequest(logging_level=logging_level)
-        return b.setup_logging()
+        return b.setup_logging(logging_level=BroadsoftRequest.derive_logging_level_object(logging_level=logging_level))
 
     @staticmethod
     def map_phone_type(phone_type):
