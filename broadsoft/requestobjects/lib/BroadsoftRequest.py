@@ -28,7 +28,7 @@ class BroadsoftRequest(XmlDocument):
     skip_fetch_error = False
     skip_fetch_error_head = None
 
-    def __init__(self, require_logging=True, timezone=None, broadsoftinstance=None, group_id=None):
+    def __init__(self, require_logging=True, timezone=None, broadsoftinstance=None, group_id=None, logging_level='info'):
         self.broadsoftinstance = broadsoftinstance
         self.commands = []
         self.group_id = group_id
@@ -49,7 +49,13 @@ class BroadsoftRequest(XmlDocument):
                 self.api_password = self.broadsoftinstance.api_password
 
         # now that we're done setting up shop, start the logging
-        self.default_logging(require_logging)
+        logging_level = logging_level.lower()
+        logging_level_obj = logging.INFO
+        if logging_level == 'debug':
+            logging_level_obj = logging.DEBUG
+        elif logging_level != 'info':
+            raise ValueError(str(logging_level) + " is not a valid value for logging_level")
+        self.setup_logging(logging_level=logging_level_obj)
 
     def authenticate_and_login(self):
         logging.info("running authenticate request", extra={'session_id': self.broadsoftinstance.session_id})
@@ -138,29 +144,6 @@ class BroadsoftRequest(XmlDocument):
         m = MAC(mac=self.mac_address)
         m.denude()
         self.mac_address = m.bare_mac
-
-    def default_logging(self, require_logging):
-        import os
-        from logging.handlers import TimedRotatingFileHandler
-
-
-        # does the log location exist
-        if not os.path.exists(self.logging_dir):
-            os.makedirs(name=self.logging_dir, exist_ok=True)
-
-        if not os.path.exists(self.logging_dir) and require_logging:
-            raise IOError('no permission to create ' + self.logging_dir)
-
-        logging.basicConfig(filename=self.logging_dir + '/' + self.logging_fname, level=logging.INFO,
-                            format='%(levelname)s:%(asctime)s (%(session_id)s) %(message)s')
-        logger = logging.getLogger(name='broadsoftapilog')
-        logger.setLevel(level=logging.INFO)
-        handler = TimedRotatingFileHandler(filename=self.logging_dir + '/' + self.logging_fname,
-                                           when='W0',
-                                           interval=1,
-                                           backupCount=12)
-        logger.addHandler(handler)
-        return logger
 
     def derive_commands(self):
         # determine source of commands we'll be injecting into the master XML document
@@ -262,6 +245,7 @@ class BroadsoftRequest(XmlDocument):
         response = requests.post(url=self.broadsoftinstance.api_url, data=envelope, headers=headers, cookies=cookies)
         response.close()
         self.last_response = response
+        logging.debug(self.format_xml_envelope(xml=envelope), extra={'session_id': self.broadsoftinstance.session_id})
 
         # get a non-200 response?
         if int(response.status_code) > 299:
@@ -326,6 +310,28 @@ class BroadsoftRequest(XmlDocument):
     def prep_for_xml(self):
         self.prep_attributes()
         self.convert_booleans()
+
+    def setup_logging(self, logging_level=logging.INFO):
+        import os
+        from logging.handlers import TimedRotatingFileHandler
+
+        # does the log location exist
+        if not os.path.exists(self.logging_dir):
+            os.makedirs(name=self.logging_dir, exist_ok=True)
+
+        if not os.path.exists(self.logging_dir):
+            raise IOError('no permission to create ' + self.logging_dir)
+
+        logging.basicConfig(filename=self.logging_dir + '/' + self.logging_fname, level=logging_level,
+                            format='%(levelname)s:%(asctime)s (%(session_id)s): %(message)s')
+        logger = logging.getLogger(name='broadsoftapilog')
+        logger.setLevel(level=logging_level)
+        handler = TimedRotatingFileHandler(filename=self.logging_dir + '/' + self.logging_fname,
+                                           when='W0',
+                                           interval=1,
+                                           backupCount=12)
+        logger.addHandler(handler)
+        return logger
 
     def to_xml(self):
         self.prep_for_xml()
@@ -453,9 +459,22 @@ class BroadsoftRequest(XmlDocument):
         return None
 
     @staticmethod
-    def logger():
-        b = BroadsoftRequest()
-        return b.default_logging(require_logging=True)
+    def format_xml_envelope(xml):
+        from xml.dom import minidom
+
+        # convert back to XML so can extract the element we want
+        xml = ET.fromstring(xml)
+        req_string = xml.findall('.//arg0')[0].text
+        req_string = req_string.replace('&lt;', '<')
+        req_string = req_string.replace('&gt;', '>')
+        req_string = req_string.replace('&quot;', '"')
+
+        return minidom.parseString(req_string).toprettyxml(indent="   ")
+
+    @staticmethod
+    def logger(logging_level='info'):
+        b = BroadsoftRequest(logging_level=logging_level)
+        return b.setup_logging()
 
     @staticmethod
     def map_phone_type(phone_type):

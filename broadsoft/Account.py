@@ -176,11 +176,11 @@ class Account(BroadsoftObject):
     def build_provision_request(self):
         # going to do this as a compound request so that it's pseudo-atomic...if one fails, the rest should
         # fail, regardless of where in the process that failure occurs
-        b = BroadsoftRequest()
+        b = BroadsoftRequest(logging_level=self.logging_level)
         self.inject_broadsoftinstance(child=b)
 
         # object to create the user
-        u_add = UserAddRequest()
+        u_add = UserAddRequest(logging_level=self.logging_level)
         self.inject_broadsoftinstance(child=u_add)
         u_add.first_name = self.first_name
         u_add.last_name = self.last_name

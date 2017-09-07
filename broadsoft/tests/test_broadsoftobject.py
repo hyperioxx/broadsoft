@@ -278,3 +278,7 @@ class TestBroadsoftObject(unittest.TestCase):
         b = BroadsoftObject()
         reqs = b.paginate_request(request=g)
         self.assertEqual([g], reqs)
+
+    def test_passes_logging_level(self):
+        # call to provision() should insert this
+        self.assertFalse("write this")

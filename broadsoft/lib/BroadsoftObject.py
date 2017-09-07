@@ -8,11 +8,13 @@ import re
 
 
 class BroadsoftObject:
-    def __init__(self, xml=None, implicit_overwrite=False, skip_if_exists=False, instance='prod', broadsoftinstance=None):
+    def __init__(self, xml=None, implicit_overwrite=False, skip_if_exists=False, instance='prod',
+                 broadsoftinstance=None, logging_level='info'):
         self.broadsoftinstance = broadsoftinstance
         self.fetched = None
         self.implicit_overwrite = implicit_overwrite
         self.instance = instance
+        self.logging_level = logging_level
         self.skip_if_exists = skip_if_exists
         self.xml = xml
         self.prep_attributes()
@@ -120,6 +122,7 @@ class BroadsoftObject:
         request_objects = self.paginate_request(request=request_object)
 
         for request_object in request_objects:
+            request_object.logging_level = self.logging_level
             try:
                 request_object.post()
 

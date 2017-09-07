@@ -11,6 +11,11 @@ from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest, Auth
     LogoutRequest, BroadsoftInstance
 from broadsoft.requestobjects.GroupAccessDeviceAddRequest import GroupAccessDeviceAddRequest
 
+
+def xml_envelope():
+    return """<?xml version="1.0" encoding="UTF-8"?><soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><soapenv:Body><processOCIMessage soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><arg0 xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xsi:type="soapenc:string">&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;&lt;sessionId xmlns=""&gt;VPN-18-101-101-211.MIT.EDU,2017-09-06 21:04:16.242926,2003370023&lt;/sessionId&gt;&lt;command xmlns="" xsi:type="UserAddRequest17sp4"&gt;&lt;serviceProviderId&gt;MIT-SP&lt;/serviceProviderId&gt;&lt;groupId&gt;MIT-GP&lt;/groupId&gt;&lt;userId&gt;6172580549@broadsoft-dev.mit.edu&lt;/userId&gt;&lt;lastName&gt;Braiotta&lt;/lastName&gt;&lt;firstName&gt;Chris&lt;/firstName&gt;&lt;callingLineIdLastName&gt;Braiotta&lt;/callingLineIdLastName&gt;&lt;callingLineIdFirstName&gt;Chris&lt;/callingLineIdFirstName&gt;&lt;phoneNumber&gt;6172580549&lt;/phoneNumber&gt;&lt;password&gt;1234567891&lt;/password&gt;&lt;timeZone&gt;America/New_York&lt;/timeZone&gt;&lt;emailAddress&gt;braiotta@mit.edu&lt;/emailAddress&gt;&lt;/command&gt;&lt;command xmlns="" xsi:type="UserServiceAssignListRequest"&gt;&lt;userId&gt;6172580549@broadsoft-dev.mit.edu&lt;/userId&gt;&lt;servicePackName&gt;MIT-Pack&lt;/servicePackName&gt;&lt;/command&gt;&lt;command xmlns="" xsi:type="UserModifyRequest16"&gt;&lt;userId&gt;6172580549@broadsoft-dev.mit.edu&lt;/userId&gt;&lt;phoneNumber&gt;6172580549&lt;/phoneNumber&gt;&lt;extension&gt;80549&lt;/extension&gt;&lt;endpoint&gt;&lt;accessDeviceEndpoint&gt;&lt;accessDevice&gt;&lt;deviceLevel&gt;Group&lt;/deviceLevel&gt;&lt;deviceName&gt;Generic&lt;/deviceName&gt;&lt;/accessDevice&gt;&lt;linePort&gt;6172580549_1@broadsoft-dev.mit.edu&lt;/linePort&gt;&lt;/accessDeviceEndpoint&gt;&lt;/endpoint&gt;&lt;/command&gt;&lt;command xmlns="" xsi:type="UserSharedCallAppearanceAddEndpointRequest14sp2"&gt;&lt;userId&gt;6172580549@broadsoft-dev.mit.edu&lt;/userId&gt;&lt;accessDeviceEndpoint&gt;&lt;accessDevice&gt;&lt;deviceLevel&gt;Group&lt;/deviceLevel&gt;&lt;deviceName&gt;Generic&lt;/deviceName&gt;&lt;/accessDevice&gt;&lt;linePort&gt;6172580549_2@broadsoft-dev.mit.edu&lt;/linePort&gt;&lt;/accessDeviceEndpoint&gt;&lt;isActive&gt;true&lt;/isActive&gt;&lt;allowOrigination&gt;true&lt;/allowOrigination&gt;&lt;allowTermination&gt;true&lt;/allowTermination&gt;&lt;/command&gt;&lt;command xmlns="" xsi:type="UserSharedCallAppearanceAddEndpointRequest14sp2"&gt;&lt;userId&gt;6172580549@broadsoft-dev.mit.edu&lt;/userId&gt;&lt;accessDeviceEndpoint&gt;&lt;accessDevice&gt;&lt;deviceLevel&gt;Group&lt;/deviceLevel&gt;&lt;deviceName&gt;Generic&lt;/deviceName&gt;&lt;/accessDevice&gt;&lt;linePort&gt;6172580549_3@broadsoft-dev.mit.edu&lt;/linePort&gt;&lt;/accessDeviceEndpoint&gt;&lt;isActive&gt;true&lt;/isActive&gt;&lt;allowOrigination&gt;true&lt;/allowOrigination&gt;&lt;allowTermination&gt;true&lt;/allowTermination&gt;&lt;/command&gt;&lt;command xmlns="" xsi:type="UserSharedCallAppearanceAddEndpointRequest14sp2"&gt;&lt;userId&gt;6172580549@broadsoft-dev.mit.edu&lt;/userId&gt;&lt;accessDeviceEndpoint&gt;&lt;accessDevice&gt;&lt;deviceLevel&gt;Group&lt;/deviceLevel&gt;&lt;deviceName&gt;Generic&lt;/deviceName&gt;&lt;/accessDevice&gt;&lt;linePort&gt;6172580549_4@broadsoft-dev.mit.edu&lt;/linePort&gt;&lt;/accessDeviceEndpoint&gt;&lt;isActive&gt;true&lt;/isActive&gt;&lt;allowOrigination&gt;true&lt;/allowOrigination&gt;&lt;allowTermination&gt;true&lt;/allowTermination&gt;&lt;/command&gt;&lt;command xmlns="" xsi:type="UserSharedCallAppearanceAddEndpointRequest14sp2"&gt;&lt;userId&gt;6172580549@broadsoft-dev.mit.edu&lt;/userId&gt;&lt;accessDeviceEndpoint&gt;&lt;accessDevice&gt;&lt;deviceLevel&gt;Group&lt;/deviceLevel&gt;&lt;deviceName&gt;Generic&lt;/deviceName&gt;&lt;/accessDevice&gt;&lt;linePort&gt;6172580549_5@broadsoft-dev.mit.edu&lt;/linePort&gt;&lt;/accessDeviceEndpoint&gt;&lt;isActive&gt;true&lt;/isActive&gt;&lt;allowOrigination&gt;true&lt;/allowOrigination&gt;&lt;allowTermination&gt;true&lt;/allowTermination&gt;&lt;/command&gt;&lt;command xmlns="" xsi:type="UserSharedCallAppearanceAddEndpointRequest14sp2"&gt;&lt;userId&gt;6172580549@broadsoft-dev.mit.edu&lt;/userId&gt;&lt;accessDeviceEndpoint&gt;&lt;accessDevice&gt;&lt;deviceLevel&gt;Group&lt;/deviceLevel&gt;&lt;deviceName&gt;Generic&lt;/deviceName&gt;&lt;/accessDevice&gt;&lt;linePort&gt;6172580549_6@broadsoft-dev.mit.edu&lt;/linePort&gt;&lt;/accessDeviceEndpoint&gt;&lt;isActive&gt;true&lt;/isActive&gt;&lt;allowOrigination&gt;true&lt;/allowOrigination&gt;&lt;allowTermination&gt;true&lt;/allowTermination&gt;&lt;/command&gt;&lt;command xmlns="" xsi:type="UserSharedCallAppearanceAddEndpointRequest14sp2"&gt;&lt;userId&gt;6172580549@broadsoft-dev.mit.edu&lt;/userId&gt;&lt;accessDeviceEndpoint&gt;&lt;accessDevice&gt;&lt;deviceLevel&gt;Group&lt;/deviceLevel&gt;&lt;deviceName&gt;Generic&lt;/deviceName&gt;&lt;/accessDevice&gt;&lt;linePort&gt;6172580549_7@broadsoft-dev.mit.edu&lt;/linePort&gt;&lt;/accessDeviceEndpoint&gt;&lt;isActive&gt;true&lt;/isActive&gt;&lt;allowOrigination&gt;true&lt;/allowOrigination&gt;&lt;allowTermination&gt;true&lt;/allowTermination&gt;&lt;/command&gt;&lt;command xmlns="" xsi:type="UserSharedCallAppearanceAddEndpointRequest14sp2"&gt;&lt;userId&gt;6172580549@broadsoft-dev.mit.edu&lt;/userId&gt;&lt;accessDeviceEndpoint&gt;&lt;accessDevice&gt;&lt;deviceLevel&gt;Group&lt;/deviceLevel&gt;&lt;deviceName&gt;Generic&lt;/deviceName&gt;&lt;/accessDevice&gt;&lt;linePort&gt;6172580549_8@broadsoft-dev.mit.edu&lt;/linePort&gt;&lt;/accessDeviceEndpoint&gt;&lt;isActive&gt;true&lt;/isActive&gt;&lt;allowOrigination&gt;true&lt;/allowOrigination&gt;&lt;allowTermination&gt;true&lt;/allowTermination&gt;&lt;/command&gt;&lt;command xmlns="" xsi:type="UserSharedCallAppearanceAddEndpointRequest14sp2"&gt;&lt;userId&gt;6172580549@broadsoft-dev.mit.edu&lt;/userId&gt;&lt;accessDeviceEndpoint&gt;&lt;accessDevice&gt;&lt;deviceLevel&gt;Group&lt;/deviceLevel&gt;&lt;deviceName&gt;Generic&lt;/deviceName&gt;&lt;/accessDevice&gt;&lt;linePort&gt;6172580549_9@broadsoft-dev.mit.edu&lt;/linePort&gt;&lt;/accessDeviceEndpoint&gt;&lt;isActive&gt;true&lt;/isActive&gt;&lt;allowOrigination&gt;true&lt;/allowOrigination&gt;&lt;allowTermination&gt;true&lt;/allowTermination&gt;&lt;/command&gt;&lt;command xmlns="" xsi:type="UserSharedCallAppearanceAddEndpointRequest14sp2"&gt;&lt;userId&gt;6172580549@broadsoft-dev.mit.edu&lt;/userId&gt;&lt;accessDeviceEndpoint&gt;&lt;accessDevice&gt;&lt;deviceLevel&gt;Group&lt;/deviceLevel&gt;&lt;deviceName&gt;Generic&lt;/deviceName&gt;&lt;/accessDevice&gt;&lt;linePort&gt;6172580549_10@broadsoft-dev.mit.edu&lt;/linePort&gt;&lt;/accessDeviceEndpoint&gt;&lt;isActive&gt;true&lt;/isActive&gt;&lt;allowOrigination&gt;true&lt;/allowOrigination&gt;&lt;allowTermination&gt;true&lt;/allowTermination&gt;&lt;/command&gt;&lt;command xmlns="" xsi:type="UserSharedCallAppearanceAddEndpointRequest14sp2"&gt;&lt;userId&gt;6172580549@broadsoft-dev.mit.edu&lt;/userId&gt;&lt;accessDeviceEndpoint&gt;&lt;accessDevice&gt;&lt;deviceLevel&gt;Group&lt;/deviceLevel&gt;&lt;deviceName&gt;Generic&lt;/deviceName&gt;&lt;/accessDevice&gt;&lt;linePort&gt;6172580549_11@broadsoft-dev.mit.edu&lt;/linePort&gt;&lt;/accessDeviceEndpoint&gt;&lt;isActive&gt;true&lt;/isActive&gt;&lt;allowOrigination&gt;true&lt;/allowOrigination&gt;&lt;allowTermination&gt;true&lt;/allowTermination&gt;&lt;/command&gt;&lt;command xmlns="" xsi:type="UserSharedCallAppearanceAddEndpointRequest14sp2"&gt;&lt;userId&gt;6172580549@broadsoft-dev.mit.edu&lt;/userId&gt;&lt;accessDeviceEndpoint&gt;&lt;accessDevice&gt;&lt;deviceLevel&gt;Group&lt;/deviceLevel&gt;&lt;deviceName&gt;Generic&lt;/deviceName&gt;&lt;/accessDevice&gt;&lt;linePort&gt;6172580549_12@broadsoft-dev.mit.edu&lt;/linePort&gt;&lt;/accessDeviceEndpoint&gt;&lt;isActive&gt;true&lt;/isActive&gt;&lt;allowOrigination&gt;true&lt;/allowOrigination&gt;&lt;allowTermination&gt;true&lt;/allowTermination&gt;&lt;/command&gt;&lt;command xmlns="" xsi:type="UserSharedCallAppearanceAddEndpointRequest14sp2"&gt;&lt;userId&gt;6172580549@broadsoft-dev.mit.edu&lt;/userId&gt;&lt;accessDeviceEndpoint&gt;&lt;accessDevice&gt;&lt;deviceLevel&gt;Group&lt;/deviceLevel&gt;&lt;deviceName&gt;Generic&lt;/deviceName&gt;&lt;/accessDevice&gt;&lt;linePort&gt;6172580549_13@broadsoft-dev.mit.edu&lt;/linePort&gt;&lt;/accessDeviceEndpoint&gt;&lt;isActive&gt;true&lt;/isActive&gt;&lt;allowOrigination&gt;true&lt;/allowOrigination&gt;&lt;allowTermination&gt;true&lt;/allowTermination&gt;&lt;/command&gt;&lt;/BroadsoftDocument&gt;</arg0></processOCIMessage></soapenv:Body></soapenv:Envelope>"""
+
+
 def return_none(*args, **kwargs):
     return None
 
@@ -732,3 +737,207 @@ class TestBroadsoftRequest(unittest.TestCase):
 
         # with a request object that does not allow skipping and a non-matching error message, should return False
         self.assertFalse(u.derive_skip_error(error_msg=not_matching_error_msg))
+
+    def test_need_to_test_logging_stuff(self):
+        # can pass logging level
+        # only add login to request log when asked
+        # logger() should be able to generate proper logging level
+        self.assertFalse("write this")
+
+    def test_format_xml_envolope_results(self):
+        xml = xml_envelope()
+        output = BroadsoftRequest.format_xml_envelope(xml=xml)
+
+        target = """<?xml version="1.0" ?>
+<BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+   <sessionId xmlns="">VPN-18-101-101-211.MIT.EDU,2017-09-06 21:04:16.242926,2003370023</sessionId>
+   <command xmlns="" xsi:type="UserAddRequest17sp4">
+      <serviceProviderId>MIT-SP</serviceProviderId>
+      <groupId>MIT-GP</groupId>
+      <userId>6172580549@broadsoft-dev.mit.edu</userId>
+      <lastName>Braiotta</lastName>
+      <firstName>Chris</firstName>
+      <callingLineIdLastName>Braiotta</callingLineIdLastName>
+      <callingLineIdFirstName>Chris</callingLineIdFirstName>
+      <phoneNumber>6172580549</phoneNumber>
+      <password>1234567891</password>
+      <timeZone>America/New_York</timeZone>
+      <emailAddress>braiotta@mit.edu</emailAddress>
+   </command>
+   <command xmlns="" xsi:type="UserServiceAssignListRequest">
+      <userId>6172580549@broadsoft-dev.mit.edu</userId>
+      <servicePackName>MIT-Pack</servicePackName>
+   </command>
+   <command xmlns="" xsi:type="UserModifyRequest16">
+      <userId>6172580549@broadsoft-dev.mit.edu</userId>
+      <phoneNumber>6172580549</phoneNumber>
+      <extension>80549</extension>
+      <endpoint>
+         <accessDeviceEndpoint>
+            <accessDevice>
+               <deviceLevel>Group</deviceLevel>
+               <deviceName>Generic</deviceName>
+            </accessDevice>
+            <linePort>6172580549_1@broadsoft-dev.mit.edu</linePort>
+         </accessDeviceEndpoint>
+      </endpoint>
+   </command>
+   <command xmlns="" xsi:type="UserSharedCallAppearanceAddEndpointRequest14sp2">
+      <userId>6172580549@broadsoft-dev.mit.edu</userId>
+      <accessDeviceEndpoint>
+         <accessDevice>
+            <deviceLevel>Group</deviceLevel>
+            <deviceName>Generic</deviceName>
+         </accessDevice>
+         <linePort>6172580549_2@broadsoft-dev.mit.edu</linePort>
+      </accessDeviceEndpoint>
+      <isActive>true</isActive>
+      <allowOrigination>true</allowOrigination>
+      <allowTermination>true</allowTermination>
+   </command>
+   <command xmlns="" xsi:type="UserSharedCallAppearanceAddEndpointRequest14sp2">
+      <userId>6172580549@broadsoft-dev.mit.edu</userId>
+      <accessDeviceEndpoint>
+         <accessDevice>
+            <deviceLevel>Group</deviceLevel>
+            <deviceName>Generic</deviceName>
+         </accessDevice>
+         <linePort>6172580549_3@broadsoft-dev.mit.edu</linePort>
+      </accessDeviceEndpoint>
+      <isActive>true</isActive>
+      <allowOrigination>true</allowOrigination>
+      <allowTermination>true</allowTermination>
+   </command>
+   <command xmlns="" xsi:type="UserSharedCallAppearanceAddEndpointRequest14sp2">
+      <userId>6172580549@broadsoft-dev.mit.edu</userId>
+      <accessDeviceEndpoint>
+         <accessDevice>
+            <deviceLevel>Group</deviceLevel>
+            <deviceName>Generic</deviceName>
+         </accessDevice>
+         <linePort>6172580549_4@broadsoft-dev.mit.edu</linePort>
+      </accessDeviceEndpoint>
+      <isActive>true</isActive>
+      <allowOrigination>true</allowOrigination>
+      <allowTermination>true</allowTermination>
+   </command>
+   <command xmlns="" xsi:type="UserSharedCallAppearanceAddEndpointRequest14sp2">
+      <userId>6172580549@broadsoft-dev.mit.edu</userId>
+      <accessDeviceEndpoint>
+         <accessDevice>
+            <deviceLevel>Group</deviceLevel>
+            <deviceName>Generic</deviceName>
+         </accessDevice>
+         <linePort>6172580549_5@broadsoft-dev.mit.edu</linePort>
+      </accessDeviceEndpoint>
+      <isActive>true</isActive>
+      <allowOrigination>true</allowOrigination>
+      <allowTermination>true</allowTermination>
+   </command>
+   <command xmlns="" xsi:type="UserSharedCallAppearanceAddEndpointRequest14sp2">
+      <userId>6172580549@broadsoft-dev.mit.edu</userId>
+      <accessDeviceEndpoint>
+         <accessDevice>
+            <deviceLevel>Group</deviceLevel>
+            <deviceName>Generic</deviceName>
+         </accessDevice>
+         <linePort>6172580549_6@broadsoft-dev.mit.edu</linePort>
+      </accessDeviceEndpoint>
+      <isActive>true</isActive>
+      <allowOrigination>true</allowOrigination>
+      <allowTermination>true</allowTermination>
+   </command>
+   <command xmlns="" xsi:type="UserSharedCallAppearanceAddEndpointRequest14sp2">
+      <userId>6172580549@broadsoft-dev.mit.edu</userId>
+      <accessDeviceEndpoint>
+         <accessDevice>
+            <deviceLevel>Group</deviceLevel>
+            <deviceName>Generic</deviceName>
+         </accessDevice>
+         <linePort>6172580549_7@broadsoft-dev.mit.edu</linePort>
+      </accessDeviceEndpoint>
+      <isActive>true</isActive>
+      <allowOrigination>true</allowOrigination>
+      <allowTermination>true</allowTermination>
+   </command>
+   <command xmlns="" xsi:type="UserSharedCallAppearanceAddEndpointRequest14sp2">
+      <userId>6172580549@broadsoft-dev.mit.edu</userId>
+      <accessDeviceEndpoint>
+         <accessDevice>
+            <deviceLevel>Group</deviceLevel>
+            <deviceName>Generic</deviceName>
+         </accessDevice>
+         <linePort>6172580549_8@broadsoft-dev.mit.edu</linePort>
+      </accessDeviceEndpoint>
+      <isActive>true</isActive>
+      <allowOrigination>true</allowOrigination>
+      <allowTermination>true</allowTermination>
+   </command>
+   <command xmlns="" xsi:type="UserSharedCallAppearanceAddEndpointRequest14sp2">
+      <userId>6172580549@broadsoft-dev.mit.edu</userId>
+      <accessDeviceEndpoint>
+         <accessDevice>
+            <deviceLevel>Group</deviceLevel>
+            <deviceName>Generic</deviceName>
+         </accessDevice>
+         <linePort>6172580549_9@broadsoft-dev.mit.edu</linePort>
+      </accessDeviceEndpoint>
+      <isActive>true</isActive>
+      <allowOrigination>true</allowOrigination>
+      <allowTermination>true</allowTermination>
+   </command>
+   <command xmlns="" xsi:type="UserSharedCallAppearanceAddEndpointRequest14sp2">
+      <userId>6172580549@broadsoft-dev.mit.edu</userId>
+      <accessDeviceEndpoint>
+         <accessDevice>
+            <deviceLevel>Group</deviceLevel>
+            <deviceName>Generic</deviceName>
+         </accessDevice>
+         <linePort>6172580549_10@broadsoft-dev.mit.edu</linePort>
+      </accessDeviceEndpoint>
+      <isActive>true</isActive>
+      <allowOrigination>true</allowOrigination>
+      <allowTermination>true</allowTermination>
+   </command>
+   <command xmlns="" xsi:type="UserSharedCallAppearanceAddEndpointRequest14sp2">
+      <userId>6172580549@broadsoft-dev.mit.edu</userId>
+      <accessDeviceEndpoint>
+         <accessDevice>
+            <deviceLevel>Group</deviceLevel>
+            <deviceName>Generic</deviceName>
+         </accessDevice>
+         <linePort>6172580549_11@broadsoft-dev.mit.edu</linePort>
+      </accessDeviceEndpoint>
+      <isActive>true</isActive>
+      <allowOrigination>true</allowOrigination>
+      <allowTermination>true</allowTermination>
+   </command>
+   <command xmlns="" xsi:type="UserSharedCallAppearanceAddEndpointRequest14sp2">
+      <userId>6172580549@broadsoft-dev.mit.edu</userId>
+      <accessDeviceEndpoint>
+         <accessDevice>
+            <deviceLevel>Group</deviceLevel>
+            <deviceName>Generic</deviceName>
+         </accessDevice>
+         <linePort>6172580549_12@broadsoft-dev.mit.edu</linePort>
+      </accessDeviceEndpoint>
+      <isActive>true</isActive>
+      <allowOrigination>true</allowOrigination>
+      <allowTermination>true</allowTermination>
+   </command>
+   <command xmlns="" xsi:type="UserSharedCallAppearanceAddEndpointRequest14sp2">
+      <userId>6172580549@broadsoft-dev.mit.edu</userId>
+      <accessDeviceEndpoint>
+         <accessDevice>
+            <deviceLevel>Group</deviceLevel>
+            <deviceName>Generic</deviceName>
+         </accessDevice>
+         <linePort>6172580549_13@broadsoft-dev.mit.edu</linePort>
+      </accessDeviceEndpoint>
+      <isActive>true</isActive>
+      <allowOrigination>true</allowOrigination>
+      <allowTermination>true</allowTermination>
+   </command>
+</BroadsoftDocument>
+"""
+        self.assertEqual(output, target)
