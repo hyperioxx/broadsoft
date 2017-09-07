@@ -74,21 +74,6 @@ class BroadsoftRequest(XmlDocument):
         if self.broadsoftinstance is None:
             self.broadsoftinstance = instance_factory()
 
-        if self.broadsoftinstance.session_id is None:
-            # if there's an attached auth object, use that session id
-            if self.broadsoftinstance.auth_object:
-                try:
-                    self.broadsoftinstance.session_id = self.broadsoftinstance.auth_object.broadsoftinstance.session_id
-                except AttributeError:
-                    pass
-
-            # otherwise, build a fresh one
-            if self.broadsoftinstance.session_id is None:
-                self.broadsoftinstance.session_id = \
-                    socket.gethostname() + ',' + \
-                    str(datetime.datetime.utcnow()) + ',' + \
-                    str(random.randint(1000000000, 9999999999))
-
     def check_error(self, string_response):
         if type(string_response) is str:
             response = ET.fromstring(text=string_response)
@@ -185,6 +170,9 @@ class BroadsoftRequest(XmlDocument):
         return False
 
     def need_logout(self):
+        # for now, no auto logout behavior
+        return False
+
         # not part of the login/logout suite, and auto_logout? run logout.
         if not self.is_auth_suite() and self.broadsoftinstance.auto_logout:
             return True
@@ -521,7 +509,7 @@ class AuthenticationRequest(BroadsoftRequest):
 class LoginRequest(BroadsoftRequest):
     command_name = 'LoginRequest14sp4'
 
-    def __init__(self, instance='prod', api_user_id=None, api_password=None, **kwargs):
+    def __init__(self, instance='prod', api_user_id=None, api_password=None, session_id=None, **kwargs):
         self.api_user_id = api_user_id
         self.api_password = api_password
         BroadsoftRequest.__init__(self, **kwargs)
@@ -615,6 +603,24 @@ class BroadsoftInstance:
         self.service_provider = 'ENT136'
         self.group_id=group_id
         self.surgemail_domain = '[unknown]'
+
+        self.build_session_id()
+
+    def build_session_id(self):
+        if self.session_id is None:
+            # if there's an attached auth object, use that session id
+            if self.auth_object:
+                try:
+                    self.session_id = self.auth_object.broadsoftinstance.session_id
+                except AttributeError:
+                    pass
+
+            # otherwise, build a fresh one
+            if self.session_id is None:
+                self.session_id = \
+                    socket.gethostname() + ',' + \
+                    str(datetime.datetime.utcnow()) + ',' + \
+                    str(random.randint(1000000000, 9999999999))
 
     def login(self):
         r = BroadsoftRequest(broadsoftinstance=self)
