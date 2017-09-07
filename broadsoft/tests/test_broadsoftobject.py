@@ -281,6 +281,7 @@ class TestBroadsoftObject(unittest.TestCase):
 
     def test_need_to_test_logging_stuff(self):
         # can pass logging level
+        # get passed when we create Device, Voicemail
         # multiple calls to setup_logging() doesn't overload the handlers
         self.assertFalse("write this")
 

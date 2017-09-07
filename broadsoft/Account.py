@@ -148,7 +148,7 @@ class Account(BroadsoftObject):
     def attach_default_devices(self):
         is_primary = True
         for index in range(1, self.default_device_count + 1):
-            d = Device()
+            d = Device(logging_level=self.logging_level)
             d.broadsoftinstance = self.broadsoftinstance
             d.logging_level = self.logging_level
             d.is_primary = is_primary

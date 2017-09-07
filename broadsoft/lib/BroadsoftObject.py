@@ -157,23 +157,24 @@ class BroadsoftObject:
         # instantiate the broadsoftapi logger
         logger = logging.getLogger('broadsoftapi')
 
-        # clear out any prior handlers
-        logger.handlers = []
+        # Don't want any poorly formed calls to setup_logging to clobber the level we set off the bat. That strikes me
+        # as more confusing than not being able to change the level mid request. So here we only rebuild the logger if
+        # it's in an unformed state.
+        if len(logger.handlers) == 0:
+            logger.setLevel(level=logging_level)
+            format_str = '%(levelname)s:%(asctime)s (%(session_id)s): %(message)s'
+            formatter = logging.Formatter(format_str)
 
-        logger.setLevel(level=logging_level)
-        format_str = '%(levelname)s:%(asctime)s (%(session_id)s): %(message)s'
-        formatter = logging.Formatter(format_str)
+            fh = TimedRotatingFileHandler(filename='/var/log/broadsoft/api.log',
+                                          when='W0', interval=1, backupCount=12)
+            fh.setLevel(logging.INFO)
+            fh.setFormatter(formatter)
+            logger.addHandler(fh)
 
-        fh = TimedRotatingFileHandler(filename='/var/log/broadsoft/api.log',
-                                      when='W0', interval=1, backupCount=12)
-        fh.setLevel(logging.INFO)
-        fh.setFormatter(formatter)
-        logger.addHandler(fh)
-
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.DEBUG)
-        ch.setFormatter(formatter)
-        logger.addHandler(ch)
+            ch = logging.StreamHandler()
+            ch.setLevel(logging.DEBUG)
+            ch.setFormatter(formatter)
+            logger.addHandler(ch)
 
         self.logger = logger
 
