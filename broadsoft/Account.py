@@ -481,20 +481,25 @@ class Account(BroadsoftObject):
 
         (firstname, lastname) = Account.split_name(name=user_record.display_name)
 
+        owner = None
         r = MitRoles()
         owners = r.get_owners_for_did(did=user_record.did)
-        owner = owners[0]
+        if owners and len(owners) > 0:
+            owner = owners[0]
 
         # build the user
         a = Account(skip_if_exists=skip_if_exists, **kwargs)
         a.did = user_record.did
-        a.kname = owner
-        a.email = owner + '@mit.edu'
         a.first_name = firstname
         a.last_name = lastname
         a.voicemail = voicemail
         a.sip_password = user_record.password
         a.voicemail_mwi = voicemail_mwi
+
+        if owner:
+            a.kname = owner
+            a.email = owner + '@mit.edu'
+
         a.provision()
 
         return a

@@ -1887,3 +1887,18 @@ class TestBroadsoftAccount(unittest.TestCase):
     def test_init_calls_broadsoftobject_init(self, bo_init_patch):
         a = Account()
         self.assertTrue(bo_init_patch.called)
+
+    @unittest.mock.patch.object(Account, 'provision')
+    @unittest.mock.patch('mitroles.MitRoles.MitRoles.get_owners_for_did', side_effect=return_empty_array)
+    def test_thaw_from_db_skips_email_and_kname_when_no_roles_data(self, roles_patch, provision_patch):
+        class Record:
+            def __init__(self):
+                self.did = '6175551212'
+                self.display_name = 'Tim Beaver'
+                self.password = 1234567890
+
+        r = Record()
+        a = Account.thaw_from_db(user_record=r)
+
+        self.assertIsNone(a.kname)
+        self.assertIsNone(a.email)
