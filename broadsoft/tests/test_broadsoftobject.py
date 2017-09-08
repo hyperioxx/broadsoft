@@ -279,11 +279,68 @@ class TestBroadsoftObject(unittest.TestCase):
         reqs = b.paginate_request(request=g)
         self.assertEqual([g], reqs)
 
-    def test_need_to_test_logging_stuff(self):
-        # can pass logging level
-        # get passed when we create Device, Voicemail
-        # multiple calls to setup_logging() doesn't overload the handlers
-        self.assertFalse("write this")
+    def test_setup_logging_passes_logging_level_info(self):
+        import logging
+
+        # reset handlers so that setup_logger can do its thing as if called for the first time (may have been set by
+        # earlier test)
+        logger = logging.getLogger('broadsoftapi')
+        logger.handlers = []
+
+        # initial call
+        b = BroadsoftObject(logging_level='info')
+        logger = logging.getLogger('broadsoftapi')
+        self.assertEqual(20, logger.level)
+
+        # subsequent call shouldn't clobber prior setting...first should always
+        # win, which seems the least confusing option should there be a malformed
+        # call later in the stack that forgets to set level, which seems more likely
+        # than needing to change level mid request
+        b = BroadsoftObject(logging_level='debug')
+        logger = logging.getLogger('broadsoftapi')
+        self.assertEqual(20, logger.level)
+
+    def test_can_pass_logging_level_debug(self):
+        # not ideal to be testing an external module here, but oh well
+        import logging
+
+        # reset handlers so that setup_logger can do its thing as if called for the first time (may have been set by
+        # earlier test)
+        logger = logging.getLogger('broadsoftapi')
+        logger.handlers = []
+
+        # initial call
+        b = BroadsoftObject(logging_level='debug')
+        logger = logging.getLogger('broadsoftapi')
+        self.assertEqual(10, logger.level)
+
+        # subsequent call shouldn't clobber prior setting...first should always
+        # win, which seems the least confusing option should there be a malformed
+        # call later in the stack that forgets to set level, which seems more likely
+        # than needing to change level mid request
+        b = BroadsoftObject(logging_level='debug')
+        logger = logging.getLogger('broadsoftapi')
+        self.assertEqual(10, logger.level)
+
+    @unittest.mock.patch.object(BroadsoftObject, 'setup_logging')
+    def test_init_calls_setup_logging(self, setup_logging_patch):
+        b = BroadsoftObject(logging_level='info')
+        self.assertTrue(setup_logging_patch.called)
+        args, kwargs = setup_logging_patch.call_args_list[0]
+        self.assertEqual('info', kwargs['logging_level'])
+
+        setup_logging_patch.called = False
+        b = BroadsoftObject(logging_level='debug')
+        self.assertTrue(setup_logging_patch.called)
+        args, kwargs = setup_logging_patch.call_args_list[1]
+        self.assertEqual('debug', kwargs['logging_level'])
 
     def test_derive_logging_level_object(self):
-        self.assertFalse("write this")
+        import logging
+
+        self.assertEqual(logging.INFO, BroadsoftObject.derive_logging_level_object(logging_level='info'))
+        self.assertEqual(logging.INFO, BroadsoftObject.derive_logging_level_object(logging_level='INFO'))
+        self.assertEqual(logging.DEBUG, BroadsoftObject.derive_logging_level_object(logging_level='debug'))
+        self.assertEqual(logging.DEBUG, BroadsoftObject.derive_logging_level_object(logging_level='DEBUG'))
+        with self.assertRaises(ValueError):
+            BroadsoftObject.derive_logging_level_object(logging_level='gaga')

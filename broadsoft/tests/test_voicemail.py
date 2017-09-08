@@ -118,3 +118,14 @@ class TestBroadsoftVoicemail(unittest.TestCase):
         # can override
         v = Voicemail(broadsoftinstance=test_i, surgemail_domain='override')
         self.assertEqual('override', v.surgemail_domain)
+
+    @unittest.mock.patch.object(BroadsoftObject, '__init__', side_effect=None)
+    def test_init_calls_broadsoftobject_init(self, bo_init_patch):
+        # this will throw an error since we're mocking BroadsoftObject.__init__, and setting surgemaildomain requires
+        # that call
+        try:
+            v = Voicemail()
+        except AttributeError:
+            pass
+
+        self.assertTrue(bo_init_patch.called)

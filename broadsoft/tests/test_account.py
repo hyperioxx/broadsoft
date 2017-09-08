@@ -1807,7 +1807,7 @@ class TestBroadsoftAccount(unittest.TestCase):
         for c in b.commands:
             if type(c) is UserAuthenticationModifyRequest:
                 xml = ET.tostring(c.to_xml()).decode('utf-8')
-                target_xml = '<BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><sessionId xmlns="">None</sessionId><command xmlns="" xsi:type="UserAuthenticationModifyRequest"><userId>6175551212@phoney.mit.edu</userId><userName>6175551212</userName><newPassword>12345</newPassword></command></BroadsoftDocument>'
+                target_xml = '<BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><sessionId xmlns="">' + c.broadsoftinstance.session_id + '</sessionId><command xmlns="" xsi:type="UserAuthenticationModifyRequest"><userId>6175551212@phoney.mit.edu</userId><userName>6175551212</userName><newPassword>12345</newPassword></command></BroadsoftDocument>'
                 self.assertEqual(xml, target_xml)
 
     @unittest.mock.patch.object(Account, 'set_auth_creds')
@@ -1839,12 +1839,13 @@ class TestBroadsoftAccount(unittest.TestCase):
         b = BroadsoftRequest()
         a.configure_sca_settings(req_object=b)
 
+        self.maxDiff = None
         for c in b.commands:
             if type(c) is UserSharedCallAppearanceModifyRequest:
                 xml = ET.tostring(c.to_xml()).decode('utf-8')
                 target_xml = \
                     '<BroadsoftDocument protocol="OCI" xmlns="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' + \
-                    '<sessionId xmlns="">None</sessionId>' + \
+                    '<sessionId xmlns="">' + c.broadsoftinstance.session_id + '</sessionId>' + \
                     '<command xmlns="" xsi:type="UserSharedCallAppearanceModifyRequest">' + \
                     '<userId>6175551212@broadsoft.mit.edu</userId>' + \
                     '<alertAllAppearancesForClickToDialCalls>true</alertAllAppearancesForClickToDialCalls>' + \
@@ -1881,3 +1882,8 @@ class TestBroadsoftAccount(unittest.TestCase):
 
         args, kwargs = vmail_patch.call_args_list[0]
         self.assertEqual(i, kwargs['broadsoftinstance'])
+
+    @unittest.mock.patch.object(BroadsoftObject, '__init__', side_effect=None)
+    def test_init_calls_broadsoftobject_init(self, bo_init_patch):
+        a = Account()
+        self.assertTrue(bo_init_patch.called)

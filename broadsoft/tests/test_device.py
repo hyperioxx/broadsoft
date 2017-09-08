@@ -420,3 +420,8 @@ class TestBroadsoftDevice(unittest.TestCase):
         # self.assertTrue(delete_patch.called)
         # --- actually, skipping overwrite for Device as we're not expecting to do device management in broadsoft
         self.assertFalse(delete_patch.called)
+
+    @unittest.mock.patch.object(BroadsoftObject, '__init__', side_effect=None)
+    def test_init_calls_broadsoftobject_init(self, bo_init_patch):
+        d = Device()
+        self.assertTrue(bo_init_patch.called)

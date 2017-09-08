@@ -505,9 +505,15 @@ class TestBroadsoftRequest(unittest.TestCase):
         no_logout_i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory()
         no_logout_i.auto_logout = False
 
+        # ACTUALLY not doing any implicit logouts
+        """
         # with a non-login related function, need_logout() depends on broadsoftinstance.auto_logout
         f = FakeRequest(broadsoftinstance=logout_i)
         self.assertTrue(f.need_logout())
+        """
+        f = FakeRequest(broadsoftinstance=logout_i)
+        self.assertFalse(f.need_logout())
+
 
         f = FakeRequest(broadsoftinstance=no_logout_i)
         self.assertFalse(f.need_logout())
