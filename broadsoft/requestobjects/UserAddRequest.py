@@ -64,6 +64,16 @@ class UserAddRequest(BroadsoftRequest):
         if not self.email and self.kname:
             self.email = str(self.kname) + '@mit.edu'
 
+    def prep_attributes(self):
+        # per the Broadsoft API, first_name and last_name can't be blank for certain objects
+        if not self.first_name:
+            self.first_name = '(None)'
+
+        if not self.last_name:
+            self.last_name = '(None)'
+
+        BroadsoftRequest.prep_attributes(self=self)
+
     def validate(self):
         import re
         if self.group_id is None:

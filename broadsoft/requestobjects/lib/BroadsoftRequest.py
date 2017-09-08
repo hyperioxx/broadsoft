@@ -284,13 +284,6 @@ class BroadsoftRequest(XmlDocument):
         if hasattr(self, 'last_name') and self.last_name:
             self.last_name = self.last_name[0:30]
 
-        # per the Broadsoft API, first_name and last_name can't be blank for certain objects
-        if hasattr(self, 'first_name') and not self.first_name:
-            self.first_name = '(None)'
-
-        if hasattr(self, 'last_name') and not self.last_name:
-            self.last_name = '(None)'
-
     def prep_for_xml(self):
         self.prep_attributes()
         self.convert_booleans()
