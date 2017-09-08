@@ -139,3 +139,12 @@ class TestBroadsoftUserAddRequest(unittest.TestCase):
         u.build_command_xml()
         self.assertEqual('123456789012345678901234567890', u.first_name)
         self.assertEqual('123456789012345678901234567890', u.last_name)
+
+    def test_names_get_filled_in_when_blank(self):
+        u = UserAddRequest()
+        u.did = 6175551212
+        u.sip_user_id = 'blah'
+        u.sip_password = 'blah'
+        u.build_command_xml()
+        self.assertEqual('(None)', u.first_name)
+        self.assertEqual('(None)', u.last_name)
