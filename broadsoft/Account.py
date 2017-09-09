@@ -113,7 +113,6 @@ class Account(BroadsoftObject):
 
     def add_devices(self, req_object):
         # delete primary device first so we don't run into "Exceeded maximum number of allowed appearances" error
-        # raise NotImplemented("delete primary device")
 
         # delete all shared call appearances applied to user
         d_list = UserSharedCallAppearanceGetRequest.get_devices(broadsoftinstance=self.broadsoftinstance,
