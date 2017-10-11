@@ -25,15 +25,8 @@ import logging
 
 
 class Account(BroadsoftObject):
-    # these are optional broadsoft services that will get applied by default to every new
-    # account
-    # default_services = [
-    #     'Shared Call Appearance 10',
-    #     'Third-Party Voice Mail Support',
-    #     'Voice Messaging User'
-    # ]
-    default_services = None
-    default_service_pack = 'MIT-Pack'
+    # default_service_pack = 'MIT-Pack'
+    default_service_pack = None
 
     def __init__(self, default_device_count=36, did=None, extension=None, last_name=None, first_name=None,
                  sip_user_id=None, kname=None, email=None, services=None, service_pack=None,
@@ -47,7 +40,7 @@ class Account(BroadsoftObject):
         self.service_pack = self.default_service_pack
         if service_pack:
             self.service_pack = service_pack
-        self.services = self.default_services
+        self.services = self.load_default_services()
         if services:
             if type(services) == str:
                 services = [services]
@@ -305,6 +298,124 @@ class Account(BroadsoftObject):
         sca = UserSharedCallAppearanceAddEndpointRequest(sip_user_id=self.sip_user_id, line_port=line_port)
         self.inject_broadsoftinstance(child=sca)
         req_object.commands.append(sca)
+
+    def load_default_services(self):
+        services = [
+            'Advice Of Charge',
+            'Alternate Numbers',
+            'Anonymous Call Rejection',
+            'Authentication',
+            'Automatic Callback',
+            'Automatic Hold/Retrieve',
+            'Barge-in Exempt',
+            'Basic Call Logs',
+            'BroadTouch Business Communicator Desktop',
+            'BroadTouch Business Communicator Desktop - Audio',
+            'BroadTouch Business Communicator Desktop - Video',
+            'BroadTouch Business Communicator Mobile',
+            'BroadTouch Business Communicator Mobile - Audio',
+            'BroadTouch Business Communicator Mobile - Video',
+            'BroadTouch Business Communicator Tablet',
+            'BroadTouch Business Communicator Tablet - Audio',
+            'BroadTouch Business Communicator Tablet - Video',
+            'BroadTouch MobileLink',
+            'BroadWorks Agent',
+            'BroadWorks Anywhere',
+            'BroadWorks Receptionist - Enterprise',
+            'BroadWorks Receptionist - Office',
+            'BroadWorks Receptionist - Small Business',
+            'BroadWorks Supervisor',
+            'Busy Lamp Field',
+            'Call Center - Basic',
+            'Call Center - Premium',
+            'Call Center - Standard',
+            'Call Center Monitoring',
+            'Call Forwarding Always',
+            'Call Forwarding Busy',
+            'Call Forwarding No Answer',
+            'Call Forwarding Not Reachable',
+            'Call Forwarding Selective',
+            'Calling Line ID Delivery Blocking',
+            'Calling Name Delivery',
+            'Calling Name Retrieval',
+            'Calling Number Delivery',
+            'Calling Party Category',
+            'Call Me Now',
+            'Call Notify',
+            'Call Recording',
+            'Call Return',
+            'Call Transfer',
+            'Call Waiting',
+            'Charge Number',
+            'Classmark',
+            'Collaborate - Audio',
+            'Collaborate - Sharing',
+            'Collaborate - Video',
+            'Connected Line Identification Presentation',
+            'Connected Line Identification Restriction',
+            'Customer Originated Trace',
+            'Custom Ringback User',
+            'Custom Ringback User - Call Waiting',
+            'Custom Ringback User - Video',
+            'Directed Call Pickup',
+            'Directed Call Pickup with Barge-in',
+            'Directory Number Hunting',
+            'Diversion Inhibitor',
+            'Do Not Disturb',
+            'Executive',
+            'Executive-Assistant',
+            'External Calling Line ID Delivery',
+            'Fax Messaging',
+            'Flash Call Hold',
+            'Flexible Seating Guest',
+            'Group Night Forwarding',
+            'Hoteling Guest',
+            'Hoteling Host',
+            'In-Call Service Activation',
+            'Integrated IM&P',
+            'Intercept User',
+            'Internal Calling Line ID Delivery',
+            'Last Number Redial',
+            'Multiple Call Arrangement',
+            'Music On Hold User',
+            'MWI Delivery to Mobile Endpoint',
+            'N-Way Call',
+            'Personal Assistant',
+            'Physical Location',
+            'Polycom Phone Services',
+            'Pre-alerting Announcement',
+            'Preferred Carrier User',
+            'Priority Alert',
+            'Privacy',
+            'Push to Talk',
+            'Remote Office',
+            'Route List',
+            'Security Classification',
+            'Selective Call Acceptance',
+            'Selective Call Rejection',
+            'Sequential Ring',
+            'Shared Call Appearance',
+            'Shared Call Appearance 10',
+            'Shared Call Appearance 15',
+            'Shared Call Appearance 20',
+            'Shared Call Appearance 25',
+            'Shared Call Appearance 30',
+            'Shared Call Appearance 35',
+            'Simultaneous Ring Personal',
+            'Speed Dial 100',
+            'Speed Dial 8',
+            'Third-Party MWI Control',
+            'Third-Party Voice Mail Support',
+            'Three-Way Call',
+            'Two-Stage Dialing',
+            'Video On Hold User',
+            'Virtual On-Net Enterprise Extensions',
+            'Voice Messaging User',
+            'Voice Messaging User - Video',
+            'Voice Portal Calling'
+        ]
+
+        return services
 
     def load_devices(self):
         # if there's no XML for the user, fetch entire User. Primary device will be in User record, rest found by

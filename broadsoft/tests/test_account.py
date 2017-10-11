@@ -295,7 +295,7 @@ class TestBroadsoftAccount(unittest.TestCase):
 
     def test_inherits_default_services(self):
         a = Account()
-        self.assertEqual(a.default_services, a.services)
+        self.assertEqual(a.load_default_services(), a.services)
 
         # and can override default services
         a = Account(services=['a'])
@@ -331,7 +331,7 @@ class TestBroadsoftAccount(unittest.TestCase):
         a.add_services(req_object=b)
         s = b.commands[0]
         self.assertIsInstance(s, UserServiceAssignListRequest)
-        self.assertEqual(a.default_services, s.services)
+        self.assertEqual(a.load_default_services(), s.services)
         self.assertEqual(a.default_service_pack, s.service_pack)
 
         # when services overridden, should get inserted
@@ -877,15 +877,13 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertEqual('password', a.sip_password)
 
     def test_default_services(self):
-        # going with service pack, not individual services
-        self.assertIsNone(Account.default_services)
-        #self.assertEqual(3, len(Account.default_services))
-        #self.assertIn('Shared Call Appearance 10', Account.default_services)
-        #self.assertIn('Third-Party Voice Mail Support', Account.default_services)
-        #self.assertIn('Voice Messaging User', Account.default_services)
+        a = Account()
+        self.assertEqual(112, len(a.load_default_services()))
 
     def test_default_service_pack(self):
-        self.assertEqual('MIT-Pack', Account.default_service_pack)
+        # going with individual services, not service pack
+        # self.assertEqual('MIT-Pack', Account.default_service_pack)
+        self.assertIsNone(Account.default_service_pack)
 
     def test_account_converts_did_at_init(self):
         a = Account(did=6175551212)
