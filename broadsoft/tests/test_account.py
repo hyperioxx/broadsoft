@@ -880,7 +880,7 @@ class TestBroadsoftAccount(unittest.TestCase):
 
     def test_default_services(self):
         a = Account()
-        self.assertEqual(112, len(a.load_default_services()))
+        self.assertEqual(108, len(a.load_default_services()))
 
     def test_default_service_pack(self):
         # going with individual services, not service pack
