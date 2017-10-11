@@ -3,6 +3,8 @@ from broadsoft.requestobjects.UserVoiceMessagingUserModifyVoiceManagementRequest
 from broadsoft.requestobjects.UserThirdPartyVoiceMailSupportModifyRequest import UserThirdPartyVoiceMailSupportModifyRequest
 from broadsoft.requestobjects.UserVoiceMessagingUserModifyAdvancedVoiceManagementRequest import UserVoiceMessagingUserModifyAdvancedVoiceManagementRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
+from broadsoft.requestobjects.UserServiceAssignListRequest import UserServiceAssignListRequest
+from broadsoft.requestobjects.UserServiceUnassignListRequest import UserServiceUnassignListRequest
 
 
 class Voicemail(BroadsoftObject):
@@ -37,12 +39,25 @@ class Voicemail(BroadsoftObject):
     def build_activate_command(self):
         self.validate()
 
+        command = []
+
+        # add relevant user services
+        vm_services, counterpart_services = self.get_services()
+        services = UserServiceAssignListRequest()
+        services.sip_user_id = self.sip_user_id
+        services.services = vm_services
+
+        command.append(services)
+
+        # now stuff specific to voicemail type
         if self.type == 'broadsoft':
-            return self.build_activate_command__broadsoft()
+            command = command + self.build_activate_command__broadsoft()
         elif self.type == 'unity':
-            return self.build_activate_command__unity()
+            command = command + self.build_activate_command__unity()
         else:
             raise NotImplementedError("no Voicemail.build_activate_command() behavior defined for type " + str(self.type))
+
+        return command
 
     def build_activate_command__broadsoft(self):
         # UserVoiceMessagingUserModifyVoiceManagementRequest configures basic behavoir
@@ -93,18 +108,59 @@ class Voicemail(BroadsoftObject):
         return [activate]
 
     def build_deactivate_counterpart_command(self):
+        command = []
+
+        vm_services, counterpart_services = self.get_services()
+        services = UserServiceUnassignListRequest()
+        services.sip_user_id = self.sip_user_id
+        services.services = counterpart_services
+        command.append(services)
+
         if self.type == 'unity':
             # if we're activating unity, deactivate broadsoft
             # returning a list to ease merging with other activate/deactivate possibilities
-            return [UserVoiceMessagingUserModifyVoiceManagementRequest(sip_user_id=self.sip_user_id, is_active=False)]
+            command.append(
+                UserVoiceMessagingUserModifyVoiceManagementRequest(sip_user_id=self.sip_user_id, is_active=False)
+            )
 
         elif self.type == 'broadsoft':
             # if we're activating broadsoft, deactivate third party
             # returning a list to ease merging with other activate/deactivate possibilities
-            return [UserThirdPartyVoiceMailSupportModifyRequest(sip_user_id=self.sip_user_id, is_active=False)]
+            command.append(
+                UserThirdPartyVoiceMailSupportModifyRequest(sip_user_id=self.sip_user_id, is_active=False)
+            )
 
         else:
             raise NotImplementedError("no Voicemail.build_deactivate_counterpart_command() behavior defined for type " + str(self.type))
+
+        return command
+
+    # Only want to assign the relevant voicemail services. Furthermore, as a belt-and-suspenders move, want to unassign
+    # services for other voicemail systems.
+    def get_services(self):
+        vm_services = {
+            'broadsoft': [
+                'Voice Messaging User',
+                'Voice Messaging User - Video',
+                'Voice Portal Calling'
+            ],
+
+            'unity': [
+                'Third-Party MWI Control',
+                'Third-Party Voice Mail Support'
+            ]
+        }
+
+        services = []
+        counterpart_services = []
+
+        for this_type, this_services in vm_services.items():
+            if this_type == self.type:
+                services = services + this_services
+            else:
+                counterpart_services = counterpart_services + this_services
+
+        return services, counterpart_services
 
     def validate(self):
         if not self.sip_user_id:

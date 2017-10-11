@@ -7,6 +7,8 @@ from broadsoft.requestobjects.UserVoiceMessagingUserModifyVoiceManagementRequest
 from broadsoft.requestobjects.UserThirdPartyVoiceMailSupportModifyRequest import UserThirdPartyVoiceMailSupportModifyRequest
 from broadsoft.requestobjects.UserVoiceMessagingUserModifyAdvancedVoiceManagementRequest import UserVoiceMessagingUserModifyAdvancedVoiceManagementRequest
 from broadsoft.requestobjects.lib.BroadsoftRequest import instance_factory
+from broadsoft.requestobjects.UserServiceAssignListRequest import UserServiceAssignListRequest
+from broadsoft.requestobjects.UserServiceUnassignListRequest import UserServiceUnassignListRequest
 
 def return_none(**kwargs):
     return None
@@ -34,39 +36,110 @@ class TestBroadsoftVoicemail(unittest.TestCase):
         self.assertEqual('tn', v.transfer_number)
         self.assertEqual('sd', v.surgemail_domain)
 
-    def test_type_determines_correct_activation(self):
-        self.assertFalse("activation should add relevant service")
-        self.assertFalse("deactivation of counterpart should also remove relevant service")
+    def test_return_services(self):
+        broadsoft_services = [
+            'Voice Messaging User',
+            'Voice Messaging User - Video',
+            'Voice Portal Calling'
+        ]
 
+        unity_services = [
+            'Third-Party MWI Control',
+            'Third-Party Voice Mail Support'
+        ]
+
+        # when type is "broadsoft"
+        v = Voicemail(sip_user_id='6175551212@beaver.mit.edu', email='beaver@mit.edu', did=6175551212,
+                      surgemail_domain='sd.mit.edu')
+        v.type = 'broadsoft'
+        services, counterpart_services = v.get_services()
+
+        self.assertEqual(services, broadsoft_services)
+        self.assertEqual(counterpart_services, unity_services)
+
+        # when type is "unity"
+        v = Voicemail(sip_user_id='6175551212@beaver.mit.edu', email='beaver@mit.edu', did=6175551212,
+                      surgemail_domain='sd.mit.edu')
+        v.type = 'unity'
+        services, counterpart_services = v.get_services()
+
+        self.assertEqual(services, unity_services)
+        self.assertEqual(counterpart_services, broadsoft_services)
+
+    def test_type_determines_correct_activation(self):
+        # -----------
+        # with type BROADSOFT
         v = Voicemail(sip_user_id='6175551212@beaver.mit.edu', email='beaver@mit.edu', did=6175551212,
                       surgemail_domain='sd.mit.edu')
         v.type = 'broadsoft'
         activate = v.build_activate_command()
         deactivate = v.build_deactivate_counterpart_command()
 
-        # activate should be a list, containing a UserVoiceMessagingUserModifyVoiceManagementRequest and a
+        # activate should be a list, containing a UserServiceAssignListRequest, a
+        # UserVoiceMessagingUserModifyVoiceManagementRequest, and a
         # UserVoiceMessagingUserModifyAdvancedVoiceManagementRequest
-        activate_configure, activate_surgemail = activate
+        self.assertEqual(3, len(activate))
+        activate_services, activate_configure, activate_surgemail = activate
 
+        self.assertIsInstance(activate_services, UserServiceAssignListRequest)
         self.assertIsInstance(activate_configure, UserVoiceMessagingUserModifyVoiceManagementRequest)
         self.assertIsInstance(activate_surgemail, UserVoiceMessagingUserModifyAdvancedVoiceManagementRequest)
 
-        # deactivate is a list with just a UserThirdPartyVoiceMailSupportModifyRequest
-        deactivate = deactivate[0]
+        # test contents of activate_services object
+        self.assertEqual(v.sip_user_id, activate_services.sip_user_id)
+        self.assertEqual(activate_services.services, ['Voice Messaging User', 'Voice Messaging User - Video', 'Voice Portal Calling'])
+        self.assertIsNone(activate_services.service_pack)
+
+        # deactivate is a list with a UserServiceUnassignListRequest and a UserThirdPartyVoiceMailSupportModifyRequest
+        self.assertEqual(2, len(deactivate))
+        deactivate_services = deactivate[0]
+        deactivate = deactivate[1]
+        self.assertIsInstance(deactivate_services, UserServiceUnassignListRequest)
         self.assertIsInstance(deactivate, UserThirdPartyVoiceMailSupportModifyRequest)
 
+        # test contents of deactivate_services
+        self.assertEqual(v.sip_user_id, deactivate_services.sip_user_id)
+        self.assertEqual(deactivate_services.services,
+                         ['Third-Party MWI Control', 'Third-Party Voice Mail Support'])
+        self.assertIsNone(deactivate_services.service_pack)
+
+        # -----------
+        # with type UNITY
         v = Voicemail(sip_user_id='6175551212@beaver.mit.edu', email='beaver@mit.edu', did=6175551212)
         v.type = 'unity'
         activate = v.build_activate_command()
         deactivate = v.build_deactivate_counterpart_command()
 
-        # activate and deactivate here are both single item lists
-        activate = activate[0]
-        deactivate = deactivate[0]
+        # activate should be a list, containing a UserServiceAssignListRequest, and a
+        # UserThirdPartyVoiceMailSupportModifyRequest
+        self.assertEqual(2, len(activate))
+        activate_services, activate_third_party = activate
 
-        self.assertIsInstance(activate, UserThirdPartyVoiceMailSupportModifyRequest)
+        self.assertIsInstance(activate_services, UserServiceAssignListRequest)
+        self.assertIsInstance(activate_third_party, UserThirdPartyVoiceMailSupportModifyRequest)
+
+        # test contents of activate_services object
+        self.assertEqual(v.sip_user_id, activate_services.sip_user_id)
+        self.assertEqual(activate_services.services,
+                         ['Third-Party MWI Control', 'Third-Party Voice Mail Support'])
+        self.assertIsNone(activate_services.service_pack)
+
+        # deactivate is a list with a UserServiceUnassignListRequest and a
+        # UserVoiceMessagingUserModifyVoiceManagementRequest
+        self.assertEqual(2, len(deactivate))
+        deactivate_services = deactivate[0]
+        deactivate = deactivate[1]
+        self.assertIsInstance(deactivate_services, UserServiceUnassignListRequest)
         self.assertIsInstance(deactivate, UserVoiceMessagingUserModifyVoiceManagementRequest)
 
+        # test contents of deactivate_services
+        self.assertEqual(v.sip_user_id, deactivate_services.sip_user_id)
+        self.assertEqual(deactivate_services.services,
+                         ['Voice Messaging User', 'Voice Messaging User - Video', 'Voice Portal Calling'])
+        self.assertIsNone(deactivate_services.service_pack)
+
+        # ------------
+        # with bad type
         v = Voicemail(sip_user_id='6175551212@beaver.mit.edu', email='beaver@mit.edu', did=6175551212)
         v.type = 'garbanzo'
         with self.assertRaises(NotImplementedError):
