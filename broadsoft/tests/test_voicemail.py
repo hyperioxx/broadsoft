@@ -35,6 +35,9 @@ class TestBroadsoftVoicemail(unittest.TestCase):
         self.assertEqual('sd', v.surgemail_domain)
 
     def test_type_determines_correct_activation(self):
+        self.assertFalse("activation should add relevant service")
+        self.assertFalse("deactivation of counterpart should also remove relevant service")
+
         v = Voicemail(sip_user_id='6175551212@beaver.mit.edu', email='beaver@mit.edu', did=6175551212,
                       surgemail_domain='sd.mit.edu')
         v.type = 'broadsoft'
