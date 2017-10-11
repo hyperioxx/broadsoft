@@ -880,7 +880,7 @@ class TestBroadsoftAccount(unittest.TestCase):
 
     def test_default_services(self):
         a = Account()
-        self.assertEqual(108, len(a.load_default_services()))
+        self.assertEqual(107, len(a.load_default_services()))
 
     def test_default_service_pack(self):
         # going with individual services, not service pack
@@ -1281,19 +1281,17 @@ class TestBroadsoftAccount(unittest.TestCase):
 
         # expect to see 3 commands: an activate for basic voicemail, a configure for surgemail, and a deactivate for unity
         request = r[0]
-        self.assertEqual(5, len(request.commands))
+        self.assertEqual(4, len(request.commands))
         activate_services = request.commands[0]
         activate_base = request.commands[1]
         activate_surgemail = request.commands[2]
         deactivate_services = request.commands[3]
-        deactivate = request.commands[4]
 
         # default is broadsoft, so activate should be for broadsoft, and deactivate for third party
         self.assertIsInstance(activate_services, UserServiceAssignListRequest)
         self.assertIsInstance(activate_base, UserVoiceMessagingUserModifyVoiceManagementRequest)
         self.assertIsInstance(activate_surgemail, UserVoiceMessagingUserModifyAdvancedVoiceManagementRequest)
         self.assertIsInstance(deactivate_services, UserServiceUnassignListRequest)
-        self.assertIsInstance(deactivate, UserThirdPartyVoiceMailSupportModifyRequest)
 
         # build unity
         a = Account(sip_user_id='6175551212@broadsoft.com', email='beaver@mit.edu', voicemail='unity', did=6175551212)
@@ -1301,17 +1299,15 @@ class TestBroadsoftAccount(unittest.TestCase):
 
         # expect to see two commands: an activate, and a deactivate
         request = r[0]
-        self.assertEqual(4, len(request.commands))
+        self.assertEqual(3, len(request.commands))
         activate_services = request.commands[0]
         activate = request.commands[1]
         deactivate_services = request.commands[2]
-        deactivate = request.commands[3]
 
         # asked for unity, so activate should be for thirdparty, and deactivate for broadsoft
         self.assertIsInstance(activate_services, UserServiceAssignListRequest)
         self.assertIsInstance(activate, UserThirdPartyVoiceMailSupportModifyRequest)
         self.assertIsInstance(deactivate_services, UserServiceUnassignListRequest)
-        self.assertIsInstance(deactivate, UserVoiceMessagingUserModifyVoiceManagementRequest)
 
     @unittest.mock.patch.object(BroadsoftRequest, 'post')
     def test_activate_voicemail_passes_relevant_attributes(self, post_patch):

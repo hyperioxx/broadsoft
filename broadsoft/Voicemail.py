@@ -116,6 +116,9 @@ class Voicemail(BroadsoftObject):
         services.services = counterpart_services
         command.append(services)
 
+        # since we're removing the service from the user, these commands will be rejected...and should be then
+        # unnecessary anyway
+        """
         if self.type == 'unity':
             # if we're activating unity, deactivate broadsoft
             # returning a list to ease merging with other activate/deactivate possibilities
@@ -129,9 +132,11 @@ class Voicemail(BroadsoftObject):
             command.append(
                 UserThirdPartyVoiceMailSupportModifyRequest(sip_user_id=self.sip_user_id, is_active=False)
             )
+        """
 
-        else:
-            raise NotImplementedError("no Voicemail.build_deactivate_counterpart_command() behavior defined for type " + str(self.type))
+        if self.type != 'unity' and self.type != 'broadsoft':
+            raise NotImplementedError(
+                "no Voicemail.build_deactivate_counterpart_command() behavior defined for type " + str(self.type))
 
         return command
 

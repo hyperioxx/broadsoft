@@ -90,12 +90,10 @@ class TestBroadsoftVoicemail(unittest.TestCase):
         self.assertEqual(activate_services.services, ['Voice Messaging User', 'Voice Messaging User - Video', 'Voice Portal Calling'])
         self.assertIsNone(activate_services.service_pack)
 
-        # deactivate is a list with a UserServiceUnassignListRequest and a UserThirdPartyVoiceMailSupportModifyRequest
-        self.assertEqual(2, len(deactivate))
+        # deactivate is a list with a UserServiceUnassignListRequest
+        self.assertEqual(1, len(deactivate))
         deactivate_services = deactivate[0]
-        deactivate = deactivate[1]
         self.assertIsInstance(deactivate_services, UserServiceUnassignListRequest)
-        self.assertIsInstance(deactivate, UserThirdPartyVoiceMailSupportModifyRequest)
 
         # test contents of deactivate_services
         self.assertEqual(v.sip_user_id, deactivate_services.sip_user_id)
@@ -126,11 +124,9 @@ class TestBroadsoftVoicemail(unittest.TestCase):
 
         # deactivate is a list with a UserServiceUnassignListRequest and a
         # UserVoiceMessagingUserModifyVoiceManagementRequest
-        self.assertEqual(2, len(deactivate))
+        self.assertEqual(1, len(deactivate))
         deactivate_services = deactivate[0]
-        deactivate = deactivate[1]
         self.assertIsInstance(deactivate_services, UserServiceUnassignListRequest)
-        self.assertIsInstance(deactivate, UserVoiceMessagingUserModifyVoiceManagementRequest)
 
         # test contents of deactivate_services
         self.assertEqual(v.sip_user_id, deactivate_services.sip_user_id)
