@@ -4,7 +4,6 @@ from broadsoft.requestobjects.lib.BroadsoftRequest import BroadsoftRequest
 
 class UserServiceUnassignListRequest(BroadsoftRequest):
     command_name = 'UserServiceUnassignListRequest'
-    check_success = True
 
     def __init__(self, sip_user_id=None, services=None, service_pack=None, **kwargs):
         self.service_pack = service_pack
