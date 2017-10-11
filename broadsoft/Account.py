@@ -359,7 +359,7 @@ class Account(BroadsoftObject):
             'Custom Ringback User - Video',
             'Directed Call Pickup',
             'Directed Call Pickup with Barge-in',
-            'Directory Number Hunting',
+            # 'Directory Number Hunting',
             'Diversion Inhibitor',
             'Do Not Disturb',
             'Executive',
