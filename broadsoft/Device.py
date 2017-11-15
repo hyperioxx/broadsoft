@@ -12,11 +12,11 @@ import re
 
 class Device(BroadsoftObject):
     def __init__(self, name='Generic', type=None, description=None, mac_address=None, protocol=None,
-                 transport_protocol=None, line_port=None, is_primary=None, did=None, index=1, skip_if_exists=True,
+                 transport_protocol=None, line_port=None, is_primary=None, did=None, index=None, skip_if_exists=True,
                  **kwargs):
         self.description = description
         self.did = did
-        self.index = index              # defaults to 1; the number of appearances for a given DID on a given device,
+        self.index = index              # defaults to None; the number of SCAs for a given DID on a given device,
                                         # which can be more than 1
         self.is_primary = is_primary
         self.name = name
@@ -83,9 +83,12 @@ class Device(BroadsoftObject):
                                                                 broadsoftinstance=self.broadsoftinstance)
 
     def derive_line_port(self):
-        if self.did and self.index and self.broadsoftinstance.default_domain:
+        if self.did and self.broadsoftinstance.default_domain:
             did = BroadsoftRequest.convert_phone_number(number=self.did)
-            self.line_port = str(did) + '_' + str(self.index) + '@' + self.broadsoftinstance.default_domain
+            self.line_port = str(did)
+            if self.index is not None:
+                self.line_port += '_' + str(self.index)
+            self.line_port += '@' + self.broadsoftinstance.default_domain
 
     def fetch(self, target_name=None):
         if not target_name:

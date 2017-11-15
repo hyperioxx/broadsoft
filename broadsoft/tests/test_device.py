@@ -268,28 +268,32 @@ class TestBroadsoftDevice(unittest.TestCase):
 
     def test_derive_line_port(self):
         # implicit broadsoftinstance
-        d = Device(did=6175551212, mac_address='aa:bb:cc:11:22:33')
+        d = Device(did=6175551212, mac_address='aa:bb:cc:11:22:33', index=1)
         self.assertEqual('6175551212_' + str(d.index) + '@' + d.broadsoftinstance.default_domain, d.line_port)
+
+        # implicit broadsoftinstance with no index
+        d = Device(did=6175551212, mac_address='aa:bb:cc:11:22:33')
+        self.assertEqual('6175551212@' + d.broadsoftinstance.default_domain, d.line_port)
 
         # not test broadsoftinstance
         i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(instance='prod')
-        d = Device(did=6175551212, mac_address='aa:bb:cc:11:22:33', broadsoftinstance=i)
+        d = Device(did=6175551212, mac_address='aa:bb:cc:11:22:33', broadsoftinstance=i, index=1)
         self.assertEqual('6175551212_' + str(d.index) + '@' + i.default_domain, d.line_port)
 
         # test broadsoftinstance
         i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(instance='test')
-        d = Device(did=6175551212, mac_address='aa:bb:cc:11:22:33', broadsoftinstance=i)
+        d = Device(did=6175551212, mac_address='aa:bb:cc:11:22:33', broadsoftinstance=i, index=1)
         self.assertEqual('6175551212_' + str(d.index) + '@' + i.default_domain, d.line_port)
 
         # passing prod instance to Device
         i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(instance='prod')
-        d = Device(did=6175551212, mac_address='aa:bb:cc:11:22:33', instance='prod')
+        d = Device(did=6175551212, mac_address='aa:bb:cc:11:22:33', instance='prod', index=1)
         self.assertEqual('6175551212_' + str(d.index) + '@' + d.broadsoftinstance.default_domain,
                          d.line_port)
 
         # passing test instance to Device
         i = broadsoft.requestobjects.lib.BroadsoftRequest.instance_factory(instance='test')
-        d = Device(did=6175551212, mac_address='aa:bb:cc:11:22:33', instance='test')
+        d = Device(did=6175551212, mac_address='aa:bb:cc:11:22:33', instance='test', index=1)
         self.assertEqual('6175551212_' + str(d.index) + '@' + d.broadsoftinstance.default_domain, d.line_port)
 
     @unittest.mock.patch.object(BroadsoftRequest, 'post')

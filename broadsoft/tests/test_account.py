@@ -820,6 +820,20 @@ class TestBroadsoftAccount(unittest.TestCase):
         # devices were attached, so don't called attach_default_devices
         self.assertFalse(attach_default_devices_patch.called)
 
+    def test_attach_default_devices_doesnt_give_index_to_primary(self):
+        i = instance_factory(instance='test')
+        a = Account(did=6175551212, last_name='beaver', first_name='tim', sip_password='password',
+                    email='beaver@mit.edu', broadsoftinstance=i)
+        a.attach_default_devices()
+
+        sca_count = 1
+        for d in a.devices:
+            if d.is_primary:
+                self.assertIsNone(d.index)
+            else:
+                self.assertEqual(sca_count, d.index)
+                sca_count += 1
+
     def test_attach_default_devices__build_description(self):
         i = instance_factory(instance='test')
         a = Account(did=6175551212, last_name='beaver', first_name='tim', sip_password='password',
@@ -857,7 +871,11 @@ class TestBroadsoftAccount(unittest.TestCase):
                 self.assertTrue(d.is_primary)
             else:
                 self.assertFalse(d.is_primary)
-            self.assertEqual('6175551212_' + str(d.index) + '@' + i.default_domain, d.line_port)
+
+            if d.is_primary:
+                self.assertEqual('6175551212@' + i.default_domain, d.line_port)
+            else:
+                self.assertEqual('6175551212_' + str(d.index) + '@' + i.default_domain, d.line_port)
             self.assertEqual('Generic SIP Phone', d.type)
             self.assertEqual('tim beaver', d.description)
             first_one = False
@@ -1760,7 +1778,7 @@ class TestBroadsoftAccount(unittest.TestCase):
             if type(c) is UserModifyRequest:
                 attach_command = c
 
-        ep_xml = '<endpoint><accessDeviceEndpoint><accessDevice><deviceLevel>Group</deviceLevel><deviceName>Generic</deviceName></accessDevice><linePort>6175551212_1@broadsoft.mit.edu</linePort></accessDeviceEndpoint></endpoint>'
+        ep_xml = '<endpoint><accessDeviceEndpoint><accessDevice><deviceLevel>Group</deviceLevel><deviceName>Generic</deviceName></accessDevice><linePort>6175551212@broadsoft.mit.edu</linePort></accessDeviceEndpoint></endpoint>'
         xml = ET.tostring(c.to_xml()).decode('utf-8')
         self.assertIn(ep_xml, xml)
 
@@ -1775,7 +1793,7 @@ class TestBroadsoftAccount(unittest.TestCase):
             if type(c) is UserModifyRequest:
                 attach_command = c
 
-        ep_xml = '<accessDeviceEndpoint><accessDevice><deviceLevel>Group</deviceLevel><deviceName>Generic</deviceName></accessDevice><linePort>6175551212_2@broadsoft.mit.edu</linePort></accessDeviceEndpoint>'
+        ep_xml = '<accessDeviceEndpoint><accessDevice><deviceLevel>Group</deviceLevel><deviceName>Generic</deviceName></accessDevice><linePort>6175551212_1@broadsoft.mit.edu</linePort></accessDeviceEndpoint>'
         xml = ET.tostring(c.to_xml()).decode('utf-8')
         self.assertIn(ep_xml, xml)
 

@@ -139,13 +139,17 @@ class Account(BroadsoftObject):
 
     def attach_default_devices(self):
         is_primary = True
+        sca_count = 0
+
         for index in range(1, self.default_device_count + 1):
             d = Device(logging_level=self.logging_level)
             d.broadsoftinstance = self.broadsoftinstance
             d.logging_level = self.logging_level
             d.is_primary = is_primary
             d.did = self.did
-            d.index = index
+            if not is_primary:
+                sca_count += 1
+                d.index = sca_count
             d.description = self.attach_default_devices__build_description()
             d.type = 'Generic SIP Phone'
             d.derive_line_port()
