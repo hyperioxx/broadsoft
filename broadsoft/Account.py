@@ -305,7 +305,7 @@ class Account(BroadsoftObject):
 
     def load_default_services(self):
         services = [
-            'Advice Of Charge',
+            # 'Advice Of Charge',
             'Alternate Numbers',
             'Anonymous Call Rejection',
             'Authentication',
@@ -341,7 +341,7 @@ class Account(BroadsoftObject):
             'Call Forwarding Selective',
             'Calling Line ID Delivery Blocking',
             'Calling Name Delivery',
-            'Calling Name Retrieval',
+            # 'Calling Name Retrieval',
             'Calling Number Delivery',
             'Calling Party Category',
             'Call Me Now',
@@ -394,7 +394,7 @@ class Account(BroadsoftObject):
             'Push to Talk',
             'Remote Office',
             'Route List',
-            'Security Classification',
+            # 'Security Classification',
             'Selective Call Acceptance',
             'Selective Call Rejection',
             'Sequential Ring',
