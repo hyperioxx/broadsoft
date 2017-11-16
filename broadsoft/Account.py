@@ -28,7 +28,7 @@ class Account(BroadsoftObject):
     # default_service_pack = 'MIT-Pack'
     default_service_pack = None
 
-    def __init__(self, default_device_count=36, did=None, extension=None, last_name=None, first_name=None,
+    def __init__(self, default_device_count=35, did=None, extension=None, last_name=None, first_name=None,
                  sip_user_id=None, kname=None, email=None, services=None, service_pack=None,
                  sip_password=None, voicemail='broadsoft', voicemail_mwi=None, **kwargs):
         self.default_device_count = default_device_count

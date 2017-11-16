@@ -881,7 +881,7 @@ class TestBroadsoftAccount(unittest.TestCase):
         a = Account(did=6175551212, last_name='beaver', first_name='tim', sip_password='password',
                     email='beaver@mit.edu', broadsoftinstance=i)
         a.provision()
-        self.assertEqual(37, len(a.devices))
+        self.assertEqual(36, len(a.devices))
 
         first_one = True
         for d in a.devices:
