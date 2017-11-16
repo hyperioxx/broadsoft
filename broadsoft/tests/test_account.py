@@ -820,6 +820,27 @@ class TestBroadsoftAccount(unittest.TestCase):
         # devices were attached, so don't called attach_default_devices
         self.assertFalse(attach_default_devices_patch.called)
 
+    def test_attach_default_devices_adds_a_primary_and_correct_number_of_scas(self):
+        i = instance_factory(instance='test')
+        a = Account(did=6175551212, last_name='beaver', first_name='tim', sip_password='password',
+                    email='beaver@mit.edu', broadsoftinstance=i)
+        a.attach_default_devices()
+
+        count = 1
+        for d in a.devices:
+            if count == 1:
+                self.assertTrue(d.is_primary)
+                self.assertEqual(str(a.did) + '@' + i.default_domain, d.line_port)
+
+            else:
+                self.assertFalse(d.is_primary)
+                self.assertEqual(str(a.did) + '_' + str(count - 1) + '@' + i.default_domain, d.line_port)
+
+            count += 1
+
+        self.assertEqual(a.default_device_count + 1, len(a.devices))
+
+
     def test_attach_default_devices_doesnt_give_index_to_primary(self):
         i = instance_factory(instance='test')
         a = Account(did=6175551212, last_name='beaver', first_name='tim', sip_password='password',
@@ -860,7 +881,7 @@ class TestBroadsoftAccount(unittest.TestCase):
         a = Account(did=6175551212, last_name='beaver', first_name='tim', sip_password='password',
                     email='beaver@mit.edu', broadsoftinstance=i)
         a.provision()
-        self.assertEqual(36, len(a.devices))
+        self.assertEqual(37, len(a.devices))
 
         first_one = True
         for d in a.devices:

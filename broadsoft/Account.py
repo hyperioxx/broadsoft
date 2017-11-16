@@ -141,15 +141,27 @@ class Account(BroadsoftObject):
         is_primary = True
         sca_count = 0
 
+        # attach a primary device, with no line_port suffix
+        d = Device(logging_level=self.logging_level)
+        d.broadsoftinstance = self.broadsoftinstance
+        d.logging_level = self.logging_level
+        d.is_primary = True
+        d.did = self.did
+        d.description = self.attach_default_devices__build_description()
+        d.type = 'Generic SIP Phone'
+        d.derive_line_port()
+        d.implicit_overwrite = False
+        d.skip_if_exists = True
+        self.devices.append(d)
+
+        # attach the required number of SCAs
         for index in range(1, self.default_device_count + 1):
             d = Device(logging_level=self.logging_level)
+            d.index = index
             d.broadsoftinstance = self.broadsoftinstance
             d.logging_level = self.logging_level
-            d.is_primary = is_primary
+            d.is_primary = False
             d.did = self.did
-            if not is_primary:
-                sca_count += 1
-                d.index = sca_count
             d.description = self.attach_default_devices__build_description()
             d.type = 'Generic SIP Phone'
             d.derive_line_port()
@@ -157,7 +169,6 @@ class Account(BroadsoftObject):
             d.skip_if_exists = True
 
             self.devices.append(d)
-            is_primary = False
 
     def attach_default_devices__build_description(self):
         description = ''
