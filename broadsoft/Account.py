@@ -28,7 +28,7 @@ class Account(BroadsoftObject):
     # default_service_pack = 'MIT-Pack'
     default_service_pack = None
 
-    def __init__(self, default_device_count=35, did=None, extension=None, last_name=None, first_name=None,
+    def __init__(self, default_device_count=36, did=None, extension=None, last_name=None, first_name=None,
                  sip_user_id=None, kname=None, email=None, services=None, service_pack=None,
                  sip_password=None, voicemail='broadsoft', voicemail_mwi=None, **kwargs):
         self.default_device_count = default_device_count
@@ -138,37 +138,13 @@ class Account(BroadsoftObject):
             req_object.commands.append(s)
 
     def attach_default_devices(self):
-        is_primary = True
-        sca_count = 0
+        self.attach_primary_device()
 
-        # attach a primary device, with no line_port suffix
-        d = Device(logging_level=self.logging_level)
-        d.broadsoftinstance = self.broadsoftinstance
-        d.logging_level = self.logging_level
-        d.is_primary = True
-        d.did = self.did
-        d.description = self.attach_default_devices__build_description()
-        d.type = 'Generic SIP Phone'
-        d.derive_line_port()
-        d.implicit_overwrite = False
-        d.skip_if_exists = True
-        self.devices.append(d)
-
-        # attach the required number of SCAs
-        for index in range(1, self.default_device_count + 1):
-            d = Device(logging_level=self.logging_level)
-            d.index = index
-            d.broadsoftinstance = self.broadsoftinstance
-            d.logging_level = self.logging_level
-            d.is_primary = False
-            d.did = self.did
-            d.description = self.attach_default_devices__build_description()
-            d.type = 'Generic SIP Phone'
-            d.derive_line_port()
-            d.implicit_overwrite = False
-            d.skip_if_exists = True
-
-            self.devices.append(d)
+        while not self.derive_enough_devices():
+            if len(self.devices) >= self.default_device_count:
+                enough = True
+            else:
+                self.attach_sca()
 
     def attach_default_devices__build_description(self):
         description = ''
@@ -182,6 +158,35 @@ class Account(BroadsoftObject):
                 description = self.first_name
 
         return description
+
+    def attach_primary_device(self):
+        # attach a primary device, with no line_port suffix
+        d = Device(logging_level=self.logging_level)
+        d.broadsoftinstance = self.broadsoftinstance
+        d.logging_level = self.logging_level
+        d.is_primary = True
+        d.did = self.did
+        d.description = self.attach_default_devices__build_description()
+        d.type = 'Generic SIP Phone'
+        d.derive_line_port()
+        d.implicit_overwrite = False
+        d.skip_if_exists = True
+        self.devices.append(d)
+
+    def attach_sca(self, index=None):
+        d = Device(logging_level=self.logging_level)
+        d.index = self.derive_sca_index(index=index)
+        d.broadsoftinstance = self.broadsoftinstance
+        d.logging_level = self.logging_level
+        d.is_primary = False
+        d.did = self.did
+        d.description = self.attach_default_devices__build_description()
+        d.type = 'Generic SIP Phone'
+        d.derive_line_port()
+        d.implicit_overwrite = False
+        d.skip_if_exists = True
+
+        self.devices.append(d)
 
     def build_provision_request(self):
         # going to do this as a compound request so that it's pseudo-atomic...if one fails, the rest should
@@ -275,6 +280,23 @@ class Account(BroadsoftObject):
 
         b.post()
         return [b]
+
+    def derive_enough_devices(self):
+        if len(self.devices) < self.default_device_count:
+            return False
+
+        return True
+
+    def derive_sca_index(self, index=None):
+        if index is not None:
+            return index
+
+        else:
+            highest_index = 0
+            for d in self.devices:
+                if d.index is not None and int(d.index) > highest_index:
+                    highest_index = d.index
+            return highest_index + 1
 
     def fetch(self):
         self.xml = UserGetRequest.get_user(sip_user_id=self.sip_user_id, broadsoftinstance=self.broadsoftinstance)

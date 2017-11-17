@@ -838,7 +838,7 @@ class TestBroadsoftAccount(unittest.TestCase):
 
             count += 1
 
-        self.assertEqual(a.default_device_count + 1, len(a.devices))
+        self.assertEqual(a.default_device_count, len(a.devices))
 
 
     def test_attach_default_devices_doesnt_give_index_to_primary(self):
@@ -1946,3 +1946,94 @@ class TestBroadsoftAccount(unittest.TestCase):
 
         self.assertIsNone(a.kname)
         self.assertIsNone(a.email)
+
+    def test_attach_primary_device_call(self):
+        i = instance_factory('test')
+        a = Account(broadsoftinstance=i, did=6175551212)
+        a.attach_primary_device()
+        self.assertEqual(1, len(a.devices))
+
+        d = a.devices[0]
+        self.assertTrue(d.is_primary)
+        self.assertIsNone(d.index)
+        self.assertEqual(str(a.did) + '@' + i.default_domain, d.line_port)
+
+    def test_derive_sca_index(self):
+        i = instance_factory('test')
+
+        # pass an index
+        a = Account(broadsoftinstance=i, did=6175551212)
+        self.assertEqual(100, a.derive_sca_index(index=100))
+
+        # if there are no other devices
+        a = Account(broadsoftinstance=i, did=6175551212)
+        self.assertEqual(1, a.derive_sca_index())
+
+        # if there's a primary but no SCAs
+        a = Account(broadsoftinstance=i, did=6175551212)
+        a.attach_primary_device()
+        self.assertEqual(1, a.derive_sca_index())
+
+        # if there are SCAs _1 and _2 (with primary)
+        a = Account(broadsoftinstance=i, did=6175551212)
+        a.attach_primary_device()
+        a.attach_sca(index=1)
+        a.attach_sca(index=2)
+        self.assertEqual(3, a.derive_sca_index())
+
+        # if there are SCAs _1 and _4 (with primary)
+        a = Account(broadsoftinstance=i, did=6175551212)
+        a.attach_primary_device()
+        a.attach_sca(index=1)
+        a.attach_sca(index=4)
+        self.assertEqual(5, a.derive_sca_index())
+
+        # if there are SCAs _1 and _2 (with no primary)
+        a = Account(broadsoftinstance=i, did=6175551212)
+        a.attach_sca(index=1)
+        a.attach_sca(index=2)
+        self.assertEqual(3, a.derive_sca_index())
+
+        # if there are SCAs _1 and _4 (with no primary)
+        a = Account(broadsoftinstance=i, did=6175551212)
+        a.attach_sca(index=1)
+        a.attach_sca(index=4)
+        self.assertEqual(5, a.derive_sca_index())
+
+    def test_attach_sca_call(self):
+        i = instance_factory('test')
+        a = Account(broadsoftinstance=i, did=6175551212)
+        a.attach_sca()
+        a.attach_sca()
+        self.assertEqual(2, len(a.devices))
+
+        count = 1
+        for d in a.devices:
+            self.assertFalse(d.is_primary)
+            self.assertEqual(count, d.index)
+            self.assertEqual(str(a.did) + '_' + str(count) + '@' + i.default_domain, d.line_port)
+            count += 1
+
+    def test_derive_enough_devices_call(self):
+        # using the default value for devices (with not enough)
+        i = instance_factory('test')
+        a = Account(broadsoftinstance=i, did=6175551212)
+        self.assertFalse(a.derive_enough_devices())
+        a.attach_primary_device()
+        self.assertFalse(a.derive_enough_devices())
+
+        # using the default value for devices (enough)
+        i = instance_factory('test')
+        a = Account(broadsoftinstance=i, did=6175551212)
+        self.assertFalse(a.derive_enough_devices())
+        a.attach_primary_device()
+        while len(a.devices) < a.default_device_count:
+            a.attach_sca()
+        self.assertTrue(a.derive_enough_devices())
+
+        # using a passed value for devices
+        i = instance_factory('test')
+        a = Account(broadsoftinstance=i, did=6175551212, default_device_count=1)
+        self.assertFalse(a.derive_enough_devices())
+        a.attach_primary_device()
+        self.assertTrue(a.derive_enough_devices())
