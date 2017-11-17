@@ -384,6 +384,9 @@ class BroadsoftRequest(XmlDocument):
 
     @staticmethod
     def convert_results_table(xml):
+        if type(xml) is list:
+            return xml
+
         # extract column headings
         headings = []
         for heading in xml.findall('.//colHeading'):

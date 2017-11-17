@@ -258,6 +258,7 @@ class TestBroadsoftRequest(unittest.TestCase):
         self.assertEqual(a.broadsoftinstance.session_id, b.broadsoftinstance.session_id)
 
     def test_convert_results_table(self):
+        # pass it xml
         xml = '<groupTable><colHeading>Group Id</colHeading><colHeading>Group Name</colHeading><colHeading>User Limit</colHeading><row><col>anothertestgroup</col><col>Another Test Group</col><col>25</col></row><row><col>sandbox</col><col /><col>25</col></row></groupTable>'
         xml = ET.fromstring(xml)
         data = BroadsoftRequest.convert_results_table(xml=xml)
@@ -265,6 +266,11 @@ class TestBroadsoftRequest(unittest.TestCase):
             [{'Group Id': 'anothertestgroup', 'Group Name': 'Another Test Group', 'User Limit': '25'}, {'Group Id': 'sandbox', 'Group Name': None, 'User Limit': '25'}],
             data
         )
+
+        # pass it a list
+        table_data = [{'Group Id': 'anothertestgroup', 'Group Name': 'Another Test Group', 'User Limit': '25'}, {'Group Id': 'sandbox', 'Group Name': None, 'User Limit': '25'}]
+        converted_data = BroadsoftRequest.convert_results_table(xml=table_data)
+        self.assertEqual(table_data, converted_data)
 
     def test_need_login(self):
         # with no attached auth or login objects, needs login
