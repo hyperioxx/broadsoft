@@ -145,10 +145,7 @@ class Account(BroadsoftObject):
         self.attach_primary_device()
 
         while not self.derive_enough_devices():
-            if len(self.devices) >= self.default_device_count:
-                enough = True
-            else:
-                self.attach_sca()
+            self.attach_sca()
 
     def attach_default_devices__build_description(self):
         description = ''
