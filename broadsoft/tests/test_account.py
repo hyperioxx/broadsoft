@@ -247,8 +247,8 @@ class TestBroadsoftAccount(unittest.TestCase):
 
     @unittest.mock.patch('broadsoft.requestobjects.UserSharedCallAppearanceGetRequest.UserSharedCallAppearanceGetRequest.get_devices')
     def test_devices_added_get_built_into_request_object(self, get_devices_patch):
-        d1 = Device(description='beaver phone 1', name='beaverphone1', type='iphone', line_port='lp1')
-        d2 = Device(description='beaver phone 2', name='beaverphone2', type='hamburger', line_port='lp2')
+        d1 = Device(description='beaver phone 1', name='beaverphone1', type='iphone', line_port='lp1', is_primary=True)
+        d2 = Device(description='beaver phone 2', name='beaverphone2', type='hamburger', line_port='lp2', is_primary=False)
         a = Account(did=6175551212, extension=51212, last_name='beaver', first_name='tim',
                     sip_user_id='beaver@broadsoft.mit.edu', kname='beaver', email='beaver@mit.edu',
                     instance='test', services=['a'])
@@ -380,8 +380,8 @@ class TestBroadsoftAccount(unittest.TestCase):
     def test_add_devices(self, get_devices_patch):
         a = Account(did=6175551212)
         b = BroadsoftRequest()
-        d1 = Device(description='beaver phone 1', name='beaverphone1', type='iphone', instance='prod', line_port='lp1')
-        d2 = Device(description='beaver phone 2', name='beaverphone2', type='cisco', instance='prod', line_port='lp2')
+        d1 = Device(description='beaver phone 1', name='beaverphone1', type='iphone', instance='prod', line_port='lp1', is_primary=True)
+        d2 = Device(description='beaver phone 2', name='beaverphone2', type='cisco', instance='prod', line_port='lp2', is_primary=False)
         a.devices = [d1, d2]
         a.add_devices(req_object=b)
 

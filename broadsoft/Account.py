@@ -119,13 +119,17 @@ class Account(BroadsoftObject):
                                                                       sip_user_id=self.sip_user_id, devices=devices)
             req_object.commands.append(del_d)
 
+        one_primary = False
         if len(self.devices) > 0:
-            # first device gets associated directly with user
-            self.link_primary_device(req_object=req_object, device=self.devices[0])
+            for d in self.devices:
+                if d.is_primary:
+                    if one_primary:
+                        raise RuntimeError("attempted to create more than one primary device")
+                    one_primary = True
+                    self.link_primary_device(req_object=req_object, device=d)
 
-            # remaining devices get added as shared call appearances
-            for d in self.devices[1:]:
-                self.link_sca_device(req_object=req_object, device=d)
+                else:
+                    self.link_sca_device(req_object=req_object, device=d)
 
     def add_services(self, req_object):
         if self.services_defined():
