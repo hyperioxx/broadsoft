@@ -12,7 +12,7 @@ setup(
     name='broadsoft',
     version='0.0.51',
     description='tools for speaking to the Broadsoft cloud-based VOIP service',
-    url='https://github.mit.edu/nist/unity',
+    url='https://github.mit.edu/nist/broadsoft',
     author='Chris Braiotta',
     author_email='braiotta@mit.edu',
     classifiers=[
