@@ -10,7 +10,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='broadsoft',
-    version='0.0.52',
+    version='0.0.53',
     description='tools for speaking to the Broadsoft cloud-based VOIP service',
     url='https://github.mit.edu/nist/broadsoft',
     author='Chris Braiotta',

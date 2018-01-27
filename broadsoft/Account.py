@@ -318,6 +318,8 @@ class Account(BroadsoftObject):
                 self.extension = cmd.findall('extension')[0].text
             if cmd.findall('defaultAlias'):
                 self.sip_user_id = cmd.findall('defaultAlias')[0].text
+            if cmd.findall('emailAddress'):
+                self.email = cmd.findall('emailAddress')[0].text
         self.load_devices()
 
     def generate_sip_password(self):
