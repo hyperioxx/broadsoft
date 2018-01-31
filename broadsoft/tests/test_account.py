@@ -27,6 +27,43 @@ from broadsoft.requestobjects.UserSharedCallAppearanceModifyRequest import UserS
 from broadsoft.requestobjects.UserServiceAssignListRequest import UserServiceAssignListRequest
 from broadsoft.requestobjects.UserServiceUnassignListRequest import UserServiceUnassignListRequest
 
+
+def fake_broadsoft_usergetrequest(**kwargs):
+    import xml.etree.ElementTree as ET
+    xml = '<ns0:BroadsoftDocument xmlns:ns0="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" protocol="OCI">' \
+           '<sessionId>VPN-18-101-101-216.MIT.EDU,2018-01-26 21:17:57.251257,2540683300</sessionId>' \
+           '<command echo="" xsi:type="UserGetResponse21">' \
+               '<serviceProviderId>MIT-SP</serviceProviderId>' \
+               '<groupId>MIT-GP</groupId>' \
+               '<lastName>Beaver</lastName>' \
+               '<firstName>Tim</firstName>' \
+               '<callingLineIdLastName>Beaver</callingLineIdLastName>' \
+               '<callingLineIdFirstName>Tim</callingLineIdFirstName>' \
+               '<hiraganaLastName>Beaver</hiraganaLastName>' \
+               '<hiraganaFirstName>Tim</hiraganaFirstName>' \
+               '<phoneNumber>6175551212</phoneNumber>' \
+               '<extension>51212</extension>' \
+               '<language>English</language>' \
+               '<timeZone>America/New_York</timeZone>' \
+               '<timeZoneDisplayName>(GMT-05:00) (US) Eastern Time</timeZoneDisplayName>' \
+               '<defaultAlias>6175551212@broadsoft-dev.mit.edu</defaultAlias>' \
+               '<accessDeviceEndpoint>' \
+                   '<accessDevice>' \
+                       '<deviceLevel>Group</deviceLevel>' \
+                       '<deviceName>Generic</deviceName>' \
+                   '</accessDevice>' \
+                   '<linePort>6175551212@broadsoft-dev.mit.edu</linePort>' \
+                   '<staticRegistrationCapable>true</staticRegistrationCapable>' \
+                   '<useDomain>true</useDomain>' \
+                   '<supportVisualDeviceManagement>false</supportVisualDeviceManagement>' \
+               '</accessDeviceEndpoint>' \
+               '<emailAddress>beaver@mit.edu</emailAddress>' \
+               '<countryCode>1</countryCode>' \
+           '</command>' \
+           '</ns0:BroadsoftDocument>'
+    return ET.fromstring(xml)
+
+
 def fake_phone_db_record():
     class FakeDbPhone:
         def __init__(self):
@@ -214,6 +251,12 @@ def list_users_mock(*args, **kwargs):
                     </userTable>
                 </command>
             </BroadsoftDocument>"""
+    return ET.fromstring(xml)
+
+
+def return_broadsoft_no_such_user(**kwargs):
+    import xml.etree.ElementTree as ET
+    xml = '<ns0:BroadsoftDocument xmlns:ns0="C" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" protocol="OCI"><sessionId>VPN-18-101-101-216.MIT.EDU,2018-01-31 20:32:30.855293,7840308369</sessionId><command echo="" type="Error" xsi:type="c:ErrorResponse"><summary>[Error 4008] User not found: 6172586354@broadsoft-dev.mit.edu</summary><summaryEnglish>[Error 4008] User not found: 6172586354@broadsoft-dev.mit.edu</summaryEnglish></command></ns0:BroadsoftDocument>'
     return ET.fromstring(xml)
 
 
@@ -2065,6 +2108,27 @@ class TestBroadsoftAccount(unittest.TestCase):
             self.assertEqual(count, d.index)
             self.assertEqual(str(a.did) + '_' + str(count) + '@' + i.default_domain, d.line_port)
             count += 1
+
+    @unittest.mock.patch.object(Account, 'activate_voicemail')
+    @unittest.mock.patch.object(BroadsoftObject, 'provision')
+    def test_account_starts_as_fetched_none(self, provision_patch, vm_patch):
+        a = Account()
+        self.assertIsNone(a.fetched)
+
+    @unittest.mock.patch.object(Account, 'load_devices')
+    @unittest.mock.patch.object(UserGetRequest, 'get_user', side_effect=fake_broadsoft_usergetrequest)
+    def test_from_xml_recognizes_valid_result_and_updates_fetched(self, get_patch, get_devices_patch):
+        a = Account(did=6175551212)
+        self.assertIsNone(a.fetched)
+        a.fetch()
+        self.assertTrue(a.fetched)
+
+    @unittest.mock.patch.object(Account, 'load_devices')
+    @unittest.mock.patch.object(UserGetRequest, 'get_user', side_effect=return_broadsoft_no_such_user)
+    def test_from_xml_recognizes_no_result_and_updates_fetched(self, get_patch, get_devices_patch):
+        a = Account(did=6175551212)
+        a.fetch()
+        self.assertFalse(a.fetched)
 
     def test_derive_enough_devices_call(self):
         # using the default value for devices (with not enough)
