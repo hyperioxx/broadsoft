@@ -299,11 +299,11 @@ class Account(BroadsoftObject):
                     highest_index = d.index
             return highest_index + 1
 
-    def fetch(self):
+    def fetch(self, get_devices=True):
         self.xml = UserGetRequest.get_user(sip_user_id=self.sip_user_id, broadsoftinstance=self.broadsoftinstance)
-        self.from_xml()
+        self.from_xml(get_devices=get_devices)
 
-    def from_xml(self):
+    def from_xml(self, get_devices=True):
         BroadsoftObject.from_xml(self)
         self.devices = list()
         if self.xml:
@@ -320,7 +320,9 @@ class Account(BroadsoftObject):
                 self.sip_user_id = cmd.findall('defaultAlias')[0].text
             if cmd.findall('emailAddress'):
                 self.email = cmd.findall('emailAddress')[0].text
-        self.load_devices()
+
+        if get_devices:
+            self.load_devices()
 
     def generate_sip_password(self):
         if self.sip_password is None:

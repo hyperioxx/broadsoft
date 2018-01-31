@@ -607,19 +607,43 @@ class TestBroadsoftAccount(unittest.TestCase):
     @unittest.mock.patch('broadsoft.requestobjects.UserGetRequest.UserGetRequest.get_user')
     @unittest.mock.patch.object(Account, 'from_xml')
     def test_fetch(
-            self, load_devices_patch, get_user_patch
+            self, from_xml_patch, get_user_patch
     ):
+        # default value for get_devices
         a = Account(did=6175551212, sip_user_id='6175551212@mit.edu')
         a.fetch()
-        call = get_user_patch.call_args_list[0]
-        args, kwargs = call
+        args, kwargs = get_user_patch.call_args_list[0]
         self.assertEqual(a.sip_user_id, kwargs['sip_user_id'])
+        args, kwargs = from_xml_patch.call_args_list[0]
+        self.assertTrue(kwargs['get_devices'])
+        get_user_patch.call_args_list = []
+        from_xml_patch.call_args_list = []
+
+        # get_devices True
+        a = Account(did=6175551212, sip_user_id='6175551212@mit.edu')
+        a.fetch(get_devices=True)
+        args, kwargs = get_user_patch.call_args_list[0]
+        self.assertEqual(a.sip_user_id, kwargs['sip_user_id'])
+        args, kwargs = from_xml_patch.call_args_list[0]
+        self.assertTrue(kwargs['get_devices'])
+        get_user_patch.call_args_list = []
+        from_xml_patch.call_args_list = []
+
+        # get_devices False
+        a = Account(did=6175551212, sip_user_id='6175551212@mit.edu')
+        a.fetch(get_devices=False)
+        args, kwargs = get_user_patch.call_args_list[0]
+        self.assertEqual(a.sip_user_id, kwargs['sip_user_id'])
+        args, kwargs = from_xml_patch.call_args_list[0]
+        self.assertFalse(kwargs['get_devices'])
+        get_user_patch.call_args_list = []
+        from_xml_patch.call_args_list = []
 
     @unittest.mock.patch.object(Device, 'fetch')
     @unittest.mock.patch(
         'broadsoft.requestobjects.UserSharedCallAppearanceGetRequest.UserSharedCallAppearanceGetRequest.get_devices',
         side_effect=get_sca_mock)
-    def test_from_xml(
+    def test_from_xml_request(
             self, get_devices_patch, device_fetch_patch
     ):
         a = Account()
@@ -678,6 +702,31 @@ class TestBroadsoftAccount(unittest.TestCase):
         d = a.devices[2]
         self.assertFalse(d.is_primary)
         self.assertEqual('beaverspa', d.name)
+
+    @unittest.mock.patch.object(Account, 'load_devices')
+    @unittest.mock.patch('broadsoft.lib.BroadsoftObject.BroadsoftObject.from_xml')
+    def test_from_xml_respects_get_devices_attr(self, from_xml_patch, load_devices_patch):
+        # default get_devices
+        a = Account()
+        self.assertFalse(load_devices_patch.called)
+        a.from_xml()
+        self.assertTrue(load_devices_patch.called)
+        load_devices_patch.called = False
+
+        # get_devices True
+        a = Account()
+        self.assertFalse(load_devices_patch.called)
+        a.from_xml(get_devices=True)
+        self.assertTrue(load_devices_patch.called)
+        load_devices_patch.called = False
+
+        # get_devices False
+        a = Account()
+        self.assertFalse(load_devices_patch.called)
+        a.from_xml(get_devices=False)
+        self.assertFalse(load_devices_patch.called)
+        load_devices_patch.called = False
+
 
     def test_set_portal_password_requires_did_or_sip_user_id(self):
         a = Account()
