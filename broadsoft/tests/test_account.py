@@ -1898,6 +1898,19 @@ class TestBroadsoftAccount(unittest.TestCase):
         xml = ET.tostring(c.to_xml()).decode('utf-8')
         self.assertIn(ep_xml, xml)
 
+    @unittest.mock.patch.object(UserModifyRequest, '__init__', side_effect=return_none)
+    def test_link_primary_device_call_to_usermod(self, init_patch):
+        b = BroadsoftRequest()
+        a = Account(did=6175551212)
+        a.attach_default_devices()
+        a.link_primary_device(req_object=b, device=a.devices[0])
+        args, kwargs = init_patch.call_args_list[0]
+        self.assertEqual(
+            {'device_name': 'Generic', 'line_port': '6175551212@broadsoft.mit.edu', 'include_endpoint': True,
+             'sip_user_id': '6175551212@broadsoft.mit.edu', 'did': '6175551212'},
+            kwargs
+        )
+
     def test_link_sca_device_creates_with_generic_profile(self):
         b = BroadsoftRequest()
         a = Account(did=6175551212)
@@ -2153,3 +2166,129 @@ class TestBroadsoftAccount(unittest.TestCase):
         self.assertFalse(a.derive_enough_devices())
         a.attach_primary_device()
         self.assertTrue(a.derive_enough_devices())
+
+    def test_old_did_private_var(self):
+        a = Account(did=6175551212)
+        self.assertEqual(str(a.did), str(a.old_did))
+
+        a = Account()
+        a.did = 6175551212
+        a.set_old_did()
+        self.assertEqual(str(a.did), str(a.old_did))
+
+    def test_did_changed(self):
+        # same type, equal, at init
+        a = Account(did=6175551212)
+        a.did = 6175551212
+        self.assertFalse(a.did_changed())
+
+        # different type, equal, at init
+        a = Account(did=6175551212)
+        a.did = '6175551212'
+        self.assertFalse(a.did_changed())
+
+        # same type, equal, post init
+        a = Account()
+        a.did = 6175551212
+        a.set_old_did()
+        a.did = 6175551212
+        self.assertFalse(a.did_changed())
+
+        # different type, equal, post init
+        a = Account()
+        a.did = 6175551212
+        a.set_old_did()
+        a.did = '6175551212'
+        self.assertFalse(a.did_changed())
+
+        # not equal, at init
+        a = Account(did=6175551212)
+        a.did = 6175551213
+        self.assertTrue(a.did_changed())
+
+        # not equal, post init
+        a = Account()
+        a.did = 6175551212
+        a.set_old_did()
+        a.did = 6175551213
+        self.assertTrue(a.did_changed())
+
+    @unittest.mock.patch.object(Account, 'set_old_did')
+    @unittest.mock.patch.object(Account, 'from_xml')
+    @unittest.mock.patch.object(UserGetRequest, 'get_user')
+    def test_fetch_should_set_old_did(self, get_user_patch, from_xml_patch, set_old_did_patch):
+        a = Account(did=6175551212)
+        set_old_did_patch.called = False
+        a.fetch()
+        self.assertTrue(set_old_did_patch.called)
+
+    def test_account_secondary_call_to_prep_attrs_should_preserve_broadsoftinstance(self):
+        i = instance_factory('test')
+        a = Account(did=6175551212, sip_user_id='6175551212@broadsoft.mit.edu', broadsoftinstance=i,
+                    email='beaver@mit.edu', first_name='Tim', last_name='Beaver')
+        bsi_1 = a.broadsoftinstance
+        a.prep_attributes()
+        bsi_2 = a.broadsoftinstance
+        self.assertEqual(bsi_1, bsi_2)
+
+    def test_build_modify_object(self):
+        i = instance_factory('test')
+        a = Account(did=6175551212, sip_user_id='6175551212@broadsoft.mit.edu', broadsoftinstance=i,
+                    email='beaver@mit.edu', first_name='Tim', last_name='Beaver')
+        m = a.build_modify_object()
+
+        self.assertIsInstance(m, UserModifyRequest)
+        self.assertEqual(str(a.did), str(m.did))
+        self.assertEqual(str(a.sip_user_id), str(m.sip_user_id))
+        self.assertEqual(str(a.email), str(m.email_address))
+        self.assertEqual(str(a.first_name), str(m.first_name))
+        self.assertEqual(str(a.last_name), str(m.last_name))
+        self.assertEqual(a.broadsoftinstance, m.broadsoftinstance)
+
+    @unittest.mock.patch.object(Account, 'provision')
+    @unittest.mock.patch.object(Account, 'delete')
+    @unittest.mock.patch.object(Account, 'build_modify_object')
+    @unittest.mock.patch.object(Account, 'prep_attributes')
+    def test_modify_path_when_did_does_not_change(self, prep_attrs_patch, build_mod_patch, delete_patch,
+                                                  provision_patch):
+        i = instance_factory('test')
+        a = Account(did=6175551212, sip_user_id='6175551212@broadsoft.mit.edu', broadsoftinstance=i,
+                    email='beaver@mit.edu', first_name='Tim', last_name='Beaver')
+        self.assertFalse(build_mod_patch.called)
+        self.assertFalse(delete_patch.called)
+        self.assertFalse(provision_patch.called)
+        prep_attrs_patch.called = False
+
+        a.modify()
+
+        self.assertTrue(prep_attrs_patch.called)
+        self.assertTrue(build_mod_patch.called)
+        self.assertFalse(delete_patch.called)
+        self.assertFalse(provision_patch.called)
+        self.assertEqual(a.did, a.old_did)
+
+    @unittest.mock.patch.object(Account, 'provision')
+    @unittest.mock.patch.object(Account, 'delete')
+    @unittest.mock.patch.object(Account, 'build_modify_object')
+    @unittest.mock.patch.object(Account, 'prep_attributes')
+    def test_modify_path_when_did_does_change(self, prep_attrs_patch, build_mod_patch, delete_patch,
+                                              provision_patch):
+        i = instance_factory('test')
+        a = Account(did=6175551212, sip_user_id='6175551212@broadsoft.mit.edu', broadsoftinstance=i,
+                    email='beaver@mit.edu', first_name='Tim', last_name='Beaver')
+        a.did = 6175551213
+        self.assertFalse(build_mod_patch.called)
+        self.assertFalse(delete_patch.called)
+        self.assertFalse(provision_patch.called)
+        prep_attrs_patch.called = False
+
+        a.modify()
+
+        self.assertTrue(prep_attrs_patch.called)
+        self.assertFalse(build_mod_patch.called)
+        self.assertTrue(delete_patch.called)
+        self.assertTrue(provision_patch.called)
+        self.assertNotEqual(a.did, a.old_did)
+        # expect that sip_user_id to get regenerated
+        self.assertEqual(str(a.did) + '@' + a.broadsoftinstance.default_domain, a.sip_user_id)
+

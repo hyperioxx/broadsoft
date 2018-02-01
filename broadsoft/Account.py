@@ -56,6 +56,7 @@ class Account(BroadsoftObject):
         self.sip_password = sip_password
         self.voicemail_mwi = voicemail_mwi
 
+        self.old_did = self.did
         BroadsoftObject.__init__(self, **kwargs)
 
     def __repr__(self):
@@ -189,6 +190,20 @@ class Account(BroadsoftObject):
 
         self.devices.append(d)
 
+    def build_modify_object(self):
+        kwargs = {
+            'did': self.did,
+            'sip_user_id': self.sip_user_id,
+            'broadsoftinstance': self.broadsoftinstance,
+            'first_name': self.first_name,
+            'last_name': self.last_name,
+            'email_address': self.email
+        }
+
+        u = UserModifyRequest(**kwargs)
+        self.inject_broadsoftinstance(child=u)
+        return u
+
     def build_provision_request(self):
         # going to do this as a compound request so that it's pseudo-atomic...if one fails, the rest should
         # fail, regardless of where in the process that failure occurs
@@ -299,9 +314,16 @@ class Account(BroadsoftObject):
                     highest_index = d.index
             return highest_index + 1
 
+    # want to make sure type doesn't get in the way, so extending explicit method
+    def did_changed(self):
+        if str(self.did) == str(self.old_did):
+            return False
+        return True
+
     def fetch(self, get_devices=True):
         self.xml = UserGetRequest.get_user(sip_user_id=self.sip_user_id, broadsoftinstance=self.broadsoftinstance)
         self.from_xml(get_devices=get_devices)
+        self.set_old_did()
 
     def from_xml(self, get_devices=True):
         BroadsoftObject.from_xml(self)
@@ -331,7 +353,7 @@ class Account(BroadsoftObject):
 
     def link_primary_device(self, req_object, device):
         u_mod = UserModifyRequest(did=self.did, sip_user_id=self.sip_user_id, device_name=device.name,
-                                  line_port=device.line_port)
+                                  line_port=device.line_port, include_endpoint=True)
         self.inject_broadsoftinstance(child=u_mod)
         req_object.commands.append(u_mod)
 
@@ -489,6 +511,22 @@ class Account(BroadsoftObject):
                 d.fetch(target_name=d.name)
                 self.devices.append(d)
 
+    def modify(self):
+        # call prep_attributes(); want to make sure attrs that depend on other attrs get updated (such as sip_user_id,
+        # etc)
+        self.prep_attributes()
+
+        # DID didn't change? can run as modify
+        if not self.did_changed():
+            mod = self.build_modify_object()
+            mod.post()
+
+        # if the DID did change, delete and re provision (in broadsoft, key is sip_user_id, which is built from DID)
+        else:
+            self.delete(delete_devices=True)
+            self.sip_user_id = self.derive_sip_user_id(did=self.did)
+            self.provision()
+
     def overwrite(self):
         logging.getLogger('broadsoftapi').info("overwriting pre-existing account for DID: " + str(self.did),
                      extra={'session_id': self.broadsoftinstance.session_id})
@@ -576,6 +614,9 @@ class Account(BroadsoftObject):
             if d.is_primary:
                 self.inject_broadsoftinstance(child=d)
                 d.set_password(sip_user_name=self.sip_user_id, did=self.did, sip_password=new_sip_password)
+
+    def set_old_did(self):
+        self.old_did = str(self.did)
 
     def set_portal_password(self, sip_password=None):
         new_password = sip_password

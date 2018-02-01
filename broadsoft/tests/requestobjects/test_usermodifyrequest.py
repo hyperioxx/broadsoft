@@ -62,6 +62,83 @@ class TestBroadsoftUserModifyRequest(unittest.TestCase):
         with self.assertRaises(ValueError):
             u.validate()
 
+    @unittest.mock.patch.object(UserModifyRequest, 'set_drones')
+    @unittest.mock.patch.object(BroadsoftRequest, 'prep_attributes')
+    def test_prep_attrs_calls_parent_version_and_set_drones(self, prep_patch, drones_patch):
+        u = UserModifyRequest(did='6175551212', first_name='Tim', last_name='Beaver')
+
+        # test called by init
+        self.assertTrue(prep_patch.called)
+        self.assertTrue(drones_patch.called)
+
+        # and when called explicitly
+        prep_patch.called = False
+        drones_patch.called = False
+        u.prep_attributes()
+        self.assertTrue(prep_patch.called)
+        self.assertTrue(drones_patch.called)
+
+    def test_set_drones_call(self):
+        # no value set; should overwrite implicitly
+        u = UserModifyRequest(did='6175551212', first_name='Tim', last_name='Beaver')
+        self.assertEqual(u.did, u.clid_did)
+        self.assertEqual(u.first_name, u.clid_first_name)
+        self.assertEqual(u.last_name, u.clid_last_name)
+
+        # change parent vals; leave drones alone; calling set_drones() should overwrite
+        u.did = 6175551213
+        u.first_name = 'Timmy'
+        u.last_name = 'Beav-Beav'
+        u.set_drones()
+        self.assertEqual(u.did, u.clid_did)
+        self.assertEqual(u.first_name, u.clid_first_name)
+        self.assertEqual(u.last_name, u.clid_last_name)
+
+        # change parent vals; also set drones explicitly; calling set_drones() should not overwrite
+        u.did = 6175551214
+        u.first_name = 'Timmy2'
+        u.last_name = 'Beav-Beav2'
+        u.clid_did = 6175551215
+        u.clid_first_name = 'T'
+        u.clid_last_name = 'B'
+        u.set_drones()
+        self.assertNotEquals(u.did, u.clid_did)
+        self.assertNotEquals(u.first_name, u.clid_first_name)
+        self.assertNotEquals(u.last_name, u.clid_last_name)
+
+    def test_prep_attrs_sets_clid_first_name_and_clid_last_name(self):
+        u = UserModifyRequest(did='6175551212', first_name='Tim', last_name='Beaver')
+        self.assertEqual(u.clid_first_name, u.first_name)
+        self.assertEqual(u.clid_last_name, u.last_name)
+        self.assertEqual(u.clid_did, u.did)
+
+        u.first_name = 'Timmy'
+        u.last_name = 'Beav-Beav'
+        u.did = '6175551213'
+        u.prep_attributes()
+        self.assertEqual(u.clid_first_name, u.first_name)
+        self.assertEqual(u.clid_last_name, u.last_name)
+        self.assertEqual(u.clid_did, u.did)
+
+    def test_value_for_include_endpoint(self):
+        u = UserModifyRequest(sip_user_id='6175551212@broadsoft-dev.mit.edu', did='6175551212', first_name='Tim',
+                              last_name='Beaver')
+        self.assertFalse(u.include_endpoint)
+        cmd = u.build_command_xml()
+        self.assertEqual(
+            '<command xmlns="" xsi:type="UserModifyRequest16"><userId>6175551212@broadsoft-dev.mit.edu</userId><lastName>Beaver</lastName><firstName>Tim</firstName><callingLineIdLastName>Beaver</callingLineIdLastName><callingLineIdFirstName>Tim</callingLineIdFirstName><phoneNumber>6175551212</phoneNumber><extension>51212</extension><callingLineIdPhoneNumber>6175551212</callingLineIdPhoneNumber></command>',
+            ET.tostring(cmd).decode('utf-8')
+        )
+
+        u = UserModifyRequest(sip_user_id='6175551212@broadsoft-dev.mit.edu', did='6175551212', first_name='Tim',
+                              last_name='Beaver', include_endpoint=True)
+        self.assertTrue(u.include_endpoint)
+        cmd = u.build_command_xml()
+        self.assertEqual(
+            '<command xmlns="" xsi:type="UserModifyRequest16"><userId>6175551212@broadsoft-dev.mit.edu</userId><lastName>Beaver</lastName><firstName>Tim</firstName><callingLineIdLastName>Beaver</callingLineIdLastName><callingLineIdFirstName>Tim</callingLineIdFirstName><phoneNumber>6175551212</phoneNumber><extension>51212</extension><callingLineIdPhoneNumber>6175551212</callingLineIdPhoneNumber><endpoint><accessDeviceEndpoint><accessDevice><deviceLevel>Group</deviceLevel><deviceName>Generic</deviceName></accessDevice></accessDeviceEndpoint></endpoint></command>',
+            ET.tostring(cmd).decode('utf-8')
+        )
+
     def test_to_xml(self):
         self.maxDiff = None
 
@@ -89,15 +166,6 @@ class TestBroadsoftUserModifyRequest(unittest.TestCase):
                 '<oldPassword>oldp</oldPassword>' + \
                 '<newPassword>newp</newPassword>' + \
                 '<emailAddress>beaver@mit.edu</emailAddress>' + \
-                '<endpoint>' + \
-                    '<accessDeviceEndpoint>' + \
-                        '<accessDevice>' + \
-                            '<deviceLevel>Group</deviceLevel>' + \
-                            '<deviceName>Generic</deviceName>' + \
-                        '</accessDevice>' + \
-                        '<linePort>6175551212_lp@broadsoft-dev.mit.edu</linePort>' + \
-                    '</accessDeviceEndpoint>' + \
-                '</endpoint>' + \
             '</command>'
 
         cmd = u.build_command_xml()
@@ -106,7 +174,7 @@ class TestBroadsoftUserModifyRequest(unittest.TestCase):
         # here's a request with just last name (inherits Generic as device name)
         u = UserModifyRequest(sip_user_id='6175551212@broadsoft-dev.mit.edu', last_name='Beaver')
         target_xml = \
-            '<command xmlns="" xsi:type="UserModifyRequest16"><userId>6175551212@broadsoft-dev.mit.edu</userId><lastName>Beaver</lastName><endpoint><accessDeviceEndpoint><accessDevice><deviceLevel>Group</deviceLevel><deviceName>Generic</deviceName></accessDevice></accessDeviceEndpoint></endpoint></command>'
+            '<command xmlns="" xsi:type="UserModifyRequest16"><userId>6175551212@broadsoft-dev.mit.edu</userId><lastName>Beaver</lastName><callingLineIdLastName>Beaver</callingLineIdLastName></command>'
 
         cmd = u.build_command_xml()
         self.assertEqual(target_xml, ET.tostring(cmd).decode('utf-8'))
@@ -114,7 +182,7 @@ class TestBroadsoftUserModifyRequest(unittest.TestCase):
         # here's a request with just device_name (inherits Generic as device name)
         u = UserModifyRequest(sip_user_id='6175551212@broadsoft-dev.mit.edu', device_name='beaverphone')
         target_xml = \
-            '<command xmlns="" xsi:type="UserModifyRequest16"><userId>6175551212@broadsoft-dev.mit.edu</userId><endpoint><accessDeviceEndpoint><accessDevice><deviceLevel>Group</deviceLevel><deviceName>Generic</deviceName></accessDevice></accessDeviceEndpoint></endpoint></command>'
+            '<command xmlns="" xsi:type="UserModifyRequest16"><userId>6175551212@broadsoft-dev.mit.edu</userId></command>'
 
         cmd = u.build_command_xml()
         self.assertEqual(target_xml, ET.tostring(cmd).decode('utf-8'))

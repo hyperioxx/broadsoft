@@ -9,7 +9,7 @@ class UserModifyRequest(BroadsoftRequest):
     def __init__(self, sip_user_id=None, last_name=None, first_name=None, clid_first_name=None,
                  clid_last_name=None, name_dialing_name=None, did=None, extension=None, clid_did=None,
                  old_password=None, new_password=None, email_address=None, device_name=None,
-                 line_port=None,
+                 line_port=None, include_endpoint=False,
                  **kwargs):
         self.clid_did = clid_did
         self.clid_first_name = clid_first_name
@@ -25,7 +25,10 @@ class UserModifyRequest(BroadsoftRequest):
         self.new_password = new_password
         self.old_password = old_password
         self.sip_user_id = sip_user_id
+        self.include_endpoint = include_endpoint
         self.derive_extension()
+
+        self.drone_actions = {}
 
         BroadsoftRequest.__init__(self, **kwargs)
 
@@ -86,10 +89,11 @@ class UserModifyRequest(BroadsoftRequest):
             e.text = self.email_address
 
         # building the endpoint is a little complicated, so hand that off...
-        e = Endpoint(line_port=self.line_port)
-        ex = e.to_xml()
-        if ex:
-            cmd.append(ex)
+        if self.include_endpoint:
+            e = Endpoint(line_port=self.line_port)
+            ex = e.to_xml()
+            if ex:
+                cmd.append(ex)
 
         return cmd
 
@@ -97,6 +101,39 @@ class UserModifyRequest(BroadsoftRequest):
         if not self.extension and self.did:
             self.did = BroadsoftRequest.convert_phone_number(number=self.did)
             self.extension = str(self.did)[-digits:]
+
+    def prep_attributes(self):
+        BroadsoftRequest.prep_attributes(self)
+        self.set_drones()
+
+    def set_drones(self):
+        # define the drone attrs, and the parent they draw from
+        drones = {
+            'clid_first_name': 'first_name',
+            'clid_last_name': 'last_name',
+            'clid_did': 'did'
+        }
+
+        # want to keep track of when we automatically set drones vs when user does so know when to overwrite implicitly
+        for attr, parent in drones.items():
+            drone_val = getattr(self, attr)
+            parent_val = getattr(self, parent)
+
+            overwrite_drone = False
+
+            # does the drone have a non-None value?
+            if drone_val is not None:
+                # is the drone val equal to what was set automatically? overwrite.
+                if attr in self.drone_actions and self.drone_actions[attr] == drone_val:
+                    overwrite_drone = True
+
+            # is the drone None? overwrite.
+            else:
+                overwrite_drone = True
+
+            if overwrite_drone:
+                self.drone_actions[attr] = parent_val
+                setattr(self, attr, parent_val)
 
     def validate(self):
         import re
