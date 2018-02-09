@@ -8,16 +8,17 @@ import re
 
 
 class BroadsoftObject:
-    logging_dir = '/var/log/broadsoft'
+    default_logging_dir = '/var/log/broadsoft'
     logging_fname = 'api.log'
 
     def __init__(self, xml=None, implicit_overwrite=False, skip_if_exists=False, instance='prod',
-                 broadsoftinstance=None, logging_level='info'):
+                 broadsoftinstance=None, logging_level='info', logging_dir=None):
         self.broadsoftinstance = broadsoftinstance
         self.fetched = None
         self.implicit_overwrite = implicit_overwrite
         self.instance = instance
         self.logger = None
+        self.logging_dir = logging_dir
         self.logging_level = logging_level
         self.skip_if_exists = skip_if_exists
         self.xml = xml
@@ -141,6 +142,12 @@ class BroadsoftObject:
         import os
         from logging.handlers import TimedRotatingFileHandler
 
+        # is no logging dir specified? use default.
+        if self.logging_dir is None:
+            self.logging_dir = self.default_logging_dir
+        # kill trailing slash if needed
+        self.logging_dir = re.sub(r'/$', '', self.logging_dir)
+
         # does the log location exist
         if not os.path.exists(self.logging_dir):
             os.makedirs(name=self.logging_dir, exist_ok=True)
@@ -165,7 +172,7 @@ class BroadsoftObject:
             format_str = '%(levelname)s:%(asctime)s (%(session_id)s): %(message)s'
             formatter = logging.Formatter(format_str)
 
-            fh = TimedRotatingFileHandler(filename='/var/log/broadsoft/api.log',
+            fh = TimedRotatingFileHandler(filename=self.logging_dir + '/' + self.logging_fname,
                                           when='W0', interval=1, backupCount=12)
             fh.setLevel(logging.INFO)
             fh.setFormatter(formatter)

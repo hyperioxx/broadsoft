@@ -344,3 +344,18 @@ class TestBroadsoftObject(unittest.TestCase):
         self.assertEqual(logging.DEBUG, BroadsoftObject.derive_logging_level_object(logging_level='DEBUG'))
         with self.assertRaises(ValueError):
             BroadsoftObject.derive_logging_level_object(logging_level='gaga')
+
+    @unittest.mock.patch('os.makedirs')
+    @unittest.mock.patch('os.path.exists')
+    def test_deriving_logging_dir(self, exists_patch, makedirs_patch):
+        # should default to default_logging_dir
+        b = BroadsoftObject()
+        self.assertEqual(b.logging_dir, BroadsoftObject.default_logging_dir)
+
+        # should be able to override
+        b = BroadsoftObject(logging_dir='/garbage')
+        self.assertEqual(b.logging_dir, '/garbage')
+
+        # drops trailing slash
+        b = BroadsoftObject(logging_dir='/garbage/')
+        self.assertEqual(b.logging_dir, '/garbage')
